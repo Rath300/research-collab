@@ -464,4 +464,32 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user(); 
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Create Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('message', 'match', 'system', 'mention')),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  link TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- Create index for notifications
+CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
+
+-- Set up RLS for notifications
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Notifications policies
+CREATE POLICY "Users can view their own notifications" 
+  ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "System can insert notifications"
+  ON public.notifications FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Users can update their own notifications" 
+  ON public.notifications FOR UPDATE USING (auth.uid() = user_id); 

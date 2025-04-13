@@ -11,14 +11,12 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@repo/ui": "*",
-    "@research-collab/api": "*",
-    "@research-collab/db": "*",
     "@stripe/react-stripe-js": "^2.6.2",
     "@stripe/stripe-js": "^3.0.10",
     "@supabase/auth-helpers-nextjs": "^0.9.0",
     "@supabase/supabase-js": "^2.40.0",
     "clsx": "^2.1.0",
+    "date-fns": "^2.30.0",
     "framer-motion": "^11.0.13",
     "next": "^15.2.4",
     "react": "^18.2.0",
@@ -30,13 +28,12 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
     "@types/node": "^22.14.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.24.0",
+    "eslint-config-next": "^15.2.4",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "5.8.2"

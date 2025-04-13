@@ -518,4 +518,61 @@ export const storage = {
 
     return true;
   }
+};
+
+// Notification functions
+export const getNotifications = async (userId: string, limit = 20) => {
+  const supabase = getBrowserClient();
+  
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+    
+  if (error) {
+    throw new SupabaseError(`Error fetching notifications: ${error.message}`, 500, error.code);
+  }
+  
+  return data;
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  const supabase = getBrowserClient();
+  
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', notificationId);
+    
+  if (error) {
+    throw new SupabaseError(`Error marking notification as read: ${error.message}`, 500, error.code);
+  }
+};
+
+export const setupNotificationsListener = (userId: string, callback: (notification: any) => void) => {
+  const supabase = getBrowserClient();
+  
+  // Subscribe to all new notifications for this user
+  const subscription = supabase
+    .channel(`notifications:${userId}`)
+    .on('postgres_changes', 
+      { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`
+      }, 
+      (payload) => {
+        // Call the callback with the new notification data
+        callback(payload.new);
+      }
+    )
+    .subscribe();
+  
+  // Return a function to unsubscribe
+  return () => {
+    supabase.removeChannel(subscription);
+  };
 }; 

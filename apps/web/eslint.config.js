@@ -1,4 +1,10 @@
-import { nextJsConfig } from "@repo/eslint-config/next-js";
-
+// eslint-disable-next-line
 /** @type {import("eslint").Linter.Config} */
-export default nextJsConfig;
+export default {
+  extends: ["next/core-web-vitals"],
+  parserOptions: {
+    babelOptions: {
+      presets: [require.resolve("next/babel")],
+    },
+  },
+};

@@ -105,4 +105,18 @@ export const profileUpdateSchema = profileSchema.partial().omit({
   joining_date: true 
 });
 
-export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>; 
+export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
+
+// Notification schema
+export const notificationSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  type: z.enum(['message', 'match', 'system', 'mention']),
+  title: z.string(),
+  body: z.string(),
+  link: z.string().nullable().optional(),
+  is_read: z.boolean().default(false),
+  created_at: z.string()
+});
+
+export type Notification = z.infer<typeof notificationSchema>; 

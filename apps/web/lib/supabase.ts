@@ -1,14 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@research-collab/db';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 // Custom error handling for Supabase operations
 export class SupabaseError extends Error {
   status: number;
+  code?: string;
   
-  constructor(message: string, status = 400) {
+  constructor(message: string, status = 400, code?: string) {
     super(message);
     this.name = 'SupabaseError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -29,9 +32,7 @@ let browserInstance: ReturnType<typeof createBrowserClient> | null = null;
 
 // Get the browser client (or create it if it doesn't exist)
 export const getBrowserClient = () => {
-  if (browserInstance) return browserInstance;
-  browserInstance = createBrowserClient();
-  return browserInstance;
+  return createClientComponentClient();
 };
 
 // Authentication helper functions
@@ -43,7 +44,7 @@ export const signIn = async (email: string, password: string) => {
   });
   
   if (error) {
-    throw new SupabaseError(error.message, error.status || 400);
+    throw new SupabaseError(error.message, error.status || 400, error.code);
   }
   
   return data;
@@ -60,7 +61,7 @@ export const signUp = async (email: string, password: string, metadata?: Record<
   });
   
   if (error) {
-    throw new SupabaseError(error.message, error.status || 400);
+    throw new SupabaseError(error.message, error.status || 400, error.code);
   }
   
   return data;
@@ -71,7 +72,7 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   
   if (error) {
-    throw new SupabaseError(error.message, error.status || 400);
+    throw new SupabaseError(error.message, error.status || 400, error.code);
   }
   
   return true;
@@ -101,11 +102,23 @@ export const getUser = async () => {
 
 export const resetPassword = async (email: string) => {
   const supabase = getBrowserClient();
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/update-password`,
+  });
   
   if (error) {
-    throw new SupabaseError(error.message, error.status || 400);
+    throw new SupabaseError(error.message, 400, error.code);
   }
+};
+
+export const updatePassword = async (newPassword: string) => {
+  const supabase = getBrowserClient();
   
-  return data;
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+  
+  if (error) {
+    throw new SupabaseError(error.message, 400, error.code);
+  }
 }; 
