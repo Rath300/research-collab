@@ -1,0 +1,20 @@
+{
+  "name": "@research-collab/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.40.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@research-collab/eslint-config": "*",
+    "@research-collab/typescript-config": "*",
+    "typescript": "^5.8.2"
+  }
+} 

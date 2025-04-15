@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/web && npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": null,
+  "outputDirectory": "apps/web/.next",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet ./apps/web/",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/apps/web/$1",
+      "continue": true
+    }
+  ]
+} 
