@@ -1,0 +1,18 @@
+{
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/chats/page": "app/chats/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/profile/[id]/page": "app/profile/[id]/page.js",
+  "/research/[id]/page": "app/research/[id]/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/reset-password/page": "app/reset-password/page.js",
+  "/research/page": "app/research/page.js",
+  "/test/page": "app/test/page.js",
+  "/settings/page": "app/settings/page.js",
+  "/update-password/page": "app/update-password/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/auth/callback/page": "app/auth/callback/page.js"
+}

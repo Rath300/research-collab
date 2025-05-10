@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 18, 18, 18;
+  --background-end-rgb: 18, 18, 18;
+  --researchbee-yellow: #FFD54F;
+  --researchbee-yellow-dark: #FFC107;
+  --researchbee-black: #121212;
+  --researchbee-dark-gray: #1E1E1E;
+  --researchbee-medium-gray: #2C2C2C;
+  --researchbee-light-gray: #B3B3B3;
+  --researchbee-white: #FFFFFF;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+h2 {
+  font-size: 2rem;
+}
+h3 {
+  font-size: 1.75rem;
+}
+h4 {
+  font-size: 1.5rem;
+}
+p {
+  margin: 0;
+}
+a {
+  color: var(--researchbee-yellow);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--researchbee-yellow-dark);
+}
+
+.netflix-btn {
+  @apply px-4 py-2 rounded font-medium transition-all duration-200 inline-flex items-center justify-center;
+}
+.netflix-btn-primary {
+  @apply bg-researchbee-yellow text-researchbee-black hover:bg-researchbee-yellow-dark;
+}
+.netflix-btn-secondary {
+  @apply bg-researchbee-medium-gray text-white hover:bg-opacity-80;
+}
+.netflix-btn-outline {
+  @apply border border-researchbee-yellow text-researchbee-yellow bg-transparent hover:bg-researchbee-yellow hover:text-researchbee-black;
+}
+.netflix-btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700;
+}
+.netflix-btn-sm {
+  @apply text-sm px-3 py-1;
+}
+.netflix-btn-lg {
+  @apply text-lg px-6 py-3;
+}
+
+.netflix-card {
+  @apply bg-researchbee-dark-gray rounded-md p-6 shadow-lg border border-researchbee-medium-gray;
+}
+
+.netflix-input {
+  @apply w-full px-4 py-3 bg-researchbee-dark-gray border border-researchbee-medium-gray rounded text-white focus:outline-none focus:ring-2 focus:ring-researchbee-yellow focus:border-transparent;
+}
+.netflix-input-error {
+  @apply border-red-600 focus:ring-red-600;
+}
+
+.netflix-label {
+  @apply block text-sm text-researchbee-light-gray mb-2;
+}
+
+.netflix-nav {
+  @apply py-4 px-4 sm:px-6 lg:px-8 transition-all duration-300;
+}
+.netflix-nav-scrolled {
+  @apply bg-researchbee-black/90 backdrop-blur-sm shadow-md;
+}
+
+.netflix-row {
+  @apply mb-8;
+}
+.netflix-row-title {
+  @apply text-xl font-bold mb-4;
+}
+
+.netflix-slider {
+  @apply flex overflow-x-auto pb-4 hide-scrollbar;
+}
+.netflix-slider-item {
+  @apply flex-none mr-4 rounded-md overflow-hidden relative transition-transform duration-300 hover:scale-105;
+}
+
+.netflix-hero {
+  @apply relative min-h-[70vh] flex items-center justify-center;
+}
+.netflix-hero-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-researchbee-black via-transparent to-transparent;
+}
+
+.netflix-avatar {
+  @apply h-10 w-10 rounded-full bg-researchbee-medium-gray flex items-center justify-center text-white font-bold;
+}
+
+.netflix-pill {
+  @apply px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.netflix-link {
+  @apply text-researchbee-yellow hover:text-researchbee-yellow-dark transition-colors duration-200;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.netflix-fade-in {
+  @apply animate-fade-in;
+}
+
+.netflix-slide-up {
+  @apply animate-slide-up;
+}
+
+.netflix-scale {
+  transition: transform 0.2s ease;
+}
+
+.netflix-scale:hover {
+  transform: scale(1.05);
+}
+
+.netflix-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6;
+}
+
+.netflix-modal {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80;
+}
+
+.netflix-modal-content {
+  @apply bg-researchbee-dark-gray rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto;
+}
+
+.netflix-skeleton {
+  @apply bg-researchbee-medium-gray animate-pulse rounded;
+}
+
+.netflix-hover-trigger .netflix-hover-target {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.netflix-hover-trigger:hover .netflix-hover-target {
+  opacity: 1;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--researchbee-yellow);
+  outline-offset: 2px;
+}
+
+body {
+  font-family: 'Netflix Sans', sans-serif;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+} 

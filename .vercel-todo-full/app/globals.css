@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Main colors */
+  --color-primary: 94, 234, 212; /* teal */
+  --color-secondary: 186, 230, 253; /* light blue */
+  --color-accent: 216, 180, 254; /* purple */
+  --color-warning: 250, 204, 21; /* yellow */
+  --color-error: 248, 113, 113; /* red */
+  --color-success: 74, 222, 128; /* green */
+  
+  /* Neutral colors */
+  --color-background: 17, 24, 39; /* dark gray */
+  --color-background-alt: 31, 41, 55; /* slightly lighter gray */
+  --color-foreground: 243, 244, 246; /* light gray */
+  
+  /* Text colors */
+  --color-text-primary: 243, 244, 246; /* light gray */
+  --color-text-secondary: 209, 213, 219; /* lighter gray */
+  --color-text-tertiary: 156, 163, 175; /* even lighter gray */
+}
+
+/* Light mode overrides */
+[data-theme="light"] {
+  --color-background: 250, 250, 252;
+  --color-background-alt: 241, 245, 249;
+  --color-foreground: 17, 24, 39;
+  --color-text-primary: 17, 24, 39;
+  --color-text-secondary: 55, 65, 81;
+  --color-text-tertiary: 107, 114, 128;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}

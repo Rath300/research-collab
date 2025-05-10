@@ -1,0 +1,63 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+.yarn
+
+# testing
+coverage
+
+# next.js
+.next
+out
+
+# build
+build
+dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# development
+.git
+.github
+.vscode
+README.md
+*.md
+
+# temp directories
+temp
+.vercel-*
+clean-repo
+simple-deploy
+nextjs-deploy
+research-collab-standalone
+
+# cache
+.turbo
+.cache
+
+# Large files/directories
+.vercel/output
+*.log
+*.zip
+research-collab-nextjs.zip
+standalone-todo
+research-collab
+simple-app
+minimal-deploy
+temp-deploy 

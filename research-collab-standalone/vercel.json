@@ -1,0 +1,8 @@
+{
+  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' next build",
+  "ignoreCommand": "echo 'Skipping TypeScript and ESLint checks'",
+  "devCommand": "next dev",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

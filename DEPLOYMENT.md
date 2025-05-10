@@ -8,8 +8,7 @@ The application is deployed at: https://research-collab-nine.vercel.app/
 - Project URL: https://yltnvmypasnfdgtnyhwg.supabase.co
 
 ## Environment Variables
-Ensure the following environment variables are set in Vercel:
-- NEXT_PUBLIC_SUPABASE_URL
+Ensure the following environment variables are set in Vercel:NEXT_PUBLIC_SUPABASE_URL
 - NEXT_PUBLIC_SUPABASE_ANON_KEY
 - NEXT_PUBLIC_SUPABASE_REDIRECT_URL
 - NEXT_PUBLIC_APP_URL

@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/web && npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": null,
+  "buildCommand": "cd apps/web && npm install && npm run build",
   "outputDirectory": "apps/web/.next",
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet ./apps/web/",
+  "installCommand": "npm install",
+  "framework": "nextjs",
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/apps/web/$1",
-      "continue": true
-    }
+    { "src": "/$", "dest": "/" },
+    { "src": "/todo", "dest": "/todo" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/_next/(.*)", "dest": "/_next/$1" },
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 } 

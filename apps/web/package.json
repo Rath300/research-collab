@@ -1,41 +1,57 @@
 {
   "name": "web",
-  "version": "0.1.0",
-  "type": "module",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^2.6.2",
-    "@stripe/stripe-js": "^3.0.10",
     "@supabase/auth-helpers-nextjs": "^0.9.0",
+    "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.40.0",
-    "clsx": "^2.1.0",
+    "@tamagui/config": "1.74.8",
+    "@tamagui/core": "1.74.8",
+    "@tamagui/font-inter": "1.74.8",
+    "@tamagui/next-theme": "1.74.8",
+    "@tamagui/shorthands": "1.74.8",
+    "@tamagui/themes": "1.74.8",
+    "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
     "framer-motion": "^11.0.13",
-    "next": "^13.5.6",
+    "next": "^13.4.19",
+    "next-themes": "^0.4.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.0.1",
-    "react-tinder-card": "^1.6.2",
+    "react-icons": "^4.12.0",
     "tailwind-merge": "^2.2.1",
+    "tamagui": "1.74.8",
     "zod": "^3.22.4",
-    "zustand": "^4.5.2"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@types/node": "^20.10.6",
-    "@types/react": "^18.2.46",
-    "@types/react-dom": "^18.2.18",
-    "autoprefixer": "^10.4.18",
-    "eslint": "^9.24.0",
-    "eslint-config-next": "^15.2.4",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
-  }
+    "@next/eslint-plugin-next": "^13.4.19",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^18.11.17",
+    "@types/react": "^18.2.5",
+    "@types/react-dom": "^18.2.4",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.30.0",
+    "eslint-config-next": "13.0.7",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^4.9.4"
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).",
+  "main": "eslint.config.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

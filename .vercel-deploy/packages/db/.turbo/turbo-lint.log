@@ -1,0 +1,29 @@
+
+
+> @research-collab/db@0.1.0 lint
+> eslint .
+
+[1G[0K
+Oops! Something went wrong! :(
+
+ESLint: 9.24.0
+
+ESLint couldn't find an eslint.config.(js|mjs|cjs) file.
+
+From ESLint v9.0.0, the default configuration file is now eslint.config.js.
+If you are using a .eslintrc.* file, please follow the migration guide
+to update your configuration file to the new format:
+
+https://eslint.org/docs/latest/use/configure/migration-guide
+
+If you still have problems after following the migration guide, please stop by
+https://eslint.org/chat/help to chat with the team.
+
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m Lifecycle script `lint` failed with error:
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcode[39m [33m2[39m
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /Users/shreyansh/ItsMightHappenApp/packages/db
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m @research-collab/db@0.1.0
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /Users/shreyansh/ItsMightHappenApp/packages/db
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m command failed
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcommand[39m sh -c eslint .
+[1G[0K⠙[1G[0K
