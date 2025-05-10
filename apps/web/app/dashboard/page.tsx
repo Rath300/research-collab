@@ -239,6 +239,7 @@ export default function DashboardPage() {
               hasMessages={messages.length > 0}
               onCreateProject={() => setActiveSection('projects')}
               userName={userName}
+              profile={profile}
             />
           )}
           
@@ -453,28 +454,75 @@ function DashboardOverview({
   hasMatches, 
   hasMessages,
   onCreateProject,
-  userName
+  userName,
+  profile
 }: { 
   hasProjects: boolean;
   hasMatches: boolean;
   hasMessages: boolean;
   onCreateProject: () => void;
   userName: string;
+  profile: any;
 }) {
-  // Get time-based greeting
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-  
-  const greeting = getTimeBasedGreeting();
-  
+  // Check if profile is complete
+  const isProfileComplete = profile && 
+    profile.first_name && 
+    profile.last_name && 
+    profile.bio && 
+    profile.skills?.length > 0 && 
+    profile.interests?.length > 0;
+
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-2">{greeting}, {userName || 'Researcher'}</h2>
-      <p className="text-researchbee-light-gray mb-6">Here's what's happening with your research</p>
+      {/* Welcome Section */}
+      <div className="bg-gray-800 rounded-lg p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-2">
+          Welcome back, {userName}!
+        </h2>
+        <p className="text-gray-400">
+          Here's what's happening in your research world.
+        </p>
+      </div>
+
+      {/* Getting Started Section - Only show if profile is incomplete */}
+      {!isProfileComplete && (
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+          <h3 className="text-xl font-medium mb-2">Getting Started</h3>
+          <p className="text-gray-400 mb-4">
+            Welcome to Research Bee! Here are some steps to get started:
+          </p>
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">1</div>
+              <div>
+                <h4 className="font-medium">Complete your profile</h4>
+                <p className="text-gray-400 text-sm">
+                  Add your skills, interests, and what you're looking for
+                </p>
+                <Link href="/profile-setup" className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block">
+                  Edit Profile
+                </Link>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">2</div>
+              <div>
+                <h4 className="font-medium">Create a project</h4>
+                <p className="text-gray-400 text-sm">
+                  Describe your project idea to attract collaborators
+                </p>
+                <button 
+                  onClick={onCreateProject}
+                  className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block"
+                >
+                  Create Project
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <DashboardCard 
@@ -492,56 +540,6 @@ function DashboardOverview({
           count={hasMessages ? 2 : 0}
           icon="💬"
         />
-      </div>
-      
-      <div className="bg-gray-800 rounded-lg p-6 mb-8">
-        <h3 className="text-xl font-medium mb-2">Getting Started</h3>
-        <p className="text-gray-400 mb-4">
-          Welcome to ItsMightHappen! Here are some steps to get started:
-        </p>
-        <div className="space-y-4">
-          <div className="flex items-start">
-            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">1</div>
-            <div>
-              <h4 className="font-medium">Complete your profile</h4>
-              <p className="text-gray-400 text-sm">
-                Add your skills, interests, and what you're looking for
-              </p>
-              <Link href="/profile-setup" className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block">
-                Edit Profile
-              </Link>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">2</div>
-            <div>
-              <h4 className="font-medium">Create a project</h4>
-              <p className="text-gray-400 text-sm">
-                Describe your project idea to attract collaborators
-              </p>
-              <button 
-                onClick={onCreateProject}
-                className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block"
-              >
-                Create Project
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-start">
-            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">3</div>
-            <div>
-              <h4 className="font-medium">Discover potential collaborators</h4>
-              <p className="text-gray-400 text-sm">
-                Browse and match with people who share your interests
-              </p>
-              <Link href="/discover" className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block">
-                Discover People
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -273,66 +273,21 @@ export default function ProfileSetupPage() {
         .select('*')
         .eq('id', user.id)
         .single();
-      
-      let profileId;
-      
-      if (existingProfile) {
-        // Update existing profile
-        const { data, error } = await supabase
-          .from('profiles')
-          .update({
-            full_name: formData.fullName,
-            title: formData.title,
-            bio: formData.bio,
-            location: formData.location || null,
-            website: formData.website || null,
-            skills: formData.skills,
-            interests: formData.interests,
-            looking_for: formData.lookingFor,
-            availability_hours: formData.availabilityHours,
-            project_preference: formData.projectPreference,
-            visibility: formData.profileVisibility,
-            avatar_url: formData.avatarUrl || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', user.id)
-          .select()
-          .single();
-        
-        if (error) {
-          throw error;
-        }
-        
-        profileId = data.id;
-      } else {
-        // Create new profile
-        const { data, error } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            full_name: formData.fullName,
-            title: formData.title,
-            bio: formData.bio,
-            location: formData.location || null,
-            website: formData.website || null,
-            skills: formData.skills,
-            interests: formData.interests,
-            looking_for: formData.lookingFor,
-            availability_hours: formData.availabilityHours,
-            project_preference: formData.projectPreference,
-            visibility: formData.profileVisibility,
-            avatar_url: formData.avatarUrl || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-        
-        if (error) {
-          throw error;
-        }
-        
-        profileId = data.id;
+
+      // Update or create profile
+      const { data: upsertData, error: upsertError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          ...formData,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (upsertError) {
+        console.error('Profile upsert error:', upsertError);
+        throw new Error('Failed to save profile');
       }
       
       // Redirect to dashboard
