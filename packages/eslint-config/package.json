@@ -2,9 +2,10 @@
   "name": "@research-collab/eslint-config",
   "version": "0.0.0",
   "private": true,
-  "main": "index.js",
+  "type": "module",
+  "main": "base.js",
   "files": [
-    "index.js"
+    "base.js"
   ],
   "dependencies": {
     "eslint-config-prettier": "^10.1.2",

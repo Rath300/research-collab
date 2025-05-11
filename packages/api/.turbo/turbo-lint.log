@@ -1,16 +1,16 @@
 
 
-> @research-collab/db@0.1.0 lint
+> @acme/api@0.1.0 lint
 > eslint .
 
-[1G[0K(node:17785) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/shreyansh/ItsMightHappenApp/packages/eslint-config/base.js is not specified and it doesn't parse as CommonJS.
+[1G[0K(node:17782) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/shreyansh/ItsMightHappenApp/packages/eslint-config/base.js is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
 To eliminate this warning, add "type": "module" to /Users/shreyansh/ItsMightHappenApp/packages/eslint-config/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
 
 Oops! Something went wrong! :(
 
-ESLint: 9.24.0
+ESLint: 8.57.1
 
 Error: Cannot find module '@typescript-eslint/parser'
 Require stack:
@@ -29,9 +29,9 @@ Require stack:
     at Module.load (node:internal/modules/cjs/loader:1289:32)
 [1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m Lifecycle script `lint` failed with error:
 [1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcode[39m [33m2[39m
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /Users/shreyansh/ItsMightHappenApp/packages/db
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m @research-collab/db@0.1.0
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /Users/shreyansh/ItsMightHappenApp/packages/db
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /Users/shreyansh/ItsMightHappenApp/packages/api
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m @acme/api@0.1.0
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /Users/shreyansh/ItsMightHappenApp/packages/api
 [1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m command failed
 [1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcommand[39m sh -c eslint .
 [1G[0K⠙[1G[0K

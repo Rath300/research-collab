@@ -2,6 +2,7 @@
   "name": "@acme/api",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "./index.ts",
   "types": "./index.ts",
   "license": "MIT",
@@ -19,7 +20,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "eslint": "^8.53.0",
     "typescript": "^5.2.2"
   }
 } 
