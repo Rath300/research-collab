@@ -17,13 +17,13 @@
     "strict": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
-    "target": "es5",
+    "target": "es2020",
     "jsx": "react-jsx",
     "noEmit": false,
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["react", "react-native", "node", "react-dom"]
+    "types": ["react", "node", "react-dom"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
