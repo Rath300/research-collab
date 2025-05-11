@@ -22,7 +22,8 @@
     "noEmit": false,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": ["react", "react-native", "node"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
