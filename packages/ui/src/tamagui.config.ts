@@ -24,7 +24,9 @@ const customThemes = {
     color: researchBeeColors.researchbeeBlack,
     borderColor: researchBeeColors.researchbeeMediumGray,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
-    ...researchBeeColors,
+    researchbeeYellow: researchBeeColors.researchbeeYellow,
+    researchbeeDarkGray: researchBeeColors.researchbeeDarkGray,
+    researchbeeAccent: researchBeeColors.researchbeeAccent,
   },
   researchBeeDark: {
     ...themes.dark,
@@ -32,7 +34,10 @@ const customThemes = {
     color: '#FFFFFF',
     borderColor: researchBeeColors.researchbeeDarkGray,
     shadowColor: 'rgba(0, 0, 0, 0.5)',
-    ...researchBeeColors,
+    researchbeeYellow: researchBeeColors.researchbeeYellow,
+    researchbeeLightGray: researchBeeColors.researchbeeLightGray,
+    researchbeeMediumGray: researchBeeColors.researchbeeMediumGray,
+    researchbeeAccent: researchBeeColors.researchbeeAccent,
   },
 }
 
