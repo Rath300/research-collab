@@ -2,7 +2,6 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "UI Package",
   "compilerOptions": {
-    "baseUrl": ".",
     "composite": false,
     "declaration": true,
     "declarationMap": true,
@@ -25,7 +24,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "typeRoots": [
-      "./node_modules/@types"
+      "../../node_modules/@types"
     ],
     "types": ["react", "node", "react-dom"]
   },
