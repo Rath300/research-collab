@@ -22,9 +22,7 @@
     "noEmit": false,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
-    "types": ["react", "react-dom"]
+    "rootDir": "src"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
