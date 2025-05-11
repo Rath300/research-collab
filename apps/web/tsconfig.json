@@ -1,4 +1,5 @@
 {
+  "extends": "@research-collab/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "target": "es5",
