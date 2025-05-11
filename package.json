@@ -404,7 +404,7 @@
     "yocto-queue": "^0.1.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [
