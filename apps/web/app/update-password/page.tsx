@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { FiLock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { updatePassword, getBrowserClient } from '@/lib/supabase';
+import { getBrowserClient } from '@/lib/supabaseClient';
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -16,36 +16,50 @@ export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  const supabase = getBrowserClient();
   
-  // Check if user is authenticated via reset token
+  // Check if user is authenticated via reset token or already has a session
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = getBrowserClient();
-      const { data } = await supabase.auth.getSession();
+      // Supabase client automatically handles the session from URL hash if present
+      const { data, error: sessionError } = await supabase.auth.getSession();
       
-      // If no session and no access token in URL, redirect to login
+      if (sessionError) {
+        console.error("Error getting session:", sessionError);
+        setError("Could not verify your session. Please try resetting your password again.");
+        // Potentially redirect to login if session check fails badly
+        // router.push('/login'); 
+        return;
+      }
+      
+      // If no session (even after client processed URL hash) and no token in URL (already processed or never there)
+      // This check might be redundant if onAuthStateChange is also redirecting, but good for explicit control.
       if (!data.session && !window.location.hash.includes('access_token')) {
-        router.push('/login');
+        // Check if there was a recovery token error in the hash instead
+        if (window.location.hash.includes('error_code=401')) {
+            setError("Password reset link has expired or is invalid. Please request a new one.");
+        } else if (window.location.hash.includes('error')) {
+            setError("An error occurred with the password reset link. Please try again.");
+        }
+        // Delay redirect to allow user to see error message
+        setTimeout(() => router.push('/login'), 3000);
       }
     };
     
     checkSession();
-  }, [router]);
+  }, [router, supabase]); // Added supabase to dependency array
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate passwords
     if (!password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
-    
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
@@ -55,13 +69,16 @@ export default function UpdatePasswordPage() {
       setIsLoading(true);
       setError('');
       
-      // Update password
-      await updatePassword(password);
+      // Update password using the new client
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
       
-      // Show success message
       setIsSuccess(true);
-      
-      // Redirect to login after 3 seconds
       setTimeout(() => {
         router.push('/login');
       }, 3000);
@@ -101,7 +118,7 @@ export default function UpdatePasswordPage() {
                 <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Password updated successfully!</p>
-                  <p className="mt-1">You'll be redirected to the login page shortly.</p>
+                  <p className="mt-1">You&apos;ll be redirected to the login page shortly.</p>
                 </div>
               </div>
             </CardContent>

@@ -1,216 +1,197 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
-import { FiMail, FiLock, FiUser, FiAlertCircle } from 'react-icons/fi';
-import { useAuthStore } from '@/lib/store';
-import { signUp } from '@/lib/supabase';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-export default function SignupPage() {
-  const router = useRouter();
-  const { setUser } = useAuthStore();
-  
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  
-  const [error, setError] = useState('');
+export default function Signup() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-  
-  const validateForm = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields');
-      return false;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-    
-    return true;
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
-    if (!validateForm()) {
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
     
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      setError('');
-      
-      // Prepare metadata for profile creation
-      const metadata = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-      };
-      
-      const data = await signUp(formData.email, formData.password, metadata);
-      
-      if (data.user) {
-        setUser(data.user);
-        
-        // Show success message and redirect to onboarding
-        setIsLoading(false);
-        router.push('/onboarding');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.user) {
+        router.push("/auth/check-email");
       }
     } catch (err: any) {
-      console.error('Signup error:', err);
-      setError(err.message || 'Failed to create account. Please try again.');
+      setError(err.message || "An error occurred during signup");
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
-                <span className="text-lg font-bold text-white">#</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">ResearchCollab</span>
+    <div className="min-h-screen bg-researchbee-black flex flex-col">
+      <header className="py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <Link href="/" className="text-2xl font-bold text-researchbee-yellow">
+          RESEARCH-BEE
+        </Link>
+      </header>
+
+      <main className="flex-grow flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-md space-y-8 animate-fade-in">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-white">Create account</h2>
+            <p className="mt-2 text-researchbee-light-gray">
+              Join Research-Bee and revolutionize your research
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-900/50 border border-red-800 rounded text-white text-sm">
+              {error}
             </div>
-          </Link>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Create an account</CardTitle>
-            <CardDescription>
-              Join ResearchCollab to connect with fellow researchers and collaborate on projects
-            </CardDescription>
-          </CardHeader>
-          
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
-                  <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="First Name"
-                  name="firstName"
-                  placeholder="Jane"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  leftIcon={<FiUser />}
+          )}
+
+          <form onSubmit={handleSignup} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="netflix-label">
+                  First Name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
-                  autoComplete="given-name"
-                />
-                
-                <Input
-                  label="Last Name"
-                  name="lastName"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  leftIcon={<FiUser />}
-                  required
-                  autoComplete="family-name"
+                  placeholder="Enter your first name"
+                  className="netflix-input"
                 />
               </div>
-              
-              <Input
-                label="Email"
+              <div>
+                <label htmlFor="lastName" className="netflix-label">
+                  Last Name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  placeholder="Enter your last name"
+                  className="netflix-input"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="netflix-label">
+                Email
+              </label>
+              <input
+                id="email"
                 type="email"
-                name="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                leftIcon={<FiMail />}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                placeholder="Enter your email"
+                className="netflix-input"
               />
-              
-              <Input
-                label="Password"
+            </div>
+
+            <div>
+              <label htmlFor="password" className="netflix-label">
+                Password
+              </label>
+              <input
+                id="password"
                 type="password"
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                leftIcon={<FiLock />}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="new-password"
-                helperText="Must be at least 6 characters long"
+                placeholder="Create a password"
+                className="netflix-input"
+                minLength={6}
               />
-              
-              <Input
-                label="Confirm Password"
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="netflix-label">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
                 type="password"
-                name="confirmPassword"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                leftIcon={<FiLock />}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                autoComplete="new-password"
+                placeholder="Confirm your password"
+                className="netflix-input"
+                minLength={6}
               />
-            </CardContent>
-            
-            <CardFooter className="flex flex-col space-y-4">
-              <Button
+            </div>
+
+            <div>
+              <button
                 type="submit"
-                isLoading={isLoading}
-                isFullWidth
+                disabled={isLoading}
+                className="netflix-btn netflix-btn-primary w-full flex items-center justify-center"
               >
-                Sign up
-              </Button>
-              
-              <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-                Already have an account?{' '}
-                <Link
-                  href="/login"
-                  className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                >
-                  Log in
-                </Link>
-              </p>
-              
-              <p className="text-center text-xs text-gray-500 dark:text-gray-500">
-                By signing up, you agree to our{' '}
-                <Link href="/terms" className="underline hover:text-primary-600 dark:hover:text-primary-400">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="underline hover:text-primary-600 dark:hover:text-primary-400">
-                  Privacy Policy
-                </Link>
-              </p>
-            </CardFooter>
+                {isLoading ? (
+                  <>
+                    <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-researchbee-black rounded-full"></span>
+                    Creating account...
+                  </>
+                ) : (
+                  "Sign up"
+                )}
+              </button>
+            </div>
           </form>
-        </Card>
-      </div>
+
+          <div className="text-center mt-6">
+            <p className="text-researchbee-light-gray">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-researchbee-yellow hover:text-researchbee-yellow-dark"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer className="py-6 px-4 sm:px-6 lg:px-8 text-center text-researchbee-light-gray text-sm">
+        <p>&copy; {new Date().getFullYear()} Research-Bee. All rights reserved.</p>
+      </footer>
     </div>
   );
 } 

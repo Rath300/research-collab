@@ -3,309 +3,153 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { FiUser, FiSave, FiUpload, FiAlertCircle } from 'react-icons/fi';
+import { FiUser, FiLoader, FiAlertCircle } from 'react-icons/fi'; // Added FiAlertCircle for error state
 import { useAuthStore } from '@/lib/store';
-import { getProfile, updateProfile, uploadAvatar } from '@/lib/api';
-import { ProfileUpdateData } from '@/lib/schema';
+import { getProfile } from '@/lib/api';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { type Profile as ProfileType } from '@research-collab/db';
+import { PageContainer } from '@/components/layout/PageContainer'; // Import PageContainer
+import { Avatar } from '@/components/ui/Avatar'; // Import Avatar component
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, profile, setProfile } = useAuthStore();
   
-  const [formData, setFormData] = useState<Partial<ProfileUpdateData>>({
-    first_name: '',
-    last_name: '',
-    bio: '',
-    institution: '',
-    location: '',
-    field_of_study: '',
-    website: '',
-    availability: 'full-time'
-  });
-  
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  
-  // Load profile data
+  const [isLoading, setIsLoading] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
+
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadProfileData = async () => {
       if (!user) {
         router.push('/login');
         return;
       }
       
+      setIsLoading(true);
+      setPageError(null);
       try {
-        setIsLoading(true);
-        
-        if (!profile) {
-          const profileData = await getProfile(user.id);
-          setProfile(profileData);
-        }
-        
-        if (profile) {
-          setFormData({
-            first_name: profile.first_name || '',
-            last_name: profile.last_name || '',
-            bio: profile.bio || '',
-            institution: profile.institution || '',
-            location: profile.location || '',
-            field_of_study: profile.field_of_study || '',
-            website: profile.website || '',
-            availability: profile.availability || 'full-time'
-          });
-          
-          if (profile.avatar_url) {
-            setAvatarPreview(profile.avatar_url);
+        if (!profile || !profile.updated_at) { // Fetch if no profile or if crucial data like updated_at is missing
+          const fetchedProfileData = await getProfile(user.id);
+          if (fetchedProfileData) {
+            const processedProfile: ProfileType = {
+              ...fetchedProfileData,
+              updated_at: fetchedProfileData.updated_at ? new Date(fetchedProfileData.updated_at) : null,
+            };
+            setProfile(processedProfile);
+          } else {
+            throw new Error('Profile data could not be fetched.');
           }
         }
       } catch (err: any) {
-        console.error('Error loading profile:', err);
-        setError(err.message || 'Failed to load profile data');
+        console.error('Error loading profile on settings page:', err);
+        setPageError(err.message || 'Failed to load profile data. Please try refreshing.');
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadProfile();
-  }, [user, profile, setProfile, router]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Preview the image
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-    
-    setAvatarFile(file);
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) return;
-    
-    try {
-      setIsSaving(true);
-      setError('');
-      setSuccess('');
-      
-      // Upload avatar if selected
-      let avatarUrl = profile?.avatar_url;
-      if (avatarFile) {
-        const { url } = await uploadAvatar(user.id, avatarFile);
-        avatarUrl = url;
-      }
-      
-      // Update profile
-      const updatedProfile = await updateProfile({
-        ...formData,
-        avatar_url: avatarUrl
-      });
-      
-      // Update global state
-      setProfile(updatedProfile);
-      
-      // Show success message
-      setSuccess('Profile updated successfully');
-    } catch (err: any) {
-      console.error('Error updating profile:', err);
-      setError(err.message || 'Failed to update profile');
-    } finally {
-      setIsSaving(false);
+    if (user) {
+        loadProfileData();
+    } else if (!isLoading) { // Only redirect if not already loading and no user
+        router.push('/login');
     }
+  }, [user, profile, setProfile, router, isLoading]);
+
+  const handleProfileUpdated = () => {
+    // console.log('Profile updated successfully from callback!');
   };
-  
+
+  const profileForForm = profile ? {
+    ...profile,
+    full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+    research_interests: profile.interests || [],
+  } : undefined;
+
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
+      <PageContainer title="Settings" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <FiLoader className="animate-spin text-researchbee-yellow text-6xl mb-4" />
+          <p className="text-xl text-gray-300">Loading your settings...</p>
         </div>
-      </div>
+      </PageContainer>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <PageContainer title="Error" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white flex items-center justify-center">
+        <div className="glass-card p-8 rounded-xl shadow-lg text-center max-w-md w-full">
+          <FiAlertCircle className="mx-auto text-red-400 text-5xl mb-4" />
+          <h2 className="text-2xl font-semibold text-white mb-2">Oops! Something went wrong.</h2>
+          <p className="text-gray-300 mb-6">{pageError}</p>
+          <Button 
+            variant="primary" 
+            onClick={() => router.refresh()} // Simplest way to retry fetching or re-render
+            className="w-full bg-researchbee-yellow hover:bg-researchbee-darkyellow text-black"
+          >
+            Try Again
+          </Button>
+        </div>
+      </PageContainer>
     );
   }
   
-  return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Sidebar */}
-        <div className="md:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center">
-                <div className="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden mb-4 relative">
-                  {avatarPreview ? (
-                    <img 
-                      src={avatarPreview} 
-                      alt="Profile" 
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <FiUser className="text-primary-600" size={36} />
-                  )}
-                </div>
-                
-                <p className="font-medium text-lg">{profile?.first_name} {profile?.last_name}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">{user?.email}</p>
-                
-                <div className="mt-4 w-full">
-                  <label className="block w-full">
-                    <span className="sr-only">Choose profile photo</span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => document.querySelector('input[type="file"]')?.click()}
-                    >
-                      <FiUpload className="mr-2" size={16} />
-                      Change Photo
-                    </Button>
-                  </label>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+  if (!user || !profileForForm ) {
+     if (!isLoading) router.push('/login'); // Redirect if not loading and critical data missing
+     return (
+      <PageContainer title="Settings" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <FiLoader className="animate-spin text-researchbee-yellow text-6xl mb-4" />
+          <p className="text-xl text-gray-300">Preparing settings...</p> {/* Generic message while redirecting or confirming data */}
         </div>
+      </PageContainer>
+     );
+  }
+
+  return (
+    <PageContainer title="Account Settings" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white">
+      <div className="container mx-auto max-w-6xl px-4 py-12 sm:py-16 lg:py-20">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-12 sm:mb-16 text-center tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400">
+          Account Settings
+        </h1>
         
-        {/* Main content */}
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your personal information and public profile
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
-                  <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
-                    <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-                
-                {success && (
-                  <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm dark:bg-green-900/20 dark:text-green-400">
-                    {success}
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="First Name"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  
-                  <Input
-                    label="Last Name"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+          <div className="md:col-span-4 lg:col-span-3">
+            <Card className="glass-card sticky top-24 shadow-xl">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className="w-32 h-32 rounded-full bg-black/20 backdrop-blur-md border-2 border-white/10 flex items-center justify-center overflow-hidden mb-5 shadow-lg transition-all duration-300 hover:scale-105 group">
+                  <Avatar 
+                    src={profileForForm?.avatar_url} 
+                    alt="Profile Avatar" 
+                    size="lg" // Corresponds to 64px, a common large avatar size
+                    className="group-hover:opacity-80 transition-opacity" // Pass through additional classes if needed
+                    fallback={<FiUser className="text-gray-400 group-hover:text-researchbee-yellow transition-colors" size={60} />}
                   />
                 </div>
-                
-                <Input
-                  label="Bio"
-                  name="bio"
-                  value={formData.bio || ''}
-                  onChange={handleInputChange}
-                  type="textarea"
-                  rows={4}
-                  placeholder="Write a short bio about yourself..."
-                />
-                
-                <Input
-                  label="Institution"
-                  name="institution"
-                  value={formData.institution || ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Stanford University"
-                />
-                
-                <Input
-                  label="Location"
-                  name="location"
-                  value={formData.location || ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., San Francisco, CA"
-                />
-                
-                <Input
-                  label="Field of Study"
-                  name="field_of_study"
-                  value={formData.field_of_study || ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Computer Science"
-                />
-                
-                <Input
-                  label="Website"
-                  name="website"
-                  value={formData.website || ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., https://yourwebsite.com"
-                />
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Availability
-                  </label>
-                  <select
-                    name="availability"
-                    value={formData.availability || 'full-time'}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  >
-                    <option value="full-time">Full Time</option>
-                    <option value="part-time">Part Time</option>
-                    <option value="weekends">Weekends Only</option>
-                    <option value="not-available">Not Available</option>
-                  </select>
-                </div>
-                
-                <div className="pt-4">
-                  <Button
-                    type="submit"
-                    isLoading={isSaving}
-                  >
-                    <FiSave className="mr-2" size={16} />
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                <h2 className="text-2xl font-semibold text-white truncate max-w-full px-2">{`${profileForForm?.first_name || ''} ${profileForForm?.last_name || ''}`.trim() || 'User Name'}</h2>
+                <p className="text-sm text-gray-400 mt-1.5 break-all px-2">{user?.email || 'user@example.com'}</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="md:col-span-8 lg:col-span-9">
+            <Card className="glass-card shadow-xl">
+              <CardHeader className="border-b border-white/10 pb-4">
+                <CardTitle className="text-2xl sm:text-3xl font-semibold text-white">Profile Information</CardTitle>
+                <CardDescription className="text-gray-300 mt-1">
+                  Keep your personal details and preferences up to date.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {/* ProfileForm is expected to be self-contained in terms of its internal styling using glass-card elements where appropriate */}
+                <ProfileForm initialData={profileForForm} onProfileUpdate={handleProfileUpdated} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 } 

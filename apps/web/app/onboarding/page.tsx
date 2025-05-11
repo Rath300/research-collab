@@ -25,7 +25,7 @@ export default function OnboardingPage() {
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
             <CardDescription>
-              We've sent a confirmation link to your email address
+              We&apos;ve sent a confirmation link to your email address
             </CardDescription>
           </CardHeader>
           
@@ -48,7 +48,7 @@ export default function OnboardingPage() {
                   <li>Copy the URL from the broken page</li>
                   <li>Go back to <Link href="/login" className="text-primary-600 dark:text-primary-400 underline">login page</Link></li>
                   <li>Use your email and password to log in</li>
-                  <li>If you can't log in, please contact support</li>
+                  <li>If you can&apos;t log in, please contact support</li>
                 </ol>
               </div>
             </div>
@@ -63,7 +63,7 @@ export default function OnboardingPage() {
             </Link>
             
             <div className="text-center text-sm text-gray-500">
-              <p>Didn't receive an email? Check your spam folder or</p>
+              <p>Didn&apos;t receive an email? Check your spam folder or</p>
               <Link 
                 href="mailto:support@researchcollab.com" 
                 className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 font-medium"

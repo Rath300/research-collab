@@ -9,6 +9,7 @@ interface AuthState {
   setProfile: (profile: Profile | null) => void;
   setLoading: (isLoading: boolean) => void;
   signOut: () => void;
+  clearAuth: () => void;
 }
 
 interface SwipeState {
@@ -25,10 +26,12 @@ interface SwipeState {
 interface ChatState {
   currentChatUserId: string | null;
   unreadMessages: Record<string, number>;
+  totalUnreadMessages: number;
   setCurrentChatUserId: (userId: string | null) => void;
   setUnreadCount: (userId: string, count: number) => void;
   incrementUnreadCount: (userId: string) => void;
   resetUnreadCount: (userId: string) => void;
+  setTotalUnreadMessages: (count: number) => void;
 }
 
 interface UIState {
@@ -58,7 +61,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
   setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
-  signOut: () => set({ user: null, profile: null }),
+  signOut: () => set({ user: null, profile: null, isLoading: false }),
+  clearAuth: () => set({ user: null, profile: null, isLoading: false }),
 }));
 
 export const useSwipeStore = create<SwipeState>((set) => ({
@@ -75,25 +79,39 @@ export const useSwipeStore = create<SwipeState>((set) => ({
   addMatch: (match) => set((state) => ({
     matches: [...state.matches, match],
   })),
-  resetSwipeState: () => set({ swipedUsers: [], likedUsers: [] }),
+  resetSwipeState: () => set({ swipedUsers: [], likedUsers: [], matches: [] }),
 }));
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
   currentChatUserId: null,
   unreadMessages: {},
+  totalUnreadMessages: 0,
   setCurrentChatUserId: (userId) => set({ currentChatUserId: userId }),
-  setUnreadCount: (userId, count) => set((state) => ({
-    unreadMessages: { ...state.unreadMessages, [userId]: count },
-  })),
-  incrementUnreadCount: (userId) => set((state) => ({
-    unreadMessages: {
-      ...state.unreadMessages,
-      [userId]: (state.unreadMessages[userId] || 0) + 1,
-    },
-  })),
-  resetUnreadCount: (userId) => set((state) => ({
-    unreadMessages: { ...state.unreadMessages, [userId]: 0 },
-  })),
+  setUnreadCount: (userId, count) => {
+    const currentUnread = get().unreadMessages[userId] || 0;
+    const newTotal = get().totalUnreadMessages - currentUnread + count;
+    set((state) => ({
+      unreadMessages: { ...state.unreadMessages, [userId]: count },
+      totalUnreadMessages: Math.max(0, newTotal),
+    }));
+  },
+  incrementUnreadCount: (userId) => {
+    set((state) => ({
+      unreadMessages: {
+        ...state.unreadMessages,
+        [userId]: (state.unreadMessages[userId] || 0) + 1,
+      },
+      totalUnreadMessages: state.totalUnreadMessages + 1,
+    }));
+  },
+  resetUnreadCount: (userId) => {
+    const currentUnread = get().unreadMessages[userId] || 0;
+    set((state) => ({
+      unreadMessages: { ...state.unreadMessages, [userId]: 0 },
+      totalUnreadMessages: Math.max(0, state.totalUnreadMessages - currentUnread),
+    }));
+  },
+  setTotalUnreadMessages: (count) => set({ totalUnreadMessages: count }),
 }));
 
 export const useUIStore = create<UIState>((set) => ({
@@ -117,5 +135,5 @@ export const useResearchStore = create<ResearchState>((set) => ({
   })),
   setLoading: (isLoading) => set({ isLoading }),
   setHasMore: (hasMore) => set({ hasMore }),
-  resetPosts: () => set({ posts: [], hasMore: true }),
+  resetPosts: () => set({ posts: [], isLoading: false, hasMore: true }),
 })); 

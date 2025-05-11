@@ -4,20 +4,22 @@ import { twMerge } from 'tailwind-merge';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  hover?: boolean;
+  hoverEffect?: boolean;
+  as?: React.ElementType;
 }
 
-export const Card = ({ children, className, hover = false }: CardProps) => {
+export const Card = ({ children, className, hoverEffect = false, as: Component = 'div' }: CardProps) => {
   return (
-    <div
+    <Component
       className={twMerge(
-        'rounded-lg bg-white p-6 shadow-card transition-shadow dark:bg-slate-800',
-        hover && 'hover:shadow-card-hover',
+        'rounded-xl bg-black/20 backdrop-blur-lg border border-white/10 shadow-2xl',
+        'p-6',
+        hoverEffect && 'transition-all duration-300 hover:shadow-purple-500/30 hover:border-white/20 hover:bg-black/30',
         className
       )}
     >
       {children}
-    </div>
+    </Component>
   );
 };
 
@@ -28,7 +30,7 @@ interface CardHeaderProps {
 
 export const CardHeader = ({ children, className }: CardHeaderProps) => {
   return (
-    <div className={twMerge('mb-4', className)}>
+    <div className={twMerge('pb-4 mb-4 border-b border-white/10', className)}>
       {children}
     </div>
   );
@@ -41,7 +43,7 @@ interface CardTitleProps {
 
 export const CardTitle = ({ children, className }: CardTitleProps) => {
   return (
-    <h3 className={twMerge('text-xl font-bold tracking-tight', className)}>
+    <h3 className={twMerge('text-xl lg:text-2xl font-semibold text-white', className)}>
       {children}
     </h3>
   );
@@ -54,7 +56,7 @@ interface CardDescriptionProps {
 
 export const CardDescription = ({ children, className }: CardDescriptionProps) => {
   return (
-    <p className={twMerge('text-sm text-gray-500 dark:text-gray-400', className)}>
+    <p className={twMerge('text-sm text-gray-300 leading-relaxed', className)}>
       {children}
     </p>
   );
@@ -80,7 +82,7 @@ interface CardFooterProps {
 
 export const CardFooter = ({ children, className }: CardFooterProps) => {
   return (
-    <div className={twMerge('mt-4 flex items-center', className)}>
+    <div className={twMerge('pt-4 mt-4 border-t border-white/10 flex items-center', className)}>
       {children}
     </div>
   );

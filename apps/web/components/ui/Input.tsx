@@ -1,70 +1,72 @@
-import React from 'react';
-import { twMerge } from 'tailwind-merge';
+import { forwardRef } from 'react'
+import { cn } from '@/lib/utils'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+// Base props common to both input and textarea, excluding 'type' which will be the discriminant
+interface BaseInputProps {
   label?: string;
-  error?: string;
+  error?: boolean;
   helperText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   isFullWidth?: boolean;
+  className?: string; // Add className to base if it's used commonly outside of specific element styling
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      className,
-      label,
-      error,
-      helperText,
-      leftIcon,
-      rightIcon,
-      isFullWidth = true,
-      ...props
-    },
-    ref
-  ) => {
-    const inputClasses = twMerge(
-      'flex h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900',
-      error && 'border-red-500 focus:ring-red-500',
-      leftIcon && 'pl-10',
-      rightIcon && 'pr-10',
-      isFullWidth && 'w-full',
-      className
+// Props for standard input elements
+interface StandardInputHtmlProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'className'> {}
+interface StandardInputProps extends BaseInputProps, StandardInputHtmlProps {
+  type?: 'text' | 'password' | 'email' | 'number' | 'search' | 'tel' | 'url';
+}
+
+// Props for textarea element
+interface TextAreaHtmlProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'className'> {}
+interface TextAreaProps extends BaseInputProps, TextAreaHtmlProps {
+  type: 'textarea';
+  // rows is part of TextareaHTMLAttributes so it's included via TextAreaHtmlProps
+}
+
+export type InputProps = StandardInputProps | TextAreaProps;
+
+export const Input = forwardRef<
+  HTMLInputElement | HTMLTextAreaElement,
+  InputProps
+>(
+  (props, ref) => {
+    const { className, type, ...rest } = props;
+
+    // Updated commonClasses for glassmorphic style
+    const commonClasses = cn(
+      'flex w-full rounded-lg border bg-white/5 backdrop-blur-sm px-4 py-2.5 text-sm text-gray-100 ',
+      'placeholder:text-gray-400 caret-purple-400 ',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-transparent ',
+      'disabled:cursor-not-allowed disabled:opacity-50 ',
+      'transition-all duration-200 ease-in-out ',
+      props.error ? 'border-red-500/70 focus-visible:ring-red-500' : 'border-white/20 hover:border-white/40',
+      className // User-provided className for the wrapper or element itself
     );
 
+    if (type === 'textarea') {
+      // Ensure rest includes rows and other textarea specific props
+      const textAreaSpecificProps = rest as Omit<TextAreaProps, 'type' | 'className'>;
+      return (
+        <textarea
+          className={cn(commonClasses, 'h-auto min-h-[100px]')} 
+          ref={ref as React.Ref<HTMLTextAreaElement>}
+          {...textAreaSpecificProps}
+        />
+      );
+    }
+    
+    // Ensure rest includes value, onChange etc for input
+    const standardInputSpecificProps = rest as Omit<StandardInputProps, 'type' | 'className'>;
     return (
-      <div className={isFullWidth ? 'w-full' : ''}>
-        {label && (
-          <label
-            htmlFor={props.id}
-            className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
-          >
-            {label}
-          </label>
-        )}
-        <div className="relative">
-          {leftIcon && (
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-              {leftIcon}
-            </div>
-          )}
-          <input ref={ref} className={inputClasses} {...props} />
-          {rightIcon && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-              {rightIcon}
-            </div>
-          )}
-        </div>
-        {error && (
-          <p className="mt-1 text-sm text-red-500">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{helperText}</p>
-        )}
-      </div>
+      <input
+        type={type || 'text'} // Default to text if type is undefined
+        className={cn(commonClasses, 'h-11')} // Slightly taller for better visual
+        ref={ref as React.Ref<HTMLInputElement>}
+        {...standardInputSpecificProps}
+      />
     );
   }
 );
-
-Input.displayName = 'Input'; 
+Input.displayName = 'Input' 

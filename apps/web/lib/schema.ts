@@ -5,23 +5,23 @@ export const profileSchema = z.object({
   id: z.string().uuid(),
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
-  avatar_url: z.string().url().nullable().optional(),
-  bio: z.string().max(500, 'Bio must be less than 500 characters').nullable().optional(),
-  title: z.string().nullable().optional(),
-  institution: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
-  email: z.string().email('Invalid email address').nullable().optional(),
-  website: z.string().url('Invalid URL').nullable().optional(),
-  availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).nullable().optional(),
-  field_of_study: z.string().nullable().optional(),
-  interests: z.array(z.string()).nullable().optional(),
+  avatar_url: z.string().url().nullable(),
+  bio: z.string().max(500, 'Bio must be less than 500 characters').nullable(),
+  title: z.string().nullable(),
+  institution: z.string().nullable(),
+  location: z.string().nullable(),
+  email: z.string().email('Invalid email address').nullable(),
+  website: z.string().url('Invalid URL').nullable(),
+  availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).nullable(),
+  field_of_study: z.string().nullable(),
+  interests: z.array(z.string()).nullable(),
   education: z.array(
     z.object({
       degree: z.string(),
       institution: z.string(),
       year: z.string()
     })
-  ).nullable().optional(),
+  ).nullable(),
   joining_date: z.string().datetime(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime()
@@ -34,7 +34,7 @@ export const researchPostSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   content: z.string().min(10, 'Content must be at least 10 characters'),
   user_id: z.string().uuid(),
-  tags: z.array(z.string()).nullable().optional(),
+  tags: z.array(z.string()).nullable(),
   visibility: z.enum(['public', 'private', 'connections']),
   is_boosted: z.boolean(),
   engagement_count: z.number().int(),
@@ -114,7 +114,7 @@ export const notificationSchema = z.object({
   type: z.enum(['message', 'match', 'system', 'mention']),
   title: z.string(),
   body: z.string(),
-  link: z.string().nullable().optional(),
+  link: z.string().url().nullable(),
   is_read: z.boolean().default(false),
   created_at: z.string()
 });

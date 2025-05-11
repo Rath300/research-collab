@@ -1,319 +1,600 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { 
-  FiUsers, 
-  FiMessageSquare, 
-  FiTarget, 
-  FiTrendingUp, 
-  FiSearch, 
-  FiChevronRight, 
-  FiPlus, 
-  FiCalendar, 
-  FiBarChart2 
-} from 'react-icons/fi';
-import { useAuthStore } from '@/lib/store';
-import { getMatches, getResearchPosts, getProfileStats } from '@/lib/api';
-import { Profile, ResearchPost, Match } from '@research-collab/db';
-import { ResearchPostCard } from '@/components/research/ResearchPostCard';
+import React, { useState, useEffect } from 'react';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { PageContainer, Button } from "../../components";
+import { FiPlus, FiSettings, FiUser, FiMessageSquare, FiStar, FiClock, FiGrid, FiFolder, FiUsers } from 'react-icons/fi';
+import Link from 'next/link';
+
+// Define types
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  status: 'active' | 'completed' | 'planning';
+  collaborators: number;
+  lastUpdated: string;
+}
+
+interface ResearchMatch {
+  id: string;
+  name: string;
+  title: string;
+  institution: string;
+  matchScore: number;
+  researchAreas: string[];
+  profileImage?: string;
+  isNew: boolean;
+}
+
+interface Message {
+  id: string;
+  sender: string;
+  senderAvatar?: string;
+  preview: string;
+  unread: boolean;
+  timestamp: string;
+}
+
+// Dashboard navigation sections
+const DASHBOARD_SECTIONS = [
+  { id: 'projects', label: 'Projects', icon: <FiFolder className="mr-3" /> },
+  { id: 'matches', label: 'Matches', icon: <FiUsers className="mr-3" /> },
+  { id: 'messages', label: 'Messages', icon: <FiMessageSquare className="mr-3" /> },
+  { id: 'settings', label: 'Settings', icon: <FiSettings className="mr-3" /> }
+];
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { user, profile } = useAuthStore();
-  
-  const [stats, setStats] = useState({
-    postCount: 0,
-    matchCount: 0,
-    messageCount: 0,
-    viewCount: 0
-  });
-  
-  const [recentMatches, setRecentMatches] = useState<(Match & { profiles: Profile })[]>([]);
-  const [recentPosts, setRecentPosts] = useState<ResearchPost[]>([]);
+  const supabase = createClientComponentClient();
   const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [activeSection, setActiveSection] = useState('overview');
   
-  const loadDashboardData = async () => {
-    try {
-      if (!user) return;
-      
-      setIsLoading(true);
-      
-      // Get profile stats
-      const profileStats = await getProfileStats(user.id);
-      setStats(profileStats);
-      
-      // Get recent matches
-      const matches = await getMatches(user.id, { limit: 3 });
-      setRecentMatches(matches);
-      
-      // Get recent posts in feed
-      const posts = await getResearchPosts({ limit: 3 });
-      setRecentPosts(posts);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  // Mock data
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [matches, setMatches] = useState<ResearchMatch[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Get time-based greeting
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
   
+  // Get user data on component mount
   useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user]);
-  
-  if (!user || !profile) {
-    // Redirect to login if not authenticated
-    router.push('/login');
-    return null;
-  }
-  
-  return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-500 mt-1 dark:text-gray-400">
-            Welcome back, {profile.first_name}
-          </p>
-        </div>
+    async function loadUserData() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
         
-        <div className="mt-4 md:mt-0 space-x-2">
-          <Button
-            onClick={() => router.push('/research/new')}
-            leftIcon={<FiPlus />}
-          >
-            New Post
-          </Button>
+        if (user) {
+          // Fetch user profile data from Supabase
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+            
+          if (profile && profile.full_name) {
+            setUserName(profile.full_name);
+          } else {
+            // Fallback to user email or default
+            setUserName(user.email?.split('@')[0] || 'Researcher');
+          }
           
-          <Button
-            variant="outline"
-            onClick={() => router.push('/collaborators')}
-            leftIcon={<FiUsers />}
-          >
-            Find Collaborators
-          </Button>
-        </div>
-      </div>
-      
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Research Posts</p>
-                <h3 className="text-3xl font-bold mt-1">{stats.postCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 dark:bg-primary-900/30 dark:text-primary-400">
-                <FiBarChart2 size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          // Fetch real projects from Supabase
+          const { data: projectsData, error: projectsError } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (projectsError) {
+            console.error('Error fetching projects:', projectsError);
+          } else {
+            setProjects(projectsData || []);
+          }
+          
+          // Fetch real matches from Supabase
+          const { data: matchesData, error: matchesError } = await supabase
+            .from('matches')
+            .select(`
+              id,
+              profiles:matched_user_id (
+                id,
+                full_name,
+                title,
+                institution,
+                research_areas,
+                avatar_url
+              ),
+              match_score,
+              created_at,
+              is_new
+            `)
+            .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
+            .order('created_at', { ascending: false });
+            
+          if (matchesError) {
+            console.error('Error fetching matches:', matchesError);
+          } else {
+            // Transform the match data to fit our interface
+            const formattedMatches = (matchesData || []).map(match => ({
+              id: match.id,
+              name: match.profiles ? match.profiles.full_name || 'Researcher' : 'Researcher',
+              title: match.profiles ? match.profiles.title || '' : '',
+              institution: match.profiles ? match.profiles.institution || '' : '',
+              matchScore: match.match_score || 0,
+              researchAreas: match.profiles ? match.profiles.research_areas || [] : [],
+              profileImage: match.profiles ? match.profiles.avatar_url : undefined,
+              isNew: match.is_new || false
+            }));
+            setMatches(formattedMatches);
+          }
+          
+          // Fetch real messages from Supabase
+          const { data: messagesData, error: messagesError } = await supabase
+            .from('messages')
+            .select(`
+              id,
+              sender_id,
+              profiles:sender_id (full_name, avatar_url),
+              content,
+              read,
+              created_at
+            `)
+            .eq('receiver_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+            
+          if (messagesError) {
+            console.error('Error fetching messages:', messagesError);
+          } else {
+            // Transform the message data to fit our interface
+            const formattedMessages = (messagesData || []).map(message => {
+              // Format the timestamp
+              const createdAt = new Date(message.created_at);
+              const now = new Date();
+              const diffInHours = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60));
+              
+              let timestamp;
+              if (diffInHours < 1) {
+                timestamp = 'Just now';
+              } else if (diffInHours < 24) {
+                timestamp = `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+              } else {
+                const diffInDays = Math.floor(diffInHours / 24);
+                timestamp = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+              }
+              
+              return {
+                id: message.id,
+                sender: message.profiles ? message.profiles.full_name || 'Unknown User' : 'Unknown User',
+                senderAvatar: message.profiles ? message.profiles.avatar_url : undefined,
+                preview: message.content.substring(0, 60) + (message.content.length > 60 ? '...' : ''),
+                unread: !message.read,
+                timestamp
+              };
+            });
+            setMessages(formattedMessages);
+          }
+        }
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Collaborator Matches</p>
-                <h3 className="text-3xl font-bold mt-1">{stats.matchCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                <FiUsers size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Messages</p>
-                <h3 className="text-3xl font-bold mt-1">{stats.messageCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                <FiMessageSquare size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Profile Views</p>
-                <h3 className="text-3xl font-bold mt-1">{stats.viewCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
-                <FiTrendingUp size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Recent Matches */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-1">
-          <Card className="h-full">
-            <CardHeader className="px-6 pt-6 pb-4">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Recent Matches</CardTitle>
-                <Button 
-                  variant="ghost" 
-                  className="p-0 h-auto text-sm font-medium text-primary-600 dark:text-primary-400"
-                  onClick={() => router.push('/chats')}
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setIsLoading(false);
+      }
+    }
+    
+    loadUserData();
+  }, [supabase]);
+  
+  // Placeholder data for demo purposes
+  const hasProjects = projects.length > 0;
+  const hasMatches = matches.length > 0;
+  const hasMessages = messages.length > 0;
+
+  return (
+    <PageContainer title="Dashboard">
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Sidebar Navigation */}
+        <div className="w-full md:w-64 flex-shrink-0 bg-gray-900 p-4 rounded-lg mr-0 md:mr-4 mb-4 md:mb-0">
+          <nav>
+            <ul className="space-y-2">
+              <li>
+                <button
+                  onClick={() => setActiveSection('overview')}
+                  className={`w-full text-left px-4 py-2 rounded-md flex items-center ${
+                    activeSection === 'overview' ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
                 >
-                  View All
-                  <FiChevronRight size={16} className="ml-1" />
-                </Button>
+                  <FiGrid className="mr-3" /> Overview
+                </button>
+              </li>
+              
+              {DASHBOARD_SECTIONS.map((section) => (
+                <li key={section.id}>
+                  <button
+                    onClick={() => setActiveSection(section.id)}
+                    className={`w-full text-left px-4 py-2 rounded-md flex items-center ${
+                      activeSection === section.id ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    }`}
+                  >
+                    {section.icon} {section.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+        
+        {/* Main Content */}
+        <div className="flex-grow bg-gray-900 rounded-lg p-6">
+          {activeSection === 'overview' && (
+            <DashboardOverview 
+              hasProjects={projects.length > 0}
+              hasMatches={matches.length > 0} 
+              hasMessages={messages.length > 0}
+              onCreateProject={() => setActiveSection('projects')}
+              userName={userName}
+            />
+          )}
+          
+          {activeSection === 'projects' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">My Projects</h2>
+              <div className="flex justify-between items-center mb-6">
+                <p>Manage your existing projects or create new ones</p>
+                <Link href="/projects/new">
+                  <button className="bg-researchbee-yellow text-black px-4 py-2 rounded-md hover:bg-yellow-500">
+                    Create New Project
+                  </button>
+                </Link>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
-                </div>
-              ) : recentMatches.length > 0 ? (
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {recentMatches.map((match) => {
-                    // Get the other user's ID and profile
-                    const otherUserId = match.user_id_1 === user.id ? match.user_id_2 : match.user_id_1;
-                    const otherUserProfile = match.profiles;
-                    const fullName = `${otherUserProfile.first_name} ${otherUserProfile.last_name}`;
-                    
-                    return (
-                      <div 
-                        key={match.id}
-                        className="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                        onClick={() => router.push(`/chats?id=${otherUserId}`)}
-                      >
-                        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden mr-3">
-                          {otherUserProfile.avatar_url ? (
-                            <img 
-                              src={otherUserProfile.avatar_url} 
-                              alt={fullName}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <FiUsers className="text-primary-600" size={20} />
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{fullName}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {otherUserProfile.institution || 'Researcher'}
-                          </p>
-                        </div>
-                        
-                        <Button variant="ghost" size="sm" className="ml-2">
-                          <FiMessageSquare size={18} />
-                        </Button>
-                      </div>
-                    );
-                  })}
+              {!hasProjects ? (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <h3 className="text-xl font-medium mb-2">No projects yet</h3>
+                  <p className="text-gray-400 mb-4">Create your first project to start finding collaborators</p>
+                  <Link href="/projects/new">
+                    <button className="bg-researchbee-yellow text-black px-4 py-2 rounded-md hover:bg-yellow-500">
+                      Create Your First Project
+                    </button>
+                  </Link>
                 </div>
               ) : (
-                <div className="text-center py-8 px-4">
-                  <FiUsers size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                  <p className="text-gray-500 dark:text-gray-400">No matches yet</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => router.push('/collaborators')}
-                  >
-                    Find Collaborators
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Recent Feed Posts */}
-        <div className="lg:col-span-2">
-          <Card className="h-full">
-            <CardHeader className="px-6 pt-6 pb-4">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Recent Research Posts</CardTitle>
-                <Button 
-                  variant="ghost" 
-                  className="p-0 h-auto text-sm font-medium text-primary-600 dark:text-primary-400"
-                  onClick={() => router.push('/research')}
-                >
-                  View Feed
-                  <FiChevronRight size={16} className="ml-1" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
-                </div>
-              ) : recentPosts.length > 0 ? (
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {recentPosts.map((post) => (
-                    <div key={post.id} className="p-4">
-                      <ResearchPostCard 
-                        post={post} 
-                        onLike={() => {}} 
-                        onBoost={() => {}}
-                      />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projects.map(project => (
+                    <div 
+                      key={project.id} 
+                      className="bg-researchbee-dark-gray rounded-lg p-4 relative hover:border-researchbee-yellow hover:border transition-all"
+                    >
+                      <div className="flex items-center mb-3">
+                        <div className="w-12 h-12 rounded-full bg-researchbee-medium-gray flex items-center justify-center text-xl font-bold">
+                          {project.title.charAt(0)}
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="font-semibold">{project.title}</h3>
+                          <p className="text-sm text-researchbee-light-gray">{project.description}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm mb-2">{project.status.charAt(0).toUpperCase() + project.status.slice(1)}</p>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          <FiClock className="text-researchbee-yellow mr-1" />
+                          <span className="font-bold">{project.lastUpdated}</span>
+                        </div>
+                        <Link href={`/projects/${project.id}`} passHref>
+                          <Button size="small" variant="outline">View</Button>
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          )}
+          
+          {activeSection === 'matches' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Matches</h2>
+              {!hasMatches ? (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <h3 className="text-xl font-medium mb-2">No matches yet</h3>
+                  <p className="text-gray-400 mb-4">Explore potential collaborators to find your perfect match</p>
+                  <Link href="/discover">
+                    <button className="bg-researchbee-yellow text-black px-4 py-2 rounded-md hover:bg-yellow-500">
+                      Discover People
+                    </button>
+                  </Link>
+                </div>
               ) : (
-                <div className="text-center py-8 px-4">
-                  <FiSearch size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                  <p className="text-gray-500 dark:text-gray-400">No recent posts</p>
-                  <Button 
-                    className="mt-4"
-                    onClick={() => router.push('/research/new')}
-                  >
-                    Create Post
-                  </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {matches.slice(0, 3).map(match => (
+                    <div 
+                      key={match.id} 
+                      className="bg-researchbee-dark-gray rounded-lg p-4 relative hover:border-researchbee-yellow hover:border transition-all"
+                    >
+                      {match.isNew && (
+                        <div className="absolute top-3 right-3 bg-researchbee-yellow text-black text-xs px-2 py-1 rounded-full">
+                          New Match
+                        </div>
+                      )}
+                      <div className="flex items-center mb-3">
+                        <div className="w-12 h-12 rounded-full bg-researchbee-medium-gray flex items-center justify-center text-xl font-bold">
+                          {match.name.charAt(0)}
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="font-semibold">{match.name}</h3>
+                          <p className="text-sm text-researchbee-light-gray">{match.title}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm mb-2">{match.institution}</p>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {match.researchAreas.map(area => (
+                          <span key={area} className="text-xs bg-researchbee-medium-gray px-2 py-1 rounded-full">
+                            {area}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          <FiStar className="text-researchbee-yellow mr-1" />
+                          <span className="font-bold">{match.matchScore}%</span>
+                          <span className="text-xs text-researchbee-light-gray ml-1">match</span>
+                        </div>
+                        <Button size="small" onPress={() => {}}>Connect</Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          )}
+          
+          {activeSection === 'messages' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Messages</h2>
+              {!hasMessages ? (
+                <div className="text-center py-12 bg-gray-800 rounded-lg">
+                  <h3 className="text-xl font-medium mb-2">No messages yet</h3>
+                  <p className="text-gray-400 mb-4">Connect with your matches to start a conversation</p>
+                  <button 
+                    onClick={() => setActiveSection('matches')}
+                    className="bg-researchbee-yellow text-black px-4 py-2 rounded-md hover:bg-yellow-500"
+                  >
+                    View Matches
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-gray-800 rounded-lg p-4">
+                  {messages.map(message => (
+                    <div 
+                      key={message.id}
+                      className={`p-4 hover:bg-researchbee-medium-gray transition-colors ${message.unread ? 'border-l-4 border-researchbee-yellow' : ''}`}
+                    >
+                      <div className="flex items-center">
+                        <div className="mr-3 w-10 h-10 rounded-full bg-researchbee-medium-gray flex items-center justify-center font-bold">
+                          {message.sender.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <h3 className={`font-medium ${message.unread ? 'text-white' : 'text-researchbee-light-gray'}`}>
+                              {message.sender}
+                            </h3>
+                            <span className="text-xs text-researchbee-light-gray">
+                              {message.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-sm text-researchbee-light-gray line-clamp-1">
+                            {message.preview}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {activeSection === 'settings' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Settings</h2>
+              <div className="bg-gray-800 rounded-lg p-6">
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Profile Settings</h3>
+                  <Link href="/profile-setup">
+                    <button className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                      Edit Profile
+                    </button>
+                  </Link>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Account Settings</h3>
+                  <button className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 mr-4">
+                    Change Password
+                  </button>
+                  <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                    Delete Account
+                  </button>
+                </div>
+                
+                <div>
+                  <h3 className="text-xl font-medium mb-4">Notification Settings</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <input type="checkbox" id="email-notifications" className="mr-2" />
+                      <label htmlFor="email-notifications">Email Notifications</label>
+                    </div>
+                    <div className="flex items-center">
+                      <input type="checkbox" id="match-notifications" className="mr-2" />
+                      <label htmlFor="match-notifications">Match Alerts</label>
+                    </div>
+                    <div className="flex items-center">
+                      <input type="checkbox" id="message-notifications" className="mr-2" />
+                      <label htmlFor="message-notifications">Message Notifications</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </PageContainer>
+  );
+}
+
+function DashboardOverview({ 
+  hasProjects, 
+  hasMatches, 
+  hasMessages,
+  onCreateProject,
+  userName
+}: { 
+  hasProjects: boolean;
+  hasMatches: boolean;
+  hasMessages: boolean;
+  onCreateProject: () => void;
+  userName: string;
+}) {
+  // Get time-based greeting
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+  
+  const greeting = getTimeBasedGreeting();
+  
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-2">{greeting}, {userName || 'Researcher'}</h2>
+      <p className="text-researchbee-light-gray mb-6">Here's what's happening with your research</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <DashboardCard 
+          title="Projects" 
+          count={hasProjects ? 3 : 0}
+          icon="📁"
+        />
+        <DashboardCard 
+          title="Matches" 
+          count={hasMatches ? 5 : 0}
+          icon="🤝"
+        />
+        <DashboardCard 
+          title="Messages" 
+          count={hasMessages ? 2 : 0}
+          icon="💬"
+        />
+      </div>
+      
+      <div className="bg-gray-800 rounded-lg p-6 mb-8">
+        <h3 className="text-xl font-medium mb-2">Getting Started</h3>
+        <p className="text-gray-400 mb-4">
+          Welcome to ItsMightHappen! Here are some steps to get started:
+        </p>
+        <div className="space-y-4">
+          <div className="flex items-start">
+            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">1</div>
+            <div>
+              <h4 className="font-medium">Complete your profile</h4>
+              <p className="text-gray-400 text-sm">
+                Add your skills, interests, and what you're looking for
+              </p>
+              <Link href="/profile-setup" className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block">
+                Edit Profile
+              </Link>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">2</div>
+            <div>
+              <h4 className="font-medium">Create a project</h4>
+              <p className="text-gray-400 text-sm">
+                Describe your project idea to attract collaborators
+              </p>
+              <button 
+                onClick={onCreateProject}
+                className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block"
+              >
+                Create Project
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="bg-researchbee-yellow text-black rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">3</div>
+            <div>
+              <h4 className="font-medium">Discover potential collaborators</h4>
+              <p className="text-gray-400 text-sm">
+                Browse and match with people who share your interests
+              </p>
+              <Link href="/discover" className="text-researchbee-yellow text-sm hover:underline mt-1 inline-block">
+                Discover People
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
       
-      {/* Upcoming Events */}
-      <Card>
-        <CardHeader className="px-6 pt-6 pb-4">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-xl">Upcoming Research Events</CardTitle>
-            <Button 
-              variant="ghost" 
-              className="p-0 h-auto text-sm font-medium text-primary-600 dark:text-primary-400"
-              onClick={() => router.push('/events')}
-            >
-              View All
-              <FiChevronRight size={16} className="ml-1" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="text-center py-8 px-4">
-            <FiCalendar size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-            <p className="text-gray-500 dark:text-gray-400">
-              No upcoming events at this time
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Check back later for conferences, workshops, and networking opportunities
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gray-800 rounded-lg p-6">
+          <h3 className="text-xl font-medium mb-4">Recent Activity</h3>
+          {hasMatches || hasMessages ? (
+            <div className="space-y-4">
+              <div className="border-b border-gray-700 pb-3">
+                <p className="text-sm text-gray-400">Yesterday</p>
+                <p>You matched with John Doe</p>
+              </div>
+              <div className="border-b border-gray-700 pb-3">
+                <p className="text-sm text-gray-400">3 days ago</p>
+                <p>New message from Jane Smith</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-400">No recent activity</p>
+          )}
+        </div>
+        
+        <div className="bg-gray-800 rounded-lg p-6">
+          <h3 className="text-xl font-medium mb-4">Upgrade to Pro</h3>
+          <p className="text-gray-400 mb-4">
+            Get access to premium features and unlimited projects
+          </p>
+          <Link href="/pricing">
+            <button className="bg-researchbee-yellow text-black px-4 py-2 rounded-md hover:bg-yellow-500 w-full">
+              View Pricing
+            </button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
-} 
+}
+
+function DashboardCard({ 
+  title, 
+  count, 
+  icon 
+}: { 
+  title: string; 
+  count: number;
+  icon: string;
+}) {
+  return (
+    <div className="bg-gray-800 rounded-lg p-6">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-xl font-medium">{title}</h3>
+        <span className="text-2xl">{icon}</span>
+      </div>
+      <p className="text-3xl font-bold">{count}</p>
+    </div>
+  );
+}

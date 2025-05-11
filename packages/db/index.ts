@@ -25,20 +25,21 @@ export const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseKey(
 // User Profile Schema
 export const profileSchema = z.object({
   id: z.string().uuid(),
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional(),
-  first_name: z.string().min(1),
-  last_name: z.string().min(1),
+  user_id: z.string().uuid().optional(),
+  updated_at: z.date().optional().nullable(),
+  first_name: z.string().min(1, 'First name is required').max(255).optional().nullable(),
+  last_name: z.string().min(1, 'Last name is required').max(255).optional().nullable(),
+  email: z.string().email().optional().nullable(),
   avatar_url: z.string().url().optional().nullable(),
-  bio: z.string().max(500).optional(),
-  location: z.string().optional(),
-  availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional(),
-  interests: z.array(z.string()).optional(),
-  project_history: z.array(z.string()).optional(),
-  is_mentor: z.boolean().default(false),
-  field_of_study: z.string().optional(),
-  email: z.string().email(),
-  institution: z.string().optional()
+  institution: z.string().max(255).optional().nullable(),
+  bio: z.string().max(2000).optional().nullable(),
+  website: z.string().url().optional().nullable(),
+  skills: z.array(z.string()).optional().nullable(),
+  interests: z.array(z.string()).optional().nullable(),
+  collaboration_pitch: z.string().max(1000, "Collaboration pitch must be 1000 characters or less.").optional().nullable(),
+  location: z.string().max(255).optional().nullable(),
+  field_of_study: z.string().max(255).optional().nullable(),
+  availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
 });
 
 export type Profile = z.infer<typeof profileSchema>;
@@ -64,8 +65,8 @@ export type ResearchPost = z.infer<typeof researchPostSchema>;
 export const matchSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime().optional(),
-  user_id: z.string().uuid(),
-  matched_user_id: z.string().uuid(),
+  user_id_1: z.string().uuid(),
+  user_id_2: z.string().uuid(),
   status: z.enum(['pending', 'matched', 'rejected']).default('pending'),
 });
 
@@ -85,20 +86,22 @@ export const guildSchema = z.object({
 
 export type Guild = z.infer<typeof guildSchema>;
 
-// Project Schema
+// Project Schema (now aligned with research_posts table)
 export const projectSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
   title: z.string().min(5).max(100),
-  description: z.string().min(20),
-  leader_id: z.string().uuid(),
-  guild_id: z.string().uuid().optional().nullable(),
-  status: z.enum(['planning', 'active', 'completed', 'archived']).default('planning'),
-  tags: z.array(z.string()).optional(),
+  content: z.string().min(20), // Renamed from description
+  user_id: z.string().uuid(),    // Renamed from leader_id
+  tags: z.array(z.string()).optional().nullable(), // Ensure nullable matches DB type (string[] | null)
+  visibility: z.enum(['public', 'private', 'connections']).default('public'), // Added from research_posts
+  is_boosted: z.boolean().default(false), // Added from research_posts
+  engagement_count: z.number().int().default(0), // Added from research_posts
+  // Removed: guild_id, status (not in research_posts table)
 });
 
-export type Project = z.infer<typeof projectSchema>;
+export type Project = z.infer<typeof projectSchema>; // This type now represents a research_post
 
 // Mentor Application Schema
 export const mentorApplicationSchema = z.object({
@@ -167,6 +170,48 @@ export const subscriptionSchema = z.object({
 
 export type Subscription = z.infer<typeof subscriptionSchema>;
 
+// Research Post Match Schema (for users matching with research posts)
+export const researchPostMatchSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(), // User who is matching/saving
+  research_post_id: z.string().uuid(), // The research post being matched/saved
+  status: z.enum(['interested', 'matched', 'dismissed', 'saved']).default('interested'), // Extended status
+  created_at: z.string().datetime().optional(),
+  updated_at: z.string().datetime().optional(),
+});
+
+export type ResearchPostMatch = z.infer<typeof researchPostMatchSchema>;
+
+// User Notification Schema
+export const userNotificationSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(), // The user who will receive the notification
+  type: z.enum(['new_match_suggestion', 'new_direct_match', 'new_message', 'project_update', 'mention', 'general_alert', 'feedback_request']),
+  content: z.string().max(500), // Notification text
+  is_read: z.boolean().default(false),
+  link_to: z.string().optional().nullable(), // Optional link to relevant content (e.g., /research/post-id, /chats/match-id)
+  sender_id: z.string().uuid().optional().nullable(), // User who triggered the notification, if applicable
+  created_at: z.string().datetime().optional(),
+});
+
+export type UserNotification = z.infer<typeof userNotificationSchema>;
+
+// Project File Schema (for files attached to research posts)
+export const projectFileSchema = z.object({
+  id: z.string().uuid(),
+  research_post_id: z.string().uuid(), // Foreign key to research_posts table
+  uploader_id: z.string().uuid(), // User who uploaded the file
+  file_name: z.string().min(1).max(255),
+  file_path: z.string(), // Path to the file in Supabase storage (e.g., 'project-files/research_post_id/file_name.pdf')
+  file_type: z.string(), // MIME type (e.g., 'application/pdf', 'image/png')
+  file_size: z.number().int().positive(), // File size in bytes
+  description: z.string().max(500).optional().nullable(), // Optional description of the file
+  created_at: z.string().datetime().optional(),
+  updated_at: z.string().datetime().optional(),
+});
+
+export type ProjectFile = z.infer<typeof projectFileSchema>;
+
 // Helper types for API responses
 export type SupabaseResponse<T> = {
   data: T | null;
@@ -174,4 +219,14 @@ export type SupabaseResponse<T> = {
 };
 
 // Export all components for use in other packages
-export * from './types'; 
+export * from './types';
+
+// New schema for profile-to-profile matching
+export const profileMatchSchema = z.object({
+  id: z.string().uuid(),
+  matcher_user_id: z.string().uuid({ message: "Matcher user ID must be a valid UUID." }),
+  matchee_user_id: z.string().uuid({ message: "Matchee user ID must be a valid UUID." }),
+  status: z.enum(['matched', 'rejected'], { message: "Status must be either 'matched' or 'rejected'." }),
+  created_at: z.date().optional(), // Will be set by Supabase default
+});
+export type ProfileMatch = z.infer<typeof profileMatchSchema>; 

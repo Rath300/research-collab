@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { resetPassword } from '@/lib/supabase';
+import { getBrowserClient } from '@/lib/supabaseClient';
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  const supabase = getBrowserClient();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +27,14 @@ export default function ResetPasswordPage() {
       setIsLoading(true);
       setError('');
       
-      // Request password reset
-      await resetPassword(email);
+      // Request password reset using the new client
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      if (resetError) {
+        throw resetError;
+      }
       
       // Show success message
       setIsSuccess(true);
@@ -57,7 +64,7 @@ export default function ResetPasswordPage() {
           <CardHeader>
             <CardTitle>Reset your password</CardTitle>
             <CardDescription>
-              Enter your email address and we'll send you a link to reset your password
+              Enter your email address and we&apos;ll send you a link to reset your password
             </CardDescription>
           </CardHeader>
           

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { FiMenu, FiUser, FiBell, FiMoon, FiSun, FiLogOut } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
+import { Avatar } from '@/components/ui/Avatar';
 
 export function Navbar() {
   const { user, profile, signOut } = useAuthStore();
@@ -105,15 +106,12 @@ export function Navbar() {
             >
               <span className="sr-only">Open user menu</span>
               <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                {profile?.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt="User" 
-                    className="w-8 h-8 rounded-full" 
-                  />
-                ) : (
-                  <FiUser className="w-4 h-4" />
-                )}
+                <Avatar 
+                  src={profile?.avatar_url} 
+                  alt={profile ? `${profile.first_name} ${profile.last_name}` : 'User'} 
+                  size="sm" 
+                  fallback={<FiUser className="w-4 h-4" />} 
+                />
               </div>
             </button>
             

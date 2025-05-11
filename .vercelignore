@@ -53,7 +53,7 @@ research-collab-standalone
 
 # Large files/directories
 .vercel/output
-*.log
+*.log 
 *.zip
 research-collab-nextjs.zip
 standalone-todo

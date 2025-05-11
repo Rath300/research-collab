@@ -1,138 +1,161 @@
 "use client";
 
-import React, { useState } from 'react';
+import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
-import { useAuthStore, useUIStore } from '@/lib/store';
-import { signOut } from '@/lib/supabase';
-import { 
-  FiMenu, 
-  FiX, 
-  FiSun, 
-  FiMoon, 
-  FiUser, 
-  FiLogOut, 
-  FiSettings, 
-  FiBell 
-} from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiMenu, FiUser, FiBell, FiMoon, FiSun, FiLogOut } from 'react-icons/fi';
+import { useTheme } from 'next-themes';
 
 export function Navbar() {
-  const { user, profile, signOut: logOut } = useAuthStore();
-  const { sidebarOpen, toggleSidebar, darkMode, toggleDarkMode } = useUIStore();
+  const { user, profile, signOut } = useAuthStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      logOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  // After mounting, we can safely access theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    window.location.href = '/login';
   };
 
   return (
-    <nav className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700">
-      <div className="px-4 md:px-6 h-16 flex items-center justify-between">
-        {/* Left side */}
+    <nav className="bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex flex-wrap justify-between items-center">
         <div className="flex items-center">
           <button
-            onClick={toggleSidebar}
-            className="mr-4 p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            aria-label="Toggle sidebar"
+            type="button"
+            className="md:hidden inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            aria-expanded="false"
           >
-            {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+            <span className="sr-only">Open sidebar</span>
+            <FiMenu className="w-6 h-6" />
           </button>
-          
-          <Link href="/dashboard" className="font-bold text-lg text-primary-600 dark:text-primary-400">
-            ResearchCollab
+          <Link href="/dashboard" className="flex ml-2 md:mr-24 items-center">
+            <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
+              Research Collab
+            </span>
           </Link>
         </div>
         
-        {/* Right side */}
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-          </button>
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          {mounted && (
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+            >
+              {theme === 'dark' ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+              <span className="sr-only">Toggle dark mode</span>
+            </button>
+          )}
           
-          <button
-            className="p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 relative"
-            aria-label="Notifications"
-          >
-            <FiBell size={20} />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-          </button>
-          
-          {profile && (
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center space-x-2 focus:outline-none"
-                aria-expanded={dropdownOpen}
-                aria-haspopup="true"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center overflow-hidden">
-                  {profile.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt={`${profile.first_name} ${profile.last_name}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <FiUser className="text-primary-600 dark:text-primary-400" size={16} />
-                  )}
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+            >
+              <span className="sr-only">View notifications</span>
+              <div className="relative">
+                <FiBell className="w-5 h-5" />
+                <div className="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-2 -right-2">
+                  3
                 </div>
-                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {profile.first_name}
-                </span>
-              </button>
-              
-              {dropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-slate-800 ring-1 ring-black ring-opacity-5 z-50"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="user-menu"
-                >
-                  <div className="py-1" role="none">
-                    <Link 
-                      href={`/profile/${user?.id}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      role="menuitem"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <FiUser className="mr-2" size={16} />
-                      Your Profile
+              </div>
+            </button>
+            
+            {notificationsOpen && (
+              <div className="absolute right-0 z-50 mt-2 w-80 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                <div className="py-2 px-4 font-medium text-center text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-white">
+                  Notifications
+                </div>
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <a href="#" className="flex py-3 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    <div className="pl-3 w-full">
+                      <div className="text-gray-500 font-normal text-sm mb-1.5 dark:text-gray-400">
+                        New connection request from <span className="font-semibold text-gray-900 dark:text-white">Alex Johnson</span>
+                      </div>
+                      <div className="text-xs font-medium text-primary-600">10 minutes ago</div>
+                    </div>
+                  </a>
+                </div>
+                <a href="#" className="block py-2 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:underline">
+                  View all notifications
+                </a>
+              </div>
+            )}
+          </div>
+          
+          {/* User menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+            >
+              <span className="sr-only">Open user menu</span>
+              <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                {profile?.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="User" 
+                    className="w-8 h-8 rounded-full" 
+                  />
+                ) : (
+                  <FiUser className="w-4 h-4" />
+                )}
+              </div>
+            </button>
+            
+            {dropdownOpen && (
+              <div className="absolute right-0 z-50 my-4 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                <div className="py-3 px-4">
+                  <span className="block text-sm font-semibold text-gray-900 dark:text-white">
+                    {profile ? `${profile.first_name} ${profile.last_name}` : 'User'}
+                  </span>
+                  <span className="block text-sm text-gray-500 truncate dark:text-gray-400">
+                    {user?.email || 'user@example.com'}
+                  </span>
+                </div>
+                <ul className="py-1 text-gray-700 dark:text-gray-300">
+                  <li>
+                    <Link href="/dashboard" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      Dashboard
                     </Link>
-                    
-                    <Link 
-                      href="/settings"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      role="menuitem"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <FiSettings className="mr-2" size={16} />
+                  </li>
+                  <li>
+                    <Link href="/profile" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/settings" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                       Settings
                     </Link>
-                    
-                    <button
-                      className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      role="menuitem"
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        handleSignOut();
-                      }}
-                    >
-                      <FiLogOut className="mr-2" size={16} />
-                      Sign out
-                    </button>
-                  </div>
+                  </li>
+                </ul>
+                <div className="py-1">
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white w-full"
+                  >
+                    <FiLogOut className="mr-2 w-4 h-4" />
+                    Sign out
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>

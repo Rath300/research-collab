@@ -575,4 +575,81 @@ export const setupNotificationsListener = (userId: string, callback: (notificati
   return () => {
     supabase.removeChannel(subscription);
   };
+};
+
+// Re-export functions from each module for easier imports
+import { getMatches, createMatch } from './matches';
+import { getMessages, sendMessage, markMessagesAsRead } from './messaging';
+
+// Re-export all the functions
+export {
+  // Match functions
+  getMatches,
+  createMatch,
+  
+  // Message functions
+  getMessages,
+  sendMessage,
+  markMessagesAsRead,
+};
+
+// Add placeholder functions for those missing but imported in other files
+export const getProfiles = async () => {
+  console.warn('getProfiles function not yet implemented');
+  return [];
+};
+
+export const getProfile = async (id: string) => {
+  console.warn('getProfile function not yet implemented');
+  return null;
+};
+
+export const getProfileStats = async (userId: string) => {
+  console.warn('getProfileStats function not yet implemented');
+  return { matches: 0, messages: 0, posts: 0 };
+};
+
+export const getResearchPosts = async () => {
+  console.warn('getResearchPosts function not yet implemented');
+  return [];
+};
+
+export const getResearchPost = async (id: string) => {
+  console.warn('getResearchPost function not yet implemented');
+  return null;
+};
+
+export const updateResearchPost = async (id: string, data: any) => {
+  console.warn('updateResearchPost function not yet implemented');
+  return null;
+};
+
+export const deleteResearchPost = async (id: string) => {
+  console.warn('deleteResearchPost function not yet implemented');
+  return true;
+};
+
+export const createResearchPost = async (data: any) => {
+  console.warn('createResearchPost function not yet implemented');
+  return null;
+};
+
+export const getUserPosts = async (userId: string) => {
+  console.warn('getUserPosts function not yet implemented');
+  return [];
+};
+
+export const checkIfMatched = async (userId1: string, userId2: string) => {
+  console.warn('checkIfMatched function not yet implemented');
+  return false;
+};
+
+export const uploadAvatar = async (userId: string, file: any) => {
+  console.warn('uploadAvatar function not yet implemented');
+  return null;
+};
+
+export const updateProfile = async (userId: string, data: any) => {
+  console.warn('updateProfile function not yet implemented');
+  return null;
 }; 

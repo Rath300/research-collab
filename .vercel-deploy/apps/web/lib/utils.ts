@@ -1,3 +1,6 @@
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
 /**
  * Generates a content hash for proof of work
  * 
@@ -113,4 +116,8 @@ export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
     result[groupKey].push(currentItem);
     return result;
   }, {});
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 } 

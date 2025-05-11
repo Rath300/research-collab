@@ -1,0 +1,21 @@
+import React from 'react';
+import Head from 'next/head';
+
+interface PageContainerProps {
+  title: string;
+  children: React.ReactNode;
+  className?: string; 
+}
+
+export function PageContainer({ title, children, className }: PageContainerProps) {
+  return (
+    <>
+      <Head>
+        <title>{`${title} | ResearchCollab`}</title>
+      </Head>
+      <main className={`container mx-auto px-4 py-8 ${className || ''}`}>
+        {children}
+      </main>
+    </>
+  );
+} 

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { FiSend, FiUser, FiClock } from 'react-icons/fi';
+import { FiSend, FiUser, FiClock, FiLoader, FiMessageCircle, FiSmile } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
-import { getMessagesForMatch, sendMessage, setupMessageListener } from '@/lib/api';
+import { getMessagesForMatch, sendMessage, setupMessageListener, markMessagesAsRead } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
+import { useChatStore } from '@/lib/store';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface ChatMessage {
   id: string;
@@ -13,7 +16,7 @@ interface ChatMessage {
   receiver_id: string;
   content: string;
   is_read: boolean;
-  created_at: string;
+  created_at?: string | null;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -37,19 +40,23 @@ export function ChatInterface({
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { resetUnreadCount: resetGlobalUnreadCount } = useChatStore();
   
-  // Load initial messages
   useEffect(() => {
-    const loadMessages = async () => {
+    const loadAndMarkMessages = async () => {
       if (!matchId || !user) return;
       
+      setIsLoading(true);
       try {
-        setIsLoading(true);
         const data = await getMessagesForMatch(matchId);
         setMessages(data);
+        if (data.length > 0) {
+          await markMessagesAsRead(matchId, user.id);
+          resetGlobalUnreadCount(recipientId);
+        }
       } catch (error) {
         console.error('Error loading messages:', error);
       } finally {
@@ -57,51 +64,46 @@ export function ChatInterface({
       }
     };
     
-    loadMessages();
-  }, [matchId, user]);
+    loadAndMarkMessages();
+  }, [matchId, user, recipientId, resetGlobalUnreadCount]);
   
-  // Set up real-time listener for new messages
   useEffect(() => {
     if (!matchId || !user) return;
     
-    // Subscribe to new messages
-    const unsubscribe = setupMessageListener(matchId, (newMessage) => {
+    const unsubscribe = setupMessageListener(matchId, (newMessage: ChatMessage) => {
       setMessages((prevMessages) => {
-        // Check if this message is already in the list to avoid duplicates
         const exists = prevMessages.some(msg => msg.id === newMessage.id);
         if (exists) return prevMessages;
-        
         return [...prevMessages, newMessage];
       });
+      if (newMessage.receiver_id === user.id && !newMessage.is_read) {
+        markMessagesAsRead(matchId, user.id).then(() => {
+          resetGlobalUnreadCount(recipientId);
+        }).catch(err => console.error("Error marking new message as read:", err));
+      }
     });
     
-    // Cleanup subscription on unmount
     return () => {
-      unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
-  }, [matchId, user]);
+  }, [matchId, user, recipientId, resetGlobalUnreadCount]);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!messageText.trim() || !user || !matchId) return;
     
+    setIsSending(true);
     try {
-      setIsSending(true);
-      
       await sendMessage({
         match_id: matchId,
         sender_id: user.id,
         receiver_id: recipientId,
         content: messageText.trim()
       });
-      
-      // Clear input field (note: the new message will come via the subscription)
       setMessageText('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -111,89 +113,117 @@ export function ChatInterface({
   };
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-black/20 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl overflow-hidden">
       {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center">
-        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden mr-3">
-          {recipientAvatar ? (
-            <img 
-              src={recipientAvatar} 
-              alt={recipientName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <FiUser className="text-primary-600" size={20} />
-          )}
+      <div className="p-4 border-b border-white/10 flex items-center space-x-3 shadow-sm">
+        <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center overflow-hidden ring-1 ring-white/20">
+          <Avatar 
+            src={recipientAvatar} 
+            alt={recipientName} 
+            size="md"
+            fallback={<FiUser className="text-researchbee-yellow" size={22} />} 
+          />
         </div>
         
         <div>
-          <h3 className="font-medium text-gray-900 dark:text-white">
+          <h3 className="font-semibold text-lg text-white">
             {recipientName}
           </h3>
         </div>
       </div>
       
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Area: Transparent background, inherits from parent glass-card */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
-          </div>
+          <motion.div 
+            className="flex flex-col items-center justify-center h-full"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FiLoader className="animate-spin text-researchbee-yellow text-5xl" />
+            <p className="mt-4 text-gray-300 text-lg">Loading messages...</p>
+          </motion.div>
         ) : messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
+          <motion.div 
+            className="flex flex-col items-center justify-center h-full text-center px-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <FiSmile className="text-researchbee-yellow text-6xl mb-5 opacity-80" />
+            <h3 className="text-xl font-semibold text-white mb-2">It&apos;s quiet in here...</h3>
+            <p className="text-gray-400 text-md max-w-xs">
+              No messages in this chat yet. Why not break the ice and send the first message?
+            </p>
+          </motion.div>
         ) : (
-          messages.map((message) => {
-            const isCurrentUser = user?.id === message.sender_id;
-            const timestamp = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
-            
-            return (
-              <div 
-                key={message.id} 
-                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                    isCurrentUser 
-                      ? 'bg-primary-600 text-white' 
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
-                  }`}
+          <AnimatePresence initial={false}>
+            {messages.map((message, index) => {
+              const isCurrentUser = user?.id === message.sender_id;
+              const timestamp = message.created_at && !isNaN(new Date(message.created_at).getTime()) 
+                ? formatDistanceToNow(new Date(message.created_at), { addSuffix: true }) 
+                : 'Sending...';
+              
+              return (
+                <motion.div
+                  key={message.id} 
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 260, 
+                    damping: 20,
+                    delay: index * 0.05 // Stagger animation for initial load
+                  }}
+                  className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                  <div 
-                    className={`flex items-center text-xs mt-1 ${
-                      isCurrentUser ? 'text-primary-200' : 'text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    <FiClock size={10} className="mr-1" />
-                    <span>{timestamp}</span>
+                  <div className={`flex items-end max-w-[80%] sm:max-w-[70%] ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} space-x-2 space-x-reverse`}>
+                    <div 
+                      className={`rounded-xl px-3.5 py-2.5 shadow-md backdrop-blur-md break-words whitespace-pre-wrap text-sm sm:text-base leading-relaxed ${
+                        isCurrentUser 
+                          ? 'bg-researchbee-yellow/80 text-black rounded-br-none' 
+                          : 'bg-white/10 text-gray-100 rounded-bl-none'
+                      }`}
+                    >
+                      {message.content}
+                      <div 
+                        className={`text-xs mt-1.5 flex items-center ${isCurrentUser ? 'text-black/60 justify-end' : 'text-gray-400/80 justify-start'}`}
+                      >
+                        <FiClock size={10} className="mr-1" />
+                        <span>{timestamp}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         )}
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Message input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
+      {/* Message input area */} 
+      <div className="p-3 sm:p-4 border-t border-white/10 bg-black/10 backdrop-blur-sm">
+        <form onSubmit={handleSendMessage} className="flex items-center space-x-2 sm:space-x-3">
           <Input
             placeholder="Type a message..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            className="flex-1"
+            className="flex-1 bg-white/5 border-white/20 placeholder-gray-400/60 text-white !py-2.5 sm:!py-3"
             disabled={isSending}
+            autoComplete="off"
           />
-          
           <Button
             type="submit"
             disabled={!messageText.trim() || isSending}
             isLoading={isSending}
+            className="bg-researchbee-yellow hover:bg-researchbee-darkyellow text-black rounded-lg !p-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0 shadow-md"
+            aria-label="Send message"
           >
-            <FiSend size={18} />
+            {!isSending && <FiSend size={18} />}
           </Button>
         </form>
       </div>

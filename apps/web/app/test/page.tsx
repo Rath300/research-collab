@@ -10,7 +10,7 @@ export default function TestPage() {
         Test Page - If you see this, the app is working!
       </h1>
       <p style={{ marginBottom: '20px' }}>
-        This is a minimal test page that doesn't use any complex components or authentication.
+        This is a minimal test page that doesn&apos;t use any complex components or authentication.
       </p>
       <div style={{ 
         padding: '20px', 

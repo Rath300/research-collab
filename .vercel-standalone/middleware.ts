@@ -2,6 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+export const runtime = 'experimental-edge';
+
 export async function middleware(request: NextRequest) {
   // List of public paths that don't require authentication
   const publicPaths = [
@@ -82,6 +84,6 @@ export const config = {
      * - public folder
      * - api (API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public/|api/).*)' 
   ],
 } 

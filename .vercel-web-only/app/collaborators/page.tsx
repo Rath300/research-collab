@@ -3,169 +3,147 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiFilter, FiRefreshCw, FiUsers } from 'react-icons/fi';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { SwipeCard } from '@/components/collaborators/SwipeCard';
-import { useAuthStore, useSwipeStore } from '@/lib/store';
-import { getProfiles, createMatch } from '@/lib/api';
-import { Profile } from '@research-collab/db';
+import { Button } from '../../components/Button';
+import { FiUserPlus } from 'react-icons/fi';
+import { PageContainer } from '../../components';
+
+// Mocked profile data
+interface Profile {
+  id: string;
+  name: string;
+  title: string;
+  institution: string;
+  researchAreas: string[];
+  bio: string;
+  imageUrl?: string;
+}
 
 export default function CollaboratorsPage() {
   const router = useRouter();
-  const { user, profile } = useAuthStore();
-  const { swipedUsers, likedUsers, addSwipedUser, addLikedUser, resetSwipeState } = useSwipeStore();
+  const [isClient, setIsClient] = useState(false);
   
+  // Mock profiles data
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [noMoreProfiles, setNoMoreProfiles] = useState(false);
   
-  const loadProfiles = async () => {
-    try {
-      if (!user) return;
-      
-      setIsLoading(true);
-      setError('');
-      
-      // Get all previously swiped user IDs to exclude
-      const excludeIds = [...swipedUsers];
-      if (user.id) excludeIds.push(user.id); // Exclude current user
-      
-      // Get profiles from API
-      const data = await getProfiles({
-        excludeIds,
-        isRandomized: true,
-        limit: 10,
-      });
-      
-      setProfiles(data);
-      
-      if (data.length === 0) {
-        setNoMoreProfiles(true);
-      }
-    } catch (err: any) {
-      console.error('Error loading profiles:', err);
-      setError(err.message || 'Failed to load profiles');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+  // Check if we're on the client side before trying to access browser APIs
   useEffect(() => {
-    if (user) {
-      loadProfiles();
-    }
-  }, [user]);
-  
-  const handleSwipe = async (direction: 'left' | 'right', profileId: string) => {
-    // Add to swiped users
-    addSwipedUser(profileId);
+    setIsClient(true);
     
-    if (direction === 'right') {
-      // User liked this profile
-      addLikedUser(profileId);
-      
-      if (user) {
-        try {
-          // Create a match
-          await createMatch(user.id, profileId);
-          // Check if we have a mutual match in the future
-        } catch (err) {
-          console.error('Error creating match:', err);
+    // Mock loading profiles
+    setTimeout(() => {
+      setProfiles([
+        {
+          id: '1',
+          name: 'Dr. Sarah Chen',
+          title: 'Associate Professor of Computer Science',
+          institution: 'Stanford University',
+          researchAreas: ['Machine Learning', 'Computer Vision', 'Natural Language Processing'],
+          bio: 'Specializing in AI applications for healthcare. Looking for collaborators in medical imaging and clinical data analysis.'
+        },
+        {
+          id: '2',
+          name: 'Prof. Michael Rodriguez',
+          title: 'Professor of Neuroscience',
+          institution: 'UCLA',
+          researchAreas: ['Neuroimaging', 'Cognitive Science', 'Brain-Computer Interfaces'],
+          bio: 'Working on advanced BCI technologies. Seeking partnerships with AI and signal processing experts.'
+        },
+        {
+          id: '3',
+          name: 'Dr. Emily Johnson',
+          title: 'Research Scientist',
+          institution: 'MIT Media Lab',
+          researchAreas: ['Human-Computer Interaction', 'Augmented Reality', 'Accessibility'],
+          bio: 'Developing new interfaces for people with disabilities. Looking for collaborators in software engineering and UX research.'
         }
-      }
-    }
-    
-    // Remove this profile from the stack
-    setProfiles((prev) => prev.filter((p) => p.id !== profileId));
-    
-    // If no more profiles to show, display message
-    if (profiles.length <= 1) {
-      setNoMoreProfiles(true);
+      ]);
+      setIsLoading(false);
+    }, 1500);
+  }, []);
+
+  // Function to handle navigation - only use on client side
+  const navigateToLogin = () => {
+    if (isClient) {
+      router.push('/login');
     }
   };
-  
-  const resetDeck = () => {
-    resetSwipeState();
-    setNoMoreProfiles(false);
-    loadProfiles();
-  };
-  
-  if (!user || !profile) {
-    // Redirect to login if not authenticated
-    router.push('/login');
-    return null;
-  }
   
   return (
-    <div className="container mx-auto max-w-md px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Find Collaborators</h1>
-        
-        <Button 
-          variant="outline" 
-          onClick={() => {}}
-          leftIcon={<FiFilter />}
-        >
-          Filter
-        </Button>
-      </div>
-      
-      <div className="relative h-[32rem] mb-6">
-        {isLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
+    <PageContainer title="Find Collaborators">
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="flex justify-between items-center">
+          <div>
+            <p className="text-researchbee-light-gray mb-4">
+              Connect with researchers who share your interests and expertise
+            </p>
           </div>
-        ) : error ? (
-          <Card className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-6">
-              <p className="text-red-500 mb-4">{error}</p>
-              <Button onClick={loadProfiles}>Retry</Button>
-            </div>
-          </Card>
-        ) : noMoreProfiles ? (
-          <Card className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-            <FiUsers size={48} className="text-gray-400 mb-4" />
-            <h3 className="text-xl font-bold mb-2">No More Profiles</h3>
-            <p className="text-gray-500 mb-4">You've seen all available researchers. Check back later or reset your swipes.</p>
-            <Button onClick={resetDeck} leftIcon={<FiRefreshCw />}>
-              Reset Swipes
-            </Button>
-          </Card>
-        ) : (
-          <>
-            {/* Only show the top card - others are still there for continuity when swiping */}
-            {profiles.length > 0 && (
-              <SwipeCard 
-                key={profiles[0].id}
-                profile={profiles[0]}
-                onSwipe={handleSwipe}
-              />
-            )}
-          </>
-        )}
-      </div>
-      
-      {/* Manual swipe buttons */}
-      {!isLoading && !noMoreProfiles && profiles.length > 0 && (
-        <div className="flex justify-center space-x-10">
-          <Button
-            variant="outline"
-            className="h-16 w-16 rounded-full border-2 border-red-500 text-red-500 p-0"
-            onClick={() => handleSwipe('left', profiles[0].id)}
-          >
-            <FiRefreshCw size={28} />
-          </Button>
           
-          <Button
-            variant="outline"
-            className="h-16 w-16 rounded-full border-2 border-green-500 text-green-500 p-0"
-            onClick={() => handleSwipe('right', profiles[0].id)}
+          <Button 
+            variant="secondary" 
+            onPress={() => {}}
+            leftIcon={<FiFilter />}
           >
-            <FiUsers size={28} />
+            Filter Results
           </Button>
         </div>
-      )}
-    </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-researchbee-yellow"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-researchbee-dark-gray rounded-lg p-6 text-center">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onPress={() => setIsLoading(true)}>Retry</Button>
+          </div>
+        ) : profiles.length === 0 ? (
+          <div className="bg-researchbee-dark-gray rounded-lg p-8 text-center">
+            <FiUsers size={48} className="text-researchbee-light-gray mx-auto mb-4" />
+            <h3 className="text-xl font-bold mb-2">No More Profiles</h3>
+            <p className="text-researchbee-light-gray mb-6">You've seen all available researchers. Check back later or adjust your search criteria.</p>
+            <Button onPress={() => setIsLoading(true)} leftIcon={<FiRefreshCw />}>
+              Refresh Results
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {profiles.map(profile => (
+              <div key={profile.id} className="bg-researchbee-dark-gray rounded-lg overflow-hidden hover:border-researchbee-yellow hover:border transition-all">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-1">{profile.name}</h3>
+                  <p className="text-researchbee-light-gray text-sm mb-3">{profile.title}</p>
+                  <p className="text-white mb-2">{profile.institution}</p>
+                  
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold mb-2">Research Areas:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.researchAreas.map(area => (
+                        <span key={area} className="bg-researchbee-medium-gray px-2 py-1 rounded-full text-xs">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-researchbee-light-gray mb-4">{profile.bio}</p>
+                  
+                  <Button 
+                    variant="outline"
+                    leftIcon={<FiUserPlus />}
+                    onPress={() => {}}
+                    size="small"
+                  >
+                    Connect
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </PageContainer>
   );
 } 

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getBrowserClient } from "@/lib/supabaseClient";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = getBrowserClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,121 +23,115 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        throw error;
+      if (signInError) {
+        throw signInError;
       }
 
       if (data?.user) {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred during login.");
+      setError(err.message || "An error occurred during login. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-researchbee-black flex flex-col">
-      <header className="py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold text-researchbee-yellow">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex flex-col items-center justify-center p-4 text-white">
+      <header className="absolute top-0 left-0 w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-start">
+        <Link href="/" className="text-3xl font-bold text-researchbee-yellow tracking-tight">
           RESEARCH-BEE
         </Link>
       </header>
 
-      <main className="flex-grow flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-md space-y-8 animate-fade-in">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-white">Sign in</h2>
-            <p className="mt-2 text-researchbee-light-gray">
-              Access your Research-Bee account
-            </p>
-          </div>
+      <Card className="w-full max-w-md transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+        <CardHeader>
+          <CardTitle className="text-4xl text-center">Welcome Back</CardTitle>
+          <CardDescription className="mt-2 text-center">
+            Sign in to continue your research journey.
+          </CardDescription>
+        </CardHeader>
 
+        <CardContent>
           {error && (
-            <div className="p-3 bg-red-900/50 border border-red-800 rounded text-white text-sm">
+            <div className="p-3 mb-6 bg-red-600/40 border border-red-500/60 rounded-lg text-white text-sm backdrop-blur-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="netflix-label">
-                Email
+              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-1.5">
+                Email Address
               </label>
-              <input
+              <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Enter your email"
-                className="netflix-input"
+                placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="netflix-label">
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-200">
                   Password
                 </label>
                 <Link
-                  href="/forgot-password"
-                  className="text-sm text-researchbee-yellow hover:text-researchbee-yellow-dark"
+                  href="/reset-password"
+                  className="text-sm text-researchbee-yellow hover:text-researchbee-yellow-dark transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <input
+              <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter your password"
-                className="netflix-input"
+                placeholder="••••••••"
               />
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
-                disabled={isLoading}
-                className="netflix-btn netflix-btn-primary w-full flex items-center justify-center"
+                isLoading={isLoading}
+                isFullWidth={true}
+                variant="accent"
+                size="lg"
+                className="transform hover:scale-105 active:scale-95"
               >
-                {isLoading ? (
-                  <>
-                    <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-researchbee-black rounded-full"></span>
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign in"
-                )}
-              </button>
+                Sign In
+              </Button>
             </div>
           </form>
 
-          <div className="text-center mt-6">
-            <p className="text-researchbee-light-gray">
-              New to Research-Bee?{" "}
+          <div className="text-center mt-8">
+            <p className="text-gray-300">
+              Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
-                className="text-researchbee-yellow hover:text-researchbee-yellow-dark"
+                className="font-medium text-researchbee-yellow hover:text-researchbee-yellow-dark transition-colors"
               >
                 Sign up now
               </Link>
             </p>
           </div>
-        </div>
-      </main>
+        </CardContent>
+      </Card>
 
-      <footer className="py-6 px-4 sm:px-6 lg:px-8 text-center text-researchbee-light-gray text-sm">
-        <p>&copy; {new Date().getFullYear()} Research-Bee. All rights reserved.</p>
+      <footer className="absolute bottom-0 w-full py-6 text-center text-gray-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} Research-Bee. All rights reserved. </p>
       </footer>
     </div>
   );

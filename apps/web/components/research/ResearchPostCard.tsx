@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { ResearchPost } from '@research-collab/db';
+import { Database } from '@/lib/database.types';
 import { 
   FiUser, 
   FiThumbsUp, 
@@ -13,16 +13,14 @@ import {
   FiTag 
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
+import { Avatar } from '@/components/ui/Avatar';
+
+type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface ResearchPostCardProps {
   post: ResearchPost & { 
-    profiles?: { 
-      id: string; 
-      first_name: string; 
-      last_name: string; 
-      avatar_url?: string | null;
-      institution?: string | null;
-    }
+    profiles: Profile;
   };
   onLike?: (postId: string) => void;
   onBoost?: (postId: string) => void;
@@ -57,15 +55,12 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
         <div className="flex items-center space-x-3">
           <Link href={`/profile/${userId}`} className="flex-shrink-0">
             <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
-              {profiles?.avatar_url ? (
-                <img 
-                  src={profiles.avatar_url} 
-                  alt={fullName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <FiUser className="text-primary-600" size={20} />
-              )}
+              <Avatar 
+                src={profiles?.avatar_url} 
+                alt={fullName} 
+                size="md" 
+                fallback={<FiUser className="text-primary-600" size={20} />} 
+              />
             </div>
           </Link>
           

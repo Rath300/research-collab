@@ -83,7 +83,7 @@ export default function CollaboratorsPage() {
           
           <Button 
             variant="secondary" 
-            onPress={() => {}}
+            onClick={() => {}}
             leftIcon={<FiFilter />}
           >
             Filter Results
@@ -97,14 +97,14 @@ export default function CollaboratorsPage() {
         ) : error ? (
           <div className="bg-researchbee-dark-gray rounded-lg p-6 text-center">
             <p className="text-red-500 mb-4">{error}</p>
-            <Button onPress={() => setIsLoading(true)}>Retry</Button>
+            <Button onClick={() => setIsLoading(true)}>Retry</Button>
           </div>
         ) : profiles.length === 0 ? (
           <div className="bg-researchbee-dark-gray rounded-lg p-8 text-center">
             <FiUsers size={48} className="text-researchbee-light-gray mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-2">No More Profiles</h3>
-            <p className="text-researchbee-light-gray mb-6">You've seen all available researchers. Check back later or adjust your search criteria.</p>
-            <Button onPress={() => setIsLoading(true)} leftIcon={<FiRefreshCw />}>
+            <p className="text-researchbee-light-gray mb-6">You&apos;ve seen all available researchers. Check back later or adjust your search criteria.</p>
+            <Button onClick={() => setIsLoading(true)} leftIcon={<FiRefreshCw />}>
               Refresh Results
             </Button>
           </div>
@@ -133,7 +133,7 @@ export default function CollaboratorsPage() {
                   <Button 
                     variant="outline"
                     leftIcon={<FiUserPlus />}
-                    onPress={() => {}}
+                    onClick={() => {}}
                     size="small"
                   >
                     Connect

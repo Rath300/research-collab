@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { FiUser, FiMapPin, FiClock, FiBookmark, FiCheck, FiX, FiHeart } from 'react-icons/fi';
 import { Button } from '@/components/ui/Button';
 import { Profile } from '@research-collab/db';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface SwipeCardProps {
   profile: Profile;
@@ -127,15 +128,12 @@ export function SwipeCard({ profile, onSwipe }: SwipeCardProps) {
             {/* Profile header */}
             <div className="flex items-center space-x-4 mb-4">
               <div className="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden border-4 border-white dark:border-gray-900 shadow-md">
-                {avatar_url ? (
-                  <img 
-                    src={avatar_url} 
-                    alt={fullName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <FiUser className="h-12 w-12 text-primary-600" />
-                )}
+                <Avatar 
+                  src={avatar_url} 
+                  alt={fullName}
+                  size="lg"
+                  fallback={<FiUser className="h-12 w-12 text-primary-600" />} 
+                />
               </div>
               
               <div>
