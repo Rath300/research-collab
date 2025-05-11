@@ -38,6 +38,7 @@ const customThemes = {
 
 const config = createTamagui({
   defaultFont: 'body',
+  /* // Commenting out animations for now to resolve build error
   animations: {
     fast: {
       type: 'spring',
@@ -57,6 +58,7 @@ const config = createTamagui({
       stiffness: 60,
     },
   },
+  */
   fonts: {
     body: interFont,
     heading: interFont,

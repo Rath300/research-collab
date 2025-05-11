@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, YStack, styled, SafeAreaView, XStack, H2, Button, SizableText } from 'tamagui';
+import { ScrollView, YStack, styled, XStack, H2, Button, SizableText } from 'tamagui';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { BeeIcon } from './bee-icon';
 
 const StyledSafeAreaView = styled(SafeAreaView, {
