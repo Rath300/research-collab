@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Ensure nested node_modules in specific problematic dirs are caught
 research-collab-standalone/node_modules/
+
+# Specific sub-package files to ignore
+apps/web/.npmrc
