@@ -38,3 +38,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Compiled native addons
+*.node
+
+# Ensure nested node_modules in specific problematic dirs are caught
+research-collab-standalone/node_modules/
