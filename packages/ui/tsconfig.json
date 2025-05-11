@@ -1,10 +1,28 @@
 {
-  "extends": "@research-collab/typescript-config/react-library.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "UI Package",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "moduleResolution": "bundler",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "target": "es5",
     "jsx": "react-jsx",
-    "skipLibCheck": true
+    "noEmit": false,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
