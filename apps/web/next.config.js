@@ -26,7 +26,8 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['sharp', 'canvas'],
-    forceSwcTransforms: false
+    forceSwcTransforms: false,
+    esmExternals: 'loose'
   },
   webpack: (config, { isServer, webpack }) => {
     // Ignore optional native dependencies of ws
@@ -48,6 +49,18 @@ const nextConfig = {
     // Required by Supabase to work with WebAssembly
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     
+    // Add support for native modules
+    config.module = {
+      ...config.module,
+      rules: [
+        ...config.module.rules,
+        {
+          test: /\.node$/,
+          use: 'node-loader',
+        },
+      ],
+    };
+
     return config;
   },
   serverRuntimeConfig: {
