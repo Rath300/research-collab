@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { GeistSans } from 'geist/font/sans';
 
 export const metadata: Metadata = {
   title: "Research Bee - Research Collaboration Platform",
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={GeistSans.variable}>
       <body className="font-sans bg-black">
         <AuthProvider>
           {children}

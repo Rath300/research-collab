@@ -29,7 +29,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', ...fontFamily.sans],
-        heading: ['"Geist Sans"', ...fontFamily.sans],
+        heading: ['var(--font-geist-sans)', ...fontFamily.sans],
         mono: fontFamily.mono,
       },
       animation: {
