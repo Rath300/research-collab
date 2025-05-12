@@ -10,15 +10,21 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Auth condition
-  if (!session && !req.nextUrl.pathname.startsWith('/auth')) {
+  const pathname = req.nextUrl.pathname
+
+  // Define paths considered as authentication-related
+  const authPaths = ['/login', '/signup', '/reset-password']
+  const isAuthPath = authPaths.includes(pathname) || pathname.startsWith('/auth')
+
+  // Redirect to /login if not logged in AND not on an auth-related path
+  if (!session && !isAuthPath) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/auth/login'
+    redirectUrl.pathname = '/login' // Changed target to /login as it seems to be the main login page
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If user is signed in and tries to access auth pages, redirect to dashboard
-  if (session && req.nextUrl.pathname.startsWith('/auth')) {
+  // Redirect to /dashboard if logged in AND on an auth-related path
+  if (session && isAuthPath && pathname !== '/auth/check-email') { // Allow staying on check-email page
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
