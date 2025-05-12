@@ -829,8 +829,60 @@ declare const config: import("tamagui").TamaguiInternalConfig<{
         [key: string]: any;
     };
 }, {
-    body: import("@tamagui/core").FillInFont<import("@tamagui/core").GenericFont, 1 | 2 | 3 | 4 | "true" | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16>;
-    heading: import("@tamagui/core").FillInFont<import("@tamagui/core").GenericFont, 1 | 2 | 3 | 4 | "true" | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16>;
+    body: {
+        family: string;
+        size: {
+            1: number;
+            2: number;
+            3: number;
+            4: number;
+            5: number;
+            6: number;
+        };
+        lineHeight: {
+            1: number;
+            2: number;
+            3: number;
+            4: number;
+            5: number;
+            6: number;
+        };
+        weight: {
+            1: string;
+            4: string;
+            7: string;
+        };
+        letterSpacing: {
+            1: number;
+        };
+    };
+    heading: {
+        family: string;
+        size: {
+            1: number;
+            2: number;
+            3: number;
+            4: number;
+            5: number;
+            6: number;
+        };
+        lineHeight: {
+            1: number;
+            2: number;
+            3: number;
+            4: number;
+            5: number;
+            6: number;
+        };
+        weight: {
+            1: string;
+            4: string;
+            7: string;
+        };
+        letterSpacing: {
+            1: number;
+        };
+    };
 }, boolean | undefined, string, {
     allowedStyleValues?: (boolean | "strict" | "somewhat-strict" | "strict-web" | "somewhat-strict-web") | {
         space?: "number" | (boolean | "strict" | "somewhat-strict" | "strict-web" | "somewhat-strict-web") | "percent";

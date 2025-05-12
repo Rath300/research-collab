@@ -1,72 +1,25 @@
-import { createInterFont } from '@tamagui/font-inter';
+import { tokens, themes as defaultThemes } from '@tamagui/themes'; // Aliased themes to defaultThemes
+import { createTamagui, createFont } from 'tamagui';
 import { shorthands } from '@tamagui/shorthands';
-import { themes, tokens } from '@tamagui/themes';
-import { createTamagui } from 'tamagui';
-const interFont = createInterFont();
-// Define custom colors for Research-Bee
-const researchBeeColors = {
-    researchbeeYellow: '#FFCB05', // Primary brand color
-    researchbeeBlack: '#121212', // Dark text/background
-    researchbeeLightGray: '#F7F7F7', // Light background
-    researchbeeMediumGray: '#DDDDDD', // Border color
-    researchbeeDarkGray: '#333333', // Darker background
-    researchbeeAccent: '#FF8C00', // Accent color (orange)
-};
-// Custom theme based on Tamagui themes
-const customThemes = {
-    ...themes,
-    researchBeeLight: {
-        ...themes.light,
-        background: researchBeeColors.researchbeeLightGray,
-        color: researchBeeColors.researchbeeBlack,
-        borderColor: researchBeeColors.researchbeeMediumGray,
-        shadowColor: 'rgba(0, 0, 0, 0.1)',
-        researchbeeYellow: researchBeeColors.researchbeeYellow,
-        researchbeeDarkGray: researchBeeColors.researchbeeDarkGray,
-        researchbeeAccent: researchBeeColors.researchbeeAccent,
-    },
-    researchBeeDark: {
-        ...themes.dark,
-        background: researchBeeColors.researchbeeBlack,
-        color: '#FFFFFF',
-        borderColor: researchBeeColors.researchbeeDarkGray,
-        shadowColor: 'rgba(0, 0, 0, 0.5)',
-        researchbeeYellow: researchBeeColors.researchbeeYellow,
-        researchbeeLightGray: researchBeeColors.researchbeeLightGray,
-        researchbeeMediumGray: researchBeeColors.researchbeeMediumGray,
-        researchbeeAccent: researchBeeColors.researchbeeAccent,
-    },
-};
+// const interFont = createInterFont() // Removed Inter font
+// Removed researchBeeColors and customThemes for radical simplification
+const bodyFont = createFont({
+    family: `system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif`,
+    size: { 1: 12, 2: 14, 3: 15, 4: 16, 5: 18, 6: 20 },
+    lineHeight: { 1: 17, 2: 20, 3: 22, 4: 24, 5: 26, 6: 28 },
+    weight: { 1: '300', 4: '400', 7: '600' },
+    letterSpacing: { 1: 0 },
+});
 const config = createTamagui({
     defaultFont: 'body',
-    /* // Commenting out animations for now to resolve build error
-    animations: {
-      fast: {
-        type: 'spring',
-        damping: 20,
-        mass: 1.2,
-        stiffness: 250,
-      },
-      medium: {
-        type: 'spring',
-        damping: 10,
-        mass: 0.9,
-        stiffness: 100,
-      },
-      slow: {
-        type: 'spring',
-        damping: 20,
-        stiffness: 60,
-      },
-    },
-    */
+    // animations commented out
     fonts: {
-        body: interFont,
-        heading: interFont,
+        body: bodyFont,
+        heading: bodyFont,
     },
     shorthands,
     tokens,
-    themes: themes,
+    themes: defaultThemes, // Using default themes directly from @tamagui/themes
 });
 export default config;
 //# sourceMappingURL=tamagui.config.js.map

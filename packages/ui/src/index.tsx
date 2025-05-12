@@ -5,13 +5,15 @@ export * from './components/bee-icon';
 export * from './components/form-field';
 export * from './components/page-container';
 
+// Export our custom button
+export { Button } from './button';
+
 // Export Tamagui config
 export { default as tamaguiConfig } from './tamagui.config';
 
 // Re-export components from Tamagui for convenience
 export {
   Anchor,
-  Button,
   Card,
   Checkbox,
   H1,
