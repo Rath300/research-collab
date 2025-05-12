@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { Input } from 'tamagui';
 import { Button } from "@/components/ui/Button";
 
 export default function Login() {
@@ -13,6 +13,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFocusedEmail, setIsFocusedEmail] = useState(false);
+  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   
   const router = useRouter();
   const supabase = getBrowserClient();
@@ -74,10 +76,11 @@ export default function Login() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
+                onFocus={() => setIsFocusedEmail(true)}
+                onBlur={() => setIsFocusedEmail(false)}
+                className={isFocusedEmail ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
               />
             </div>
 
@@ -97,10 +100,11 @@ export default function Login() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
+                onFocus={() => setIsFocusedPassword(true)}
+                onBlur={() => setIsFocusedPassword(false)}
+                className={isFocusedPassword ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
               />
             </div>
 
