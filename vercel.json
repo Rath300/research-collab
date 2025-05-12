@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm install && npx turbo run build --filter=\"@research-collab/db\" --filter=\"ui\"",
+  "installCommand": "npm run deploy:vercel-prepare",
   "builds": [
     {
       "src": "apps/web/package.json",
