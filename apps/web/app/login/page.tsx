@@ -50,7 +50,7 @@ export default function Login() {
         </Link>
       </header>
 
-      <Card className="w-full max-w-md bg-ic-dark-bg border-4 border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+      <Card className="w-full max-w-md bg-ic-dark-bg shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
         <CardHeader>
           <CardTitle className="text-4xl text-center text-ic-text-primary">Welcome Back</CardTitle>
           <CardDescription className="mt-2 text-center text-ic-text-secondary">
@@ -77,7 +77,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:border-ic-yellow-accent focus:ring-0"
               />
             </div>
 
@@ -100,7 +100,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:border-ic-yellow-accent focus:ring-0"
               />
             </div>
 
@@ -109,7 +109,7 @@ export default function Login() {
                 type="submit"
                 isLoading={isLoading}
                 isFullWidth={true}
-                className="bg-ic-yellow-accent hover:bg-ic-yellow-accent-dark text-ic-dark-bg font-semibold transform hover:scale-105 active:scale-95"
+                className="bg-gradient-to-r from-ic-yellow-accent to-ic-yellow-accent-dark hover:from-ic-yellow-accent-dark hover:to-ic-yellow-accent text-ic-dark-bg font-semibold transform hover:scale-105 active:scale-95 hover:shadow-lg hover:brightness-110"
                 size="lg"
               >
                 Sign In
