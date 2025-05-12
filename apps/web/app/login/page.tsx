@@ -50,7 +50,7 @@ export default function Login() {
         </Link>
       </header>
 
-      <Card className="w-full max-w-md bg-researchbee-dark-gray border-ic-border shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+      <Card className="w-full max-w-md bg-black border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
         <CardHeader>
           <CardTitle className="text-4xl text-center text-ic-text-primary">Welcome Back</CardTitle>
           <CardDescription className="mt-2 text-center text-ic-text-secondary">

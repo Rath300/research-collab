@@ -40,7 +40,9 @@
       ],
       "@/types/*": [
         "./types/*"
-      ]
+      ],
+      "ui": ["../../packages/ui/src/index.tsx"],
+      "ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": [
