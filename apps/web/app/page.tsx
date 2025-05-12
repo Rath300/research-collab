@@ -33,8 +33,8 @@ export default function LandingPage() {
           RESEARCH-BEE
         </Link>
         <Link href="/login" className="font-sans text-neutral-300 hover:text-white transition-colors">
-          Log in
-        </Link>
+                Log in
+              </Link>
       </header>
 
       {/* Main Content */}
@@ -148,7 +148,7 @@ export default function LandingPage() {
                    description="Display your publications, projects, and achievements on your public profile."
                  /> 
                  */}
-               </div>
+            </div>
                <div className="md:col-span-1 lg:col-span-1"> {/* Placeholder */}
                  {/* Example: 
                  <FeatureCard 
@@ -157,7 +157,7 @@ export default function LandingPage() {
                    description="Get feedback on early-stage research concepts within a trusted community environment."
                  /> 
                  */}
-               </div>
+          </div>
             </motion.div>
           </div>
         </motion.section>
@@ -245,14 +245,14 @@ export default function LandingPage() {
         <section className="py-16 bg-gray-900/50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
              <h2 className="text-3xl font-bold text-ic-text-primary mb-6">Ready to Find Your Research Partner?</h2>
-             <Link 
-              href="/signup" 
+          <Link 
+            href="/signup" 
               className="bg-ic-yellow-accent text-ic-dark-bg hover:bg-ic-yellow-accent-dark font-semibold py-3 px-8 rounded-lg text-lg transition-colors shadow-md hover:shadow-lg"
-             >
+          >
               Sign Up For Free
-            </Link>
-          </div>
-        </section> 
+          </Link>
+        </div>
+      </section>
         */}
 
       </main>
