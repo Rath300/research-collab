@@ -59,16 +59,16 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-ic-dark-bg flex flex-col items-center justify-center p-4 text-ic-text-primary">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-ic-text-primary">
       <header className="absolute top-0 left-0 w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-start">
-        <Link href="/" className="text-3xl font-bold text-ic-yellow-accent tracking-tight">
+        <Link href="/" className="font-heading text-3xl font-bold text-ic-yellow-accent tracking-tight">
           RESEARCH-BEE
         </Link>
       </header>
 
-      <Card className="w-full max-w-md bg-ic-dark-bg shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+      <Card className="w-full max-w-md bg-black shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
         <CardHeader>
-          <CardTitle className="text-4xl text-center text-ic-text-primary">Create Account</CardTitle>
+          <CardTitle className="font-heading text-4xl text-center text-ic-text-primary">Create Account</CardTitle>
           <CardDescription className="mt-2 text-center text-ic-text-secondary">
             Join Research-Bee and revolutionize your research journey.
           </CardDescription>

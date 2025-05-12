@@ -16,9 +16,9 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-ic-dark-bg text-ic-text-primary flex flex-col">
+    <div className="min-h-screen bg-black text-ic-text-primary flex flex-col">
       {/* Header */}
-      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-ic-dark-bg/80 backdrop-blur-md border-b border-ic-border/30">
+      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-ic-border/30">
         <Link href="/" className="text-3xl font-bold text-ic-yellow-accent tracking-tight">
           RESEARCH-BEE
         </Link>
@@ -38,7 +38,7 @@ export default function LandingPage() {
           </div>
           
           <div className="z-10 flex flex-col items-center">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-ic-text-primary mb-6 max-w-4xl leading-tight">
+            <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold text-ic-text-primary mb-6 max-w-4xl leading-tight">
               Discover Your Next Research Collaboration
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-ic-text-secondary mb-10 max-w-2xl">
@@ -54,9 +54,9 @@ export default function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-16 md:py-24 bg-gray-900/50"> {/* Slightly lighter dark bg */}
+        <section id="features" className="py-16 md:py-24 bg-black">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-ic-text-primary text-center mb-12 md:mb-16">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-ic-text-primary text-center mb-12 md:mb-16">
               Connect and Collaborate Seamlessly
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -104,9 +104,9 @@ export default function LandingPage() {
         </section>
 
         {/* How It Works Section (Optional - Simple Version) */}
-        <section className="py-16 md:py-24 bg-ic-dark-bg">
+        <section className="py-16 md:py-24 bg-black">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-ic-text-primary mb-12">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-ic-text-primary mb-12">
               Get Started in 3 Simple Steps
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -147,7 +147,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-8 text-center text-ic-text-secondary text-sm bg-ic-dark-bg border-t border-ic-border/30">
+      <footer className="w-full py-8 text-center text-ic-text-secondary text-sm bg-black border-t border-ic-border/30">
         &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
       </footer>
     </div>

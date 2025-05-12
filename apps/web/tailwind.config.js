@@ -1,5 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 const { fontFamily } = require('tailwindcss/defaultTheme');
+const { GeistSans } = require('geist/font/sans');
+const { GeistMono } = require('geist/font/mono');
 
 module.exports = {
   content: [
@@ -28,7 +30,9 @@ module.exports = {
         'ic-border': '#374151', // Tailwind gray-700 for borders on dark bg
       },
       fontFamily: {
-        sans: ['Netflix Sans', ...fontFamily.sans],
+        sans: ['Inter', ...fontFamily.sans],
+        heading: [GeistSans.variable, ...fontFamily.sans],
+        mono: [GeistMono.variable, ...fontFamily.mono],
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
