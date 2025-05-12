@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '@fontsource/inter/variable.css';
 import { GeistSans } from 'geist/font/sans';
 import { AuthProvider } from '@/components/providers/auth-provider';
 
