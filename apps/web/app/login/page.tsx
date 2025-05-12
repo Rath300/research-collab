@@ -43,31 +43,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-ic-text-primary">
-      <header className="absolute top-0 left-0 w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-start">
-        <Link href="/" className="font-heading text-3xl font-bold text-ic-yellow-accent tracking-tight">
-          RESEARCH-BEE
+    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
+        <Link href="/" className="font-heading text-2xl font-bold text-neutral-200 hover:text-neutral-100 transition-colors">
+          RESEARCH-BEE 
         </Link>
-      </header>
+      </div>
 
-      <Card className="w-full max-w-md bg-black shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
-        <CardHeader>
-          <CardTitle className="font-heading text-4xl text-center text-ic-text-primary">Welcome Back</CardTitle>
-          <CardDescription className="mt-2 text-center text-ic-text-secondary">
-            Sign in to continue your research journey.
+      <Card className="w-full max-w-sm bg-neutral-950 border-none shadow-none p-6 sm:p-8">
+        <CardHeader className="text-center mb-6">
+          <CardTitle className="font-heading text-3xl sm:text-4xl font-semibold text-neutral-100">
+            Sign In
+          </CardTitle>
+          <CardDescription className="mt-2 text-sm text-neutral-400 font-sans">
+            Welcome back, please enter your details.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           {error && (
-            <div className="p-3 mb-6 bg-red-700/50 border border-red-600/70 rounded-lg text-ic-text-primary text-sm backdrop-blur-sm">
+            <div className="p-3 mb-4 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-ic-text-secondary mb-1.5">
+              <label htmlFor="email" className="sr-only"> 
                 Email Address
               </label>
               <Input
@@ -76,40 +78,40 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="you@example.com"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:border-ic-yellow-accent focus:ring-0"
+                placeholder="Full name"
+                className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="block text-sm font-medium text-ic-text-secondary">
-                  Password
-                </label>
+              <div className="flex items-center justify-end mb-1">
                 <Link
                   href="/reset-password"
-                  className="text-sm text-ic-yellow-accent hover:text-ic-yellow-accent-dark transition-colors"
+                  className="text-xs font-sans text-neutral-400 hover:text-neutral-200 transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="••••••••"
-                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:border-ic-yellow-accent focus:ring-0"
+                placeholder="Work email"
+                className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
               />
             </div>
 
-            <div>
+            <div className="pt-2">
               <Button
                 type="submit"
                 isLoading={isLoading}
                 isFullWidth={true}
-                className="bg-gradient-to-r from-ic-yellow-accent to-ic-yellow-accent-dark hover:from-ic-yellow-accent-dark hover:to-ic-yellow-accent text-ic-dark-bg font-semibold transform hover:scale-105 active:scale-95 hover:shadow-lg hover:brightness-110"
+                className="w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors"
                 size="lg"
               >
                 Sign In
@@ -117,22 +119,22 @@ export default function Login() {
             </div>
           </form>
 
-          <div className="text-center mt-8">
-            <p className="text-ic-text-secondary">
+          <div className="text-center mt-6">
+            <p className="text-sm font-sans text-neutral-400">
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
-                className="font-medium text-ic-yellow-accent hover:text-ic-yellow-accent-dark transition-colors"
+                className="font-medium text-neutral-300 hover:text-neutral-100 transition-colors"
               >
-                Sign up now
+                Sign up
               </Link>
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <footer className="absolute bottom-0 w-full py-6 text-center text-ic-text-secondary text-sm">
-        <p>&copy; {new Date().getFullYear()} Research-Bee. All rights reserved. </p>
+      <footer className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans">
+        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
       </footer>
     </div>
   );
