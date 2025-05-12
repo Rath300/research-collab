@@ -1,7 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 const { fontFamily } = require('tailwindcss/defaultTheme');
-const { GeistSans } = require('geist/font/sans');
-const { GeistMono } = require('geist/font/mono');
 
 module.exports = {
   content: [
@@ -31,8 +29,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', ...fontFamily.sans],
-        heading: [GeistSans.variable, ...fontFamily.sans],
-        mono: [GeistMono.variable, ...fontFamily.mono],
+        heading: ['"Geist Sans"', ...fontFamily.sans],
+        mono: fontFamily.mono,
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
