@@ -22,7 +22,12 @@
     "noEmit": false,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "react": ["../../node_modules/@types/react"],
+      "react-dom": ["../../node_modules/@types/react-dom"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
