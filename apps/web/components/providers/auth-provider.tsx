@@ -22,56 +22,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    console.log('AuthProvider Effect: Setting up listener.');
     setLoading(true);
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        const currentPath = window.location.pathname; // Get fresh pathname inside callback
+        console.log(`AuthProvider: onAuthStateChange event: ${event}, Path: ${currentPath}, Session: ${!!session}`);
         const currentUser = session?.user ?? null;
-        setUser(currentUser);
+        setUser(currentUser); 
 
         if (currentUser) {
+          console.log('AuthProvider: User detected.');
+          // REDIRECT LOGIC MOVED HERE - Check current path inside callback
+          if (isAuthPathClient(currentPath) && currentPath !== '/auth/check-email') {
+            console.log(`AuthProvider: Redirecting from auth path ${currentPath} to /dashboard`);
+            router.replace('/dashboard'); // Use replace
+            setLoading(false); // Ensure loading is false before early return
+            return; // Exit early if redirecting
+          }
+
+          // If not redirecting, fetch profile
           try {
+            console.log('AuthProvider: Fetching profile...');
             const profileData = await getProfile(currentUser.id);
             setProfile(profileData);
-            
-            // REDIRECT LOGIC: If user is logged in and on an auth path, redirect to dashboard
-            if (pathname && isAuthPathClient(pathname) && pathname !== '/auth/check-email') {
-              console.log('AuthProvider: Redirecting logged-in user from auth path', pathname, 'to /dashboard');
-              router.push('/dashboard');
-            }
-
+             console.log('AuthProvider: Profile fetched.');
           } catch (error) {
-            console.error('Error fetching profile in AuthProvider:', error);
+            console.error('Error fetching profile:', error);
             setProfile(null); 
           } finally {
-            // Ensure loading is false even if profile fetch fails but user exists
-             setLoading(false); 
+            setLoading(false); 
           }
         } else {
+           console.log('AuthProvider: No user session.');
           setProfile(null); 
-          // If user is logged out, middleware handles redirecting from protected pages
-          // No explicit redirect needed here unless there are specific client-side cases.
-           setLoading(false); 
+          setLoading(false); 
         }
       }
     );
 
-    // Initial check - simplified as onAuthStateChange usually covers it.
-    // We mainly need to ensure loading is set correctly initially.
-    const checkInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-         setLoading(false); // Set loading false if no initial session
-      }
-      // If session exists, onAuthStateChange will fire and handle user/profile/loading/redirect
-    };
-
-    checkInitialSession();
-
+    // Removed explicit initial check, rely on onAuthStateChange firing initially
 
     return () => {
+      console.log('AuthProvider Effect: Cleaning up listener.');
       authListener.subscription?.unsubscribe();
     };
-  }, [supabase, setUser, setProfile, setLoading, router, pathname]);
+    // Dependencies: only things that, if changed, require setting up the listener again.
+  }, [supabase, setUser, setProfile, setLoading]); // Removed router/pathname
 
   return <>{children}</>;
 } 
