@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
-import { Input } from 'tamagui';
+import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 export default function Login() {
@@ -13,8 +13,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFocusedEmail, setIsFocusedEmail] = useState(false);
-  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   
   const router = useRouter();
   const supabase = getBrowserClient();
@@ -52,7 +50,7 @@ export default function Login() {
         </Link>
       </header>
 
-      <Card className="w-full max-w-md bg-black border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+      <Card className="w-full max-w-md bg-ic-dark-bg border-4 border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
         <CardHeader>
           <CardTitle className="text-4xl text-center text-ic-text-primary">Welcome Back</CardTitle>
           <CardDescription className="mt-2 text-center text-ic-text-secondary">
@@ -76,11 +74,10 @@ export default function Login() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 placeholder="you@example.com"
-                onFocus={() => setIsFocusedEmail(true)}
-                onBlur={() => setIsFocusedEmail(false)}
-                className={isFocusedEmail ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
               />
             </div>
 
@@ -100,11 +97,10 @@ export default function Login() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 placeholder="••••••••"
-                onFocus={() => setIsFocusedPassword(true)}
-                onBlur={() => setIsFocusedPassword(false)}
-                className={isFocusedPassword ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
               />
             </div>
 

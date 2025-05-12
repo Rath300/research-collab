@@ -16,11 +16,6 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFocusedFirstName, setIsFocusedFirstName] = useState(false);
-  const [isFocusedLastName, setIsFocusedLastName] = useState(false);
-  const [isFocusedEmail, setIsFocusedEmail] = useState(false);
-  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
-  const [isFocusedConfirmPassword, setIsFocusedConfirmPassword] = useState(false);
   
   const router = useRouter();
   const supabase = getBrowserClient();
@@ -71,7 +66,7 @@ export default function Signup() {
         </Link>
       </header>
 
-      <Card className="w-full max-w-md bg-black border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
+      <Card className="w-full max-w-md bg-ic-dark-bg border-4 border-ic-yellow-accent shadow-netflix transform transition-all duration-500 ease-out animate-fade-in animate-slide-up">
         <CardHeader>
           <CardTitle className="text-4xl text-center text-ic-text-primary">Create Account</CardTitle>
           <CardDescription className="mt-2 text-center text-ic-text-secondary">
@@ -94,12 +89,12 @@ export default function Signup() {
                 </label>
                 <Input
                   id="firstName"
+                  type="text"
                   value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
                   placeholder="Enter your first name"
-                  onFocus={() => setIsFocusedFirstName(true)}
-                  onBlur={() => setIsFocusedFirstName(false)}
-                  className={isFocusedFirstName ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                  className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
                 />
               </div>
               <div>
@@ -108,12 +103,12 @@ export default function Signup() {
                 </label>
                 <Input
                   id="lastName"
+                  type="text"
                   value={lastName}
-                  onChange={e => setLastName(e.target.value)}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
                   placeholder="Enter your last name"
-                  onFocus={() => setIsFocusedLastName(true)}
-                  onBlur={() => setIsFocusedLastName(false)}
-                  className={isFocusedLastName ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                  className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
                 />
               </div>
             </div>
@@ -126,11 +121,10 @@ export default function Signup() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 placeholder="you@example.com"
-                onFocus={() => setIsFocusedEmail(true)}
-                onBlur={() => setIsFocusedEmail(false)}
-                className={isFocusedEmail ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
               />
             </div>
 
@@ -142,12 +136,11 @@ export default function Signup() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 placeholder="Create a password (min. 6 characters)"
                 minLength={6}
-                onFocus={() => setIsFocusedPassword(true)}
-                onBlur={() => setIsFocusedPassword(false)}
-                className={isFocusedPassword ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
               />
             </div>
 
@@ -159,12 +152,11 @@ export default function Signup() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
                 placeholder="Confirm your password"
                 minLength={6}
-                onFocus={() => setIsFocusedConfirmPassword(true)}
-                onBlur={() => setIsFocusedConfirmPassword(false)}
-                className={isFocusedConfirmPassword ? 'border-purple-500 ring-2 ring-purple-500' : 'border-white/20'}
+                className="bg-researchbee-medium-gray border-ic-border text-ic-text-primary placeholder-ic-text-secondary focus:ring-2 focus:ring-ic-yellow-accent focus:border-ic-yellow-accent"
               />
             </div>
 
