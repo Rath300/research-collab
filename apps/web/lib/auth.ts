@@ -32,7 +32,7 @@ export async function getCurrentUser(): Promise<User | null> {
     
     return {
       id: user.id,
-      email: user.email,
+      email: user.email ?? null,
       profile: profile || null,
     };
   } catch (error) {
@@ -75,19 +75,41 @@ export async function signUp(email: string, password: string, userData: Partial<
       throw new Error(authError?.message || 'Error creating user');
     }
     
+    // Prepare profile data for insert, adhering to the ProfileInsert type
+    const profileDataForInsert: Database['public']['Tables']['profiles']['Insert'] = {
+      id: authData.user.id,
+      user_id: authData.user.id,
+      first_name: userData.first_name || '',
+      last_name: userData.last_name || '',
+      email: email,
+      created_at: new Date().toISOString(),
+      joining_date: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      
+      // Optional fields from userData - use ?? null to convert undefined to null
+      availability: userData.availability ?? null,
+      availability_hours: userData.availability_hours ?? null,
+      avatar_url: userData.avatar_url ?? null,
+      bio: userData.bio ?? null,
+      collaboration_pitch: userData.collaboration_pitch ?? null,
+      education: userData.education ?? null,
+      field_of_study: userData.field_of_study ?? null,
+      full_name: userData.full_name ?? null,
+      institution: userData.institution ?? null,
+      interests: userData.interests ?? null,
+      location: userData.location ?? null,
+      looking_for: userData.looking_for ?? null,
+      project_preference: userData.project_preference ?? null,
+      skills: userData.skills ?? null,
+      title: userData.title ?? null,
+      visibility: userData.visibility ?? null,
+      website: userData.website ?? null,
+    };
+    
     // Create the profile
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: authData.user.id,
-        first_name: userData.first_name || '',
-        last_name: userData.last_name || '',
-        email: email,
-        joining_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        ...userData,
-      });
+      .insert(profileDataForInsert);
       
     if (profileError) {
       console.error('Error creating profile:', profileError);
