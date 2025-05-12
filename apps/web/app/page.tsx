@@ -27,21 +27,21 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-ic-text-primary flex flex-col">
-      {/* Header */}
-      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-lg border-b border-white/10">
-        <Link href="/" className="font-heading text-3xl font-bold text-ic-yellow-accent tracking-tight">
+      {/* Header - Updated to remove yellow accents */}
+      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-lg border-b border-neutral-800">
+        <Link href="/" className="font-heading text-3xl font-semibold text-neutral-100 tracking-tight hover:text-white transition-colors">
           RESEARCH-BEE
         </Link>
-        <Link href="/login" className="text-ic-text-primary hover:text-ic-yellow-accent transition">
+        <Link href="/login" className="font-sans text-neutral-300 hover:text-white transition-colors">
           Log in
         </Link>
       </header>
 
       {/* Main Content */}
       <main className="flex-grow">
-        {/* Hero Section */}
+        {/* Hero Section - Styled for high contrast and modern feel */}
         <motion.section 
-          className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-80px)] px-4 py-20 overflow-hidden"
+          className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-100px)] px-4 py-20 overflow-hidden bg-black"
           initial="hidden"
           animate="visible"
           variants={{
@@ -57,7 +57,7 @@ export default function LandingPage() {
           
           <div className="z-10 flex flex-col items-center">
             <motion.h1 
-              className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold text-ic-text-primary mb-6 max-w-4xl leading-tight"
+              className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold text-neutral-100 mb-8 max-w-5xl leading-tight tracking-tight"
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -66,7 +66,7 @@ export default function LandingPage() {
               Discover Your Next Research Collaboration
             </motion.h1>
             <motion.p 
-              className="text-lg sm:text-xl md:text-2xl text-ic-text-secondary mb-10 max-w-2xl"
+              className="font-sans text-base sm:text-lg md:text-xl text-neutral-300 mb-12 max-w-2xl leading-relaxed"
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -82,7 +82,7 @@ export default function LandingPage() {
             >
               <Link 
                 href="/signup" 
-                className="bg-white text-ic-dark-bg hover:bg-gray-200 font-semibold py-3 px-8 rounded-lg text-lg transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                className="inline-block bg-white text-neutral-900 hover:bg-neutral-200 font-sans font-medium py-3 px-8 rounded-md text-base sm:text-lg transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-black"
               >
                 Get Started
               </Link>
