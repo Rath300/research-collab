@@ -35,7 +35,7 @@ export function Sidebar({ currentPath = '' }: SidebarProps) {
       borderRightWidth={1}
       borderColor="$borderColor"
       bg="$backgroundStrong"
-      display={{ xs: 'none', md: 'flex' }}
+      display={{ xs: 'none', md: 'flex' } as any}
     >
       <YStack p="$4">
         <Text fontWeight="bold" fontSize="$5">Your App</Text>

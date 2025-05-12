@@ -1,11 +1,18 @@
 import React from 'react';
-import { Button, ButtonProps, styled, Text } from 'tamagui';
+import { Button, ButtonProps, styled, Text, TamaguiComponent } from 'tamagui';
 
-export const ThemedButton = styled(Button, {
+// Interface must be defined before being used in ThemedButton's type annotation
+export interface ThemedButtonProps extends ButtonProps {
+  intentType?: 'primary' | 'secondary' | 'tertiary' | 'destructive';
+  buttonStyleSize?: 'small' | 'medium' | 'large';
+  children: React.ReactNode;
+}
+
+export const ThemedButton: TamaguiComponent<ThemedButtonProps, any /* TamaguiButton type or HTMLButtonElement */> = styled(Button, {
   name: 'ThemedButton',
   
   variants: {
-    variant: {
+    intentType: {
       primary: {
         backgroundColor: '$researchbeeYellow',
         color: '$researchbeeBlack',
@@ -28,7 +35,7 @@ export const ThemedButton = styled(Button, {
         borderWidth: 0,
       },
     },
-    size: {
+    buttonStyleSize: {
       small: {
         paddingHorizontal: '$2',
         paddingVertical: '$1',
@@ -48,27 +55,28 @@ export const ThemedButton = styled(Button, {
   },
   
   defaultVariants: {
-    variant: 'primary',
-    size: 'medium',
+    intentType: 'primary' as any,
+    buttonStyleSize: 'medium' as any,
   },
 });
 
+// Reverted to original props structure for simplicity for now
 export interface ThemedButtonProps extends ButtonProps {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'destructive';
-  size?: 'small' | 'medium' | 'large';
+  intentType?: 'primary' | 'secondary' | 'tertiary' | 'destructive';
+  buttonStyleSize?: 'small' | 'medium' | 'large';
   children: React.ReactNode;
 }
 
 export function ResearchBeeButton({
-  variant = 'primary',
-  size = 'medium',
+  intentType = 'primary',
+  buttonStyleSize = 'medium',
   children,
   ...props
 }: ThemedButtonProps) {
   return (
     <ThemedButton
-      variant={variant}
-      size={size}
+      intentType={intentType}
+      buttonStyleSize={buttonStyleSize}
       {...props}
     >
       {children}

@@ -140,14 +140,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       loadDashboardData();
+    } else if (!isLoading) {
+      router.push('/login');
     }
-  }, [user, loadDashboardData]);
+  }, [user, isLoading, loadDashboardData, router]);
   
-  if (!user) {
-    router.push('/login');
-    return null;
-  }
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">

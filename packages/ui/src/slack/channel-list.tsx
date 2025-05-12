@@ -71,7 +71,7 @@ export function ChannelList({
   return (
     <>
       <YStack
-        display={{ xs: 'none', sm: 'flex' }}
+        display={{ xs: 'none', sm: 'flex' } as any}
         width={240}
         borderRightWidth={1}
         borderColor="$borderColor"
@@ -90,7 +90,7 @@ export function ChannelList({
 
       {/* Mobile channel selector */}
       <XStack
-        display={{ xs: 'flex', sm: 'none' }}
+        display={{ xs: 'flex', sm: 'none' } as any}
         p="$2"
         borderBottomWidth={1}
         borderColor="$borderColor"

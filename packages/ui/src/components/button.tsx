@@ -12,7 +12,7 @@ const CustomButton = styled(TamaguiButton, {
   gap: '$2',
   
   variants: {
-    variant: {
+    intent: {
       primary: {
         backgroundColor: '$researchbeeYellow',
         color: '$color',
@@ -64,7 +64,7 @@ const CustomButton = styled(TamaguiButton, {
         },
       },
     },
-    size: {
+    buttonSize: {
       small: {
         height: '$3',
         paddingHorizontal: '$2.5',
@@ -92,8 +92,8 @@ const CustomButton = styled(TamaguiButton, {
   } as const,
   
   defaultVariants: {
-    variant: 'primary',
-    size: 'medium',
+    intent: 'primary',
+    buttonSize: 'medium',
     fullWidth: false,
   },
 });
@@ -102,8 +102,8 @@ export interface CustomButtonProps extends ButtonProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   loading?: boolean;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
-  size?: 'small' | 'medium' | 'large';
+  intent?: 'primary' | 'secondary' | 'outline' | 'danger';
+  buttonSize?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
 }
 
@@ -112,23 +112,23 @@ export function Button({
   leftIcon,
   rightIcon,
   loading = false,
-  variant = 'primary',
-  size = 'medium',
+  intent = 'primary',
+  buttonSize = 'medium',
   fullWidth = false,
   disabled = false,
   ...props
 }: CustomButtonProps) {
   return (
     <CustomButton
-      variant={variant}
-      size={size}
+      intent={intent}
+      buttonSize={buttonSize}
       fullWidth={fullWidth}
       disabled={disabled || loading}
       opacity={disabled ? 0.5 : 1}
       {...props}
     >
       <XStack alignItems="center" justifyContent="center" gap="$2">
-        {loading && <Spinner size={size === 'small' ? 'small' : 'large'} color="$color" />}
+        {loading && <Spinner size={buttonSize === 'small' ? 'small' : 'large'} color="$color" />}
         {!loading && leftIcon}
         {typeof children === 'string' ? <Text>{children}</Text> : children}
         {!loading && rightIcon}

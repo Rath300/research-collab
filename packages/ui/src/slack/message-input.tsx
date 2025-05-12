@@ -44,7 +44,7 @@ export function MessageInput({ channelId, onSendMessage, isLoading }: MessageInp
           placeholder="Message this channel"
           value={message}
           onChange={(e) => setMessage(e.nativeEvent.text)}
-          onKeyPress={handleKeyPress}
+          onKeyPress={handleKeyPress as any}
           multiline
           maxHeight={120}
           autoCapitalize="none"
