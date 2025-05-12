@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npx npm install",
+  "installCommand": "npm install",
   "buildCommand": "npm run build --filter=web",
   "outputDirectory": "apps/web/dist"
 }
