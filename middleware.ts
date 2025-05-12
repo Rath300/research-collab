@@ -19,16 +19,12 @@ export async function middleware(req: NextRequest) {
   // Redirect to /login if not logged in AND not on an auth-related path
   if (!session && !isAuthPath) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/login' // Changed target to /login as it seems to be the main login page
+    redirectUrl.pathname = '/login'
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect to /dashboard if logged in AND on an auth-related path
-  if (session && isAuthPath && pathname !== '/auth/check-email') { // Allow staying on check-email page
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/dashboard'
-    return NextResponse.redirect(redirectUrl)
-  }
+  // Logic for redirecting logged-in users away from auth paths has been removed from here.
+  // It will be handled in AuthProvider.
 
   return res
 }
