@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { FiSearch, FiUsers, FiMessageSquare, FiTarget } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
-// Helper component for Feature Cards
+// Helper component for Feature Cards (Modern/Sleek)
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
   <motion.div 
-    className="bg-white/5 backdrop-blur-lg p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-white/10"
+    className="bg-neutral-900 p-6 rounded-md shadow-lg hover:shadow-xl transition-shadow duration-300 border border-neutral-800"
     initial="hidden"
     whileInView="visible"
     viewport={{ once: true, amount: 0.3 }} // Trigger when 30% of the card is visible
@@ -17,10 +17,10 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
     }}
   >
     <div className="mb-4">
-      <Icon className="h-8 w-8 text-ic-yellow-accent" />
+      <Icon className="h-8 w-8 text-neutral-400" />
     </div>
-    <h3 className="text-xl font-semibold text-ic-text-primary mb-2">{title}</h3>
-    <p className="text-ic-text-secondary leading-relaxed">{description}</p>
+    <h3 className="text-xl font-heading font-semibold text-ic-text-primary mb-2">{title}</h3>
+    <p className="text-ic-text-secondary text-base leading-relaxed">{description}</p>
   </motion.div>
 );
 
@@ -162,7 +162,7 @@ export default function LandingPage() {
           </div>
         </motion.section>
 
-        {/* How It Works Section (Optional - Simple Version) */}
+        {/* How It Works Section (Vertical Timeline Style) */}
         <motion.section 
           className="py-16 md:py-24 bg-black"
           initial="hidden"
@@ -184,44 +184,57 @@ export default function LandingPage() {
               Get Started in 3 Simple Steps
             </motion.h2>
             <motion.div 
-              className="grid md:grid-cols-3 gap-8"
+              className="flex flex-col items-center space-y-12 md:space-y-16 mt-16" 
               variants={{
                 visible: { transition: { staggerChildren: 0.2 } }
               }}
             >
-              {/* Wrap each step in a motion.div for staggering */}
+              {/* Step 1 */}
               <motion.div 
-                className="flex flex-col items-center"
+                className="flex flex-col items-center text-center max-w-md"
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <div className="w-16 h-16 rounded-full bg-ic-yellow-accent text-ic-dark-bg flex items-center justify-center text-2xl font-bold mb-4">1</div>
-                <h3 className="text-xl font-semibold text-ic-text-primary mb-2">Create Profile</h3>
-                <p className="text-ic-text-secondary">Sign up for free and showcase your research interests and skills.</p>
+                {/* Styled Number Circle */}
+                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">1</div>
+                {/* Heading Font */}
+                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Create Profile</h3>
+                {/* Sans Font (Inter), Adjusted size/color */}
+                <p className="text-ic-text-secondary text-base leading-relaxed">Sign up for free and showcase your research interests and skills.</p>
               </motion.div>
+              
+              {/* Step 2 */}
               <motion.div 
-                className="flex flex-col items-center"
+                className="flex flex-col items-center text-center max-w-md"
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <div className="w-16 h-16 rounded-full bg-ic-yellow-accent text-ic-dark-bg flex items-center justify-center text-2xl font-bold mb-4">2</div>
-                <h3 className="text-xl font-semibold text-ic-text-primary mb-2">Discover Peers</h3>
-                <p className="text-ic-text-secondary">Browse profiles or search for specific expertise to find potential collaborators.</p>
+                 {/* Styled Number Circle */}
+                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">2</div>
+                 {/* Heading Font */}
+                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Discover Peers</h3>
+                 {/* Sans Font (Inter), Adjusted size/color */}
+                <p className="text-ic-text-secondary text-base leading-relaxed">Browse profiles or search for specific expertise to find potential collaborators.</p>
               </motion.div>
+              
+              {/* Step 3 */}
               <motion.div 
-                className="flex flex-col items-center"
+                className="flex flex-col items-center text-center max-w-md"
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <div className="w-16 h-16 rounded-full bg-ic-yellow-accent text-ic-dark-bg flex items-center justify-center text-2xl font-bold mb-4">3</div>
-                <h3 className="text-xl font-semibold text-ic-text-primary mb-2">Connect & Collaborate</h3>
-                <p className="text-ic-text-secondary">Initiate contact, discuss ideas, and start collaborating on research projects.</p>
+                 {/* Styled Number Circle */}
+                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">3</div>
+                 {/* Heading Font */}
+                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Connect & Collaborate</h3>
+                 {/* Sans Font (Inter), Adjusted size/color */}
+                <p className="text-ic-text-secondary text-base leading-relaxed">Initiate contact, discuss ideas, and start collaborating on research projects.</p>
               </motion.div>
             </motion.div>
           </div>
