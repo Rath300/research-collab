@@ -50,7 +50,8 @@
     "tamagui": "1.61.0",
     "typescript": "^4.9.4",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "tailwindcss-font-inter": "^3.0.1"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.6",
