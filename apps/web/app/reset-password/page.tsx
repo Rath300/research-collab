@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
-import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { getBrowserClient } from '@/lib/supabaseClient';
 
 export default function ResetPasswordPage() {
@@ -27,7 +27,6 @@ export default function ResetPasswordPage() {
       setIsLoading(true);
       setError('');
       
-      // Request password reset using the new client
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       });
@@ -36,7 +35,6 @@ export default function ResetPasswordPage() {
         throw resetError;
       }
       
-      // Show success message
       setIsSuccess(true);
     } catch (err: any) {
       console.error('Reset password error:', err);
@@ -47,82 +45,84 @@ export default function ResetPasswordPage() {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
-                <span className="text-lg font-bold text-white">#</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">ResearchCollab</span>
-            </div>
-          </Link>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Reset your password</CardTitle>
-            <CardDescription>
-              Enter your email address and we&apos;ll send you a link to reset your password
-            </CardDescription>
-          </CardHeader>
+    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
+        <Link href="/" className="font-heading text-2xl font-bold text-neutral-200 hover:text-neutral-100 transition-colors">
+          RESEARCH-BEE 
+        </Link>
+      </div>
+      
+      <Card className="w-full max-w-sm bg-neutral-950 border-none shadow-none p-6 sm:p-8">
+        <CardHeader className="text-center mb-6">
+          <CardTitle className="font-heading text-3xl sm:text-4xl font-semibold text-neutral-100">
+            Reset your password
+          </CardTitle>
+          <CardDescription className="mt-2 text-sm text-neutral-400 font-sans">
+            Enter your email and we&apos;ll send a reset link.
+          </CardDescription>
+        </CardHeader>
           
+        <CardContent>
           {isSuccess ? (
-            <CardContent className="pt-4 pb-2">
-              <div className="bg-green-50 text-green-600 p-4 rounded-md flex items-center space-x-3 text-sm dark:bg-green-900/20 dark:text-green-400">
-                <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">Password reset link sent!</p>
-                  <p className="mt-1">Check your email for a link to reset your password.</p>
-                </div>
+            <div className="p-4 mb-4 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-center space-x-3">
+              <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Password reset link sent!</p>
+                <p className="mt-1 text-xs">Check your email for instructions.</p>
               </div>
-            </CardContent>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                {error && (
-                  <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
-                    <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-                
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="p-3 mb-4 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm flex items-center space-x-2">
+                  <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+              
+              <div>
+                <label htmlFor="email" className="sr-only">Email</label>
                 <Input
-                  label="Email"
+                  id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="Work email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  leftIcon={<FiMail />}
                   required
                   autoComplete="email"
+                  className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
                 />
-              </CardContent>
+              </div>
               
-              <CardFooter className="flex flex-col space-y-4">
+              <div className="pt-2">
                 <Button
                   type="submit"
                   isLoading={isLoading}
                   isFullWidth
+                  className="w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors"
+                  size="lg"
                 >
                   Send reset link
                 </Button>
-              </CardFooter>
+              </div>
             </form>
           )}
           
-          <div className="pb-6 px-6">
+          <div className="text-center mt-6">
             <Link 
               href="/login"
-              className="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+              className="inline-flex items-center text-sm font-sans text-neutral-400 hover:text-neutral-200 transition-colors"
             >
               <FiArrowLeft className="mr-1.5 h-4 w-4" />
               Back to login
             </Link>
           </div>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
+
+      <footer className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans">
+        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
+      </footer>
     </div>
   );
 } 
