@@ -5,7 +5,7 @@ import { FiSearch, FiUsers, FiMessageSquare, FiTarget } from 'react-icons/fi';
 
 // Helper component for Feature Cards
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-  <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+  <div className="bg-white/5 backdrop-blur-lg p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-white/10">
     <div className="mb-4">
       <Icon className="h-8 w-8 text-ic-yellow-accent" />
     </div>
@@ -18,8 +18,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-ic-text-primary flex flex-col">
       {/* Header */}
-      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-ic-border/30">
-        <Link href="/" className="text-3xl font-bold text-ic-yellow-accent tracking-tight">
+      <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-lg border-b border-white/10">
+        <Link href="/" className="font-heading text-3xl font-bold text-ic-yellow-accent tracking-tight">
           RESEARCH-BEE
         </Link>
         <Link href="/login" className="text-ic-text-primary hover:text-ic-yellow-accent transition">
