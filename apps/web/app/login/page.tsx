@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from '@/lib/supabaseClient';
+import { useAuthStore } from '@/lib/store';
+import { AuthForm } from '@/components/auth/AuthForm';
+import { toast } from 'sonner';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
+export default function LoginPage() {
   const router = useRouter();
-  const supabase = getBrowserClient();
+  const supabase = getSupabaseClient();
+  const { setUser, setProfile } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,13 +34,6 @@ export default function Login() {
       if (signInError) {
         throw signInError;
       }
-
-      // if (data?.user) {  // Commented out: Let middleware handle redirect based on session
-      //   router.push(\"/dashboard\");
-      // }
-      // After successful signInWithPassword, the onAuthStateChange listener in AuthProvider
-      // will pick up the new session, and the middleware will redirect on the next appropriate check.
-      // If the user is still on /login, the middleware should redirect them to /dashboard.
 
     } catch (err: any) {
       setError(err.message || "An error occurred during login. Please try again.");

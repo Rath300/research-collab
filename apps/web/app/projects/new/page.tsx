@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { FileUpload } from '@/components/research/FileUpload';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +26,7 @@ type ResearchPostFormData = z.infer<typeof researchPostFormSchema>;
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const supabase = getBrowserClient();
+  const supabase = getSupabaseClient();
   const { user, isLoading: authLoading } = useAuthStore();
   
   const [formData, setFormData] = useState<ResearchPostFormData>({

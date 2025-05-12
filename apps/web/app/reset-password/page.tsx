@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function ResetPasswordPage() {
+  const router = useRouter();
+  const supabase = getSupabaseClient();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const supabase = getBrowserClient();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

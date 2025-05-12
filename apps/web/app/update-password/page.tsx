@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { FiLock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const supabase = getBrowserClient();
+  const supabase = getSupabaseClient();
   
   // Check if user is authenticated via reset token or already has a session
   useEffect(() => {

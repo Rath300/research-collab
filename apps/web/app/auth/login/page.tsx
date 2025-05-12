@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
+import { useAuthStore } from "@/lib/store";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +15,8 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = getBrowserClient();
+  const supabase = getSupabaseClient();
+  const { setUser, setProfile } = useAuthStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { getProfile } from '@/lib/api'; // Assuming getProfile is here
 import type { User } from '@supabase/supabase-js';
@@ -17,7 +17,7 @@ const isAuthPathClient = (currentPathname: string | null): boolean => {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setProfile, setLoading } = useAuthStore();
-  const supabase = getBrowserClient();
+  const supabase = getSupabaseClient();
   const router = useRouter();
 
   useEffect(() => {

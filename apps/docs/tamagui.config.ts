@@ -15,7 +15,7 @@ const bodyFont = createFont({
 })
 
 const config = createTamagui({
-  defaultFont: 'body',
+   defaultFont: 'body',
   // animations commented out
   fonts: {
     body: bodyFont,
