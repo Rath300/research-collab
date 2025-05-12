@@ -46,7 +46,7 @@ interface ResearchPostWithProfile extends ResearchPost {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   
   const [stats, setStats] = useState<DashboardStats>({
     postCount: 0,
@@ -138,14 +138,17 @@ export default function DashboardPage() {
   }, [user, supabase]);
   
   useEffect(() => {
+    console.log('DashboardPage Effect: User:', user, 'Auth Loading:', authLoading);
     if (user) {
+      console.log('DashboardPage Effect: User found, loading data...');
       loadDashboardData();
-    } else if (!isLoading) {
-      router.push('/login');
+    } else if (!authLoading) {
+      console.log('DashboardPage Effect: No user and AuthProvider not loading, redirecting to login.');
+      router.replace('/login');
     }
-  }, [user, isLoading, loadDashboardData, router]);
+  }, [user, authLoading, loadDashboardData, router]);
   
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[60vh]">
