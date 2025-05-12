@@ -7,7 +7,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsdG52bXlwYXNuZmRndG55aHdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDcxNTMsImV4cCI6MjA1OTkyMzE1M30.ajCPb95af8_It1m_D4yGJhErKuLEtqqfqk8Yq2n4MCw'
   },
   output: 'standalone',
-  swcMinify: false,
+  swcMinify: true,
   eslint: {
     ignoreDuringBuilds: true
   },
@@ -26,8 +26,6 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['sharp', 'canvas'],
-    forceSwcTransforms: false,
-    esmExternals: 'loose'
   },
   webpack: (config, { isServer, webpack }) => {
     // Ignore optional native dependencies of ws
@@ -49,24 +47,13 @@ const nextConfig = {
     // Required by Supabase to work with WebAssembly
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     
-    // Add support for native modules
-    config.module = {
-      ...config.module,
-      rules: [
-        ...config.module.rules,
-        {
-          test: /\.node$/,
-          use: 'node-loader',
-        },
-      ],
-    };
-
     return config;
   },
   serverRuntimeConfig: {
     PROJECT_ROOT: __dirname
   },
-  transpilePackages: ['@research-collab/db']
+  distDir: 'dist',
+  transpilePackages: ['@research-collab/db'],
 };
 
 module.exports = nextConfig;

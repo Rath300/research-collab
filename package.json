@@ -1,13 +1,10 @@
 {
   "name": "research-collab",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
     "build": "turbo run build",
-    "vercel-build": "turbo run build --filter=web",
+    "vercel-build": "cd apps/web && npm run build",
+    "deploy:vercel-prepare": "npm install && npx turbo run build --filter=\"@research-collab/db\" --filter=\"ui\"",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -411,6 +408,10 @@
     "node": "20.x"
   },
   "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "version": "1.0.0",
   "description": "A modern collaboration platform for researchers to share ideas, find collaborators, join project guilds, and verify ownership of research contributions.",
   "main": "index.js",
