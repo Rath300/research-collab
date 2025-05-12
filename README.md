@@ -79,3 +79,5 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-stripe-key
 ## License
 
 MIT
+
+# Trigger new Vercel Build
