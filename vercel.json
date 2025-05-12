@@ -1,3 +1,6 @@
 {
-  "version": 2
+  "version": 2,
+  "buildCommand": "turbo run build --filter=web",
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }

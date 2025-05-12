@@ -1,20 +1,19 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 .yarn/install-state.gz
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
-
-# production
-/build
+.next
+out
+dist
+build
 
 # misc
 .DS_Store
@@ -25,6 +24,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # local env files
 .env*.local
@@ -39,11 +39,34 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# turbo
+.turbo
+
 # Compiled native addons
 *.node
 
-# Ensure nested node_modules in specific problematic dirs are caught
-research-collab-standalone/node_modules/
+# Build outputs
+**/dist/
+**/.next/
+**/build/
+**/out/
 
-# Specific sub-package files to ignore
-apps/web/.npmrc
+# Cache directories
+**/.cache/
+**/.turbo/
+
+# Workspace specific
+apps/**/node_modules/
+packages/**/node_modules/
+apps/**/.next/
+apps/**/dist/
+packages/**/dist/
+
+# Local npmrc files
+**/.npmrc
+!.npmrc
+
+# Submodules (if not actively using git submodules)
+.git*
+!.gitignore
+!.github
