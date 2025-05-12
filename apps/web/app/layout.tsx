@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '@fontsource/geist-sans/variable.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
 
 export const metadata: Metadata = {
