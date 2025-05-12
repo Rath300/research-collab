@@ -32,9 +32,13 @@ export default function Login() {
         throw signInError;
       }
 
-      if (data?.user) {
-        router.push("/dashboard");
-      }
+      // if (data?.user) {  // Commented out: Let middleware handle redirect based on session
+      //   router.push(\"/dashboard\");
+      // }
+      // After successful signInWithPassword, the onAuthStateChange listener in AuthProvider
+      // will pick up the new session, and the middleware will redirect on the next appropriate check.
+      // If the user is still on /login, the middleware should redirect them to /dashboard.
+
     } catch (err: any) {
       setError(err.message || "An error occurred during login. Please try again.");
     } finally {
