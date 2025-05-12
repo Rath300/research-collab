@@ -18,6 +18,14 @@ module.exports = {
         'researchbee-medium-gray': '#2C2C2C',
         'researchbee-light-gray': '#B3B3B3',
         'researchbee-white': '#FFFFFF', // Primary text
+
+        // New theme colors
+        'ic-dark-bg': '#121212', // A very dark gray, almost black
+        'ic-yellow-accent': '#FDE047', // A bright, vibrant yellow (Tailwind yellow-400)
+        'ic-yellow-accent-dark': '#FACC15', // Tailwind yellow-500 for hover
+        'ic-text-primary': '#F9FAFB', // Tailwind gray-50
+        'ic-text-secondary': '#D1D5DB', // Tailwind gray-300
+        'ic-border': '#374151', // Tailwind gray-700 for borders on dark bg
       },
       fontFamily: {
         sans: ['Netflix Sans', ...fontFamily.sans],
