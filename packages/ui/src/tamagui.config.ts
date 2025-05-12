@@ -70,7 +70,7 @@ const config = createTamagui({
   },
   shorthands,
   tokens,
-  themes: customThemes,
+  themes: themes,
 })
 
 export type AppConfig = typeof config
