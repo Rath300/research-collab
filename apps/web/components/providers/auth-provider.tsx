@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authListener.subscription?.unsubscribe();
     };
     // Dependencies: only things that, if changed, require setting up the listener again.
-  }, [supabase, setUser, setProfile, setLoading]); // Removed router/pathname
+  }, [supabase, setUser, setProfile, setLoading, pathname]); // Added pathname
 
   return <>{children}</>;
 } 
