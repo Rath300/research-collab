@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
+import { type SupabaseClient, type PostgrestError } from '@supabase/supabase-js';
 import { type Database } from '../types/database.types';
 // import { 
 //   profileSchema, 
@@ -23,6 +23,9 @@ import {
   // matchSchema, // if available and needed
 } from '@research-collab/db';
 
+// Import the shared SSR client
+import { getBrowserClient } from '@/lib/supabaseClient'; 
+
 // import { generateContentHash } from './utils'; // Not used in simplified version
 
 export class SupabaseError extends Error {
@@ -35,33 +38,6 @@ export class SupabaseError extends Error {
     this.status = status;
     this.code = code;
   }
-}
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
-  console.error('Missing Supabase environment variables');
-}
-
-let browserClientInstance: SupabaseClient<Database> | null = null;
-
-function createSupabaseClientInstance(): SupabaseClient<Database> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new SupabaseError('Missing Supabase environment variables for client', 500);
-  }
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  });
-}
-
-export function getBrowserClient(): SupabaseClient<Database> {
-  if (browserClientInstance) return browserClientInstance;
-  browserClientInstance = createSupabaseClientInstance();
-  return browserClientInstance;
 }
 
 // type TableName = keyof Database['public']['Tables'];
