@@ -1,24 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-import { useAuthStore } from '@/lib/store';
-import { AuthForm } from '@/components/auth/AuthForm';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getBrowserClient } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const supabase = getSupabaseClient();
-  const { setUser, setProfile } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
+export default function Login() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const router = useRouter();
+  const supabase = getBrowserClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,14 +29,27 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        throw signInError;
+        // Handle Supabase specific errors if needed, e.g., invalid credentials
+        console.error("Supabase Sign-In Error:", signInError);
+        setError(signInError.message || "Invalid login credentials.");
+        setIsLoading(false); // Stop loading on specific errors
+        return; // Stop execution here
       }
 
+      // If signInError did not occur, the login was successful.
+      // Immediately redirect to the dashboard.
+      console.log("Login successful via handleLogin, replacing route to /dashboard");
+      router.replace('/dashboard'); 
+      // Note: We might not even need to explicitly set loading to false here,
+      // as the page navigation will unmount this component.
+
     } catch (err: any) {
-      setError(err.message || "An error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+      // Catch any other unexpected errors during the process
+      console.error("Generic Login Error:", err);
+      setError(err.message || "An unexpected error occurred. Please try again.");
+      setIsLoading(false); // Ensure loading is stopped on generic errors
+    } 
+    // Removed finally block as loading state is handled within try/catch
   };
 
   return (
