@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FiSearch, FiUsers, FiMessageSquare, FiTarget } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { AuthRedirectLink } from '@/components/ui/AuthRedirectLink';
 
 // Helper component for Feature Cards (Modern/Sleek)
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
@@ -32,9 +33,12 @@ export default function LandingPage() {
         <Link href="/" className="font-heading text-3xl font-semibold text-neutral-100 tracking-tight hover:text-white transition-colors">
           RESEARCH-BEE
         </Link>
-        <Link href="/login" className="font-sans text-neutral-300 hover:text-white transition-colors">
-                Log in
-              </Link>
+        <AuthRedirectLink 
+          href="/login" 
+          className="font-sans text-neutral-300 hover:text-white transition-colors"
+        >
+          Log in
+        </AuthRedirectLink>
       </header>
 
       {/* Main Content */}
@@ -63,7 +67,7 @@ export default function LandingPage() {
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
               }}
             >
-              Discover Your Next Research Collaboration
+              Find Your Next Research Partner. Manage Your Projects. Join a Community.
             </motion.h1>
             <motion.p 
               className="font-sans text-base sm:text-lg md:text-xl text-neutral-300 mb-12 max-w-2xl leading-relaxed"
@@ -80,12 +84,12 @@ export default function LandingPage() {
                 visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
               }}
             >
-              <Link 
+              <AuthRedirectLink 
                 href="/signup" 
                 className="inline-block bg-white text-neutral-900 hover:bg-neutral-200 font-sans font-medium py-3 px-8 rounded-md text-base sm:text-lg transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-black"
               >
                 Get Started
-              </Link>
+              </AuthRedirectLink>
             </motion.div>
           </div>
         </motion.section>
@@ -258,8 +262,10 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-8 text-center text-ic-text-secondary text-sm bg-black border-t border-ic-border/30">
-        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
+      <footer className="py-8 bg-neutral-900 border-t border-neutral-800 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-neutral-500 text-sm">
+          &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
+        </div>
       </footer>
     </div>
   );
