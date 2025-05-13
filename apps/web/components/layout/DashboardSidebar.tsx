@@ -23,32 +23,22 @@ interface NavItemProps {
   icon: React.ElementType;
   label: string;
   isActive?: boolean;
-  isSubItem?: boolean;
-  onClick?: () => void;
-  children?: React.ReactNode; // For expandable items
-  isOpen?: boolean; // For expandable items
   isCollapsed: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, isSubItem, children, isOpen, onClick, isCollapsed }) => {
+const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, isCollapsed }) => {
   return (
     <li>
       <Link
         href={href}
-        onClick={onClick} // Handle click for expandable items
-        className={`flex items-center py-2.5 px-4 rounded-md text-sm transition-colors 
-                    ${isSubItem ? 'pl-10' : ''}
-                    ${isActive ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100'}`}
+        title={isCollapsed ? label : undefined}
+        className={`flex items-center h-10 rounded-md text-sm transition-colors 
+                    ${isActive ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100'}
+                    ${isCollapsed ? 'justify-center px-3' : 'px-4'}`}
       >
-        <Icon className={`w-5 h-5 mr-3 ${isSubItem ? 'mr-2' : ''}`} />
-        <span className='flex-grow'>{label}</span>
-        {children && (isOpen ? <FiChevronDown className='ml-auto w-4 h-4' /> : <FiChevronRight className='ml-auto w-4 h-4' />)}
+        <Icon className={`w-5 h-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+        {!isCollapsed && <span className='flex-grow'>{label}</span>}
       </Link>
-      {children && isOpen && (
-        <ul className='mt-1 space-y-1'>
-          {children}
-        </ul>
-      )}
     </li>
   );
 };
@@ -73,49 +63,32 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
   ];
 
   const isActive = (href: string) => {
-    // Handle exact match for dashboard and nested matches for others
-    if (href === '/dashboard') {
-      return pathname === href;
-    } 
-    // Ensure pathname is not null before calling startsWith
+    if (href === '/dashboard') return pathname === href;
     return pathname ? pathname.startsWith(href) : false;
   };
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-30 flex flex-col bg-neutral-950 text-neutral-300 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
+    <div className={`fixed inset-y-0 left-0 z-30 flex flex-col bg-neutral-950 text-neutral-300 transition-all duration-300 ease-in-out shadow-lg ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
       {/* Top Section: Logo and User Info */}
-      <div className={`h-auto py-4 border-b border-neutral-800 ${isCollapsed ? 'px-2' : 'px-4'}`}>
-        <div className={`flex items-center ${isCollapsed ? 'justify-center mb-3' : 'mb-4'}`}>
+      <div className={`flex flex-col border-b border-neutral-800 ${isCollapsed ? 'items-center px-3 py-4' : 'px-4 py-4'}`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center h-8 mb-4' : 'h-8 mb-4'}`}>
             {isCollapsed ? 
-                <FiCommand className="w-7 h-7 text-white" /> :
+                <FiCommand className="w-6 h-6 text-white" title="ResearchCollab" /> :
                 <h1 className="text-xl font-bold text-white">ResearchCollab</h1>
             }
         </div>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
-            <Avatar src={displayAvatarUrl} alt={displayName} size={isCollapsed ? "sm" : "md"} fallback={<FiUser size={isCollapsed ? 16: 20}/>} />
+            <Avatar src={displayAvatarUrl} alt={displayName} size={"sm"} fallback={<FiUser size={isCollapsed ? 18: 20}/>} />
             {!isCollapsed && (
               <div className="ml-3">
-                <p className="text-sm font-medium text-neutral-100">{displayName}</p>
-                {/* <p className="text-xs text-neutral-400">{profile?.role || 'Researcher'}</p> */}
+                <p className="text-sm font-medium text-neutral-100 truncate" title={displayName}>{displayName}</p>
               </div>
             )}
         </div>
       </div>
 
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {/* User Profile Snippet - Conditionally Rendered */}
-        {!isCollapsed && (
-          <div className="px-2 py-3 mb-4 border-b border-neutral-800">
-            <div className="flex items-center">
-              <Avatar src={displayAvatarUrl} alt={displayName} size="sm" fallback={<FiUser size={16}/>} />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-neutral-100">{displayName}</p>
-                {/* <p className="text-xs text-neutral-400">{profile?.role || 'Researcher'}</p> */}
-              </div>
-            </div>
-          </div>
-        )}
-
+      {/* Navigation Section */}
+      <nav className="flex-1 py-3 space-y-1 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-2'}">
         {sidebarNavItems.map((item) => (
           <NavItem 
             key={item.name}
@@ -127,12 +100,16 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
           />
         ))}
 
-        {/* Project Sub-items */}
+        {/* Project Sub-items Disclosure */}
         <Disclosure defaultOpen={pathname?.startsWith('/projects')}>
           {({ open }: { open: boolean }) => (
             <>
-              <Disclosure.Button className={`w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-left ${isActive('/projects') ? 'bg-neutral-800 text-white' : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'}`}>
-                <FiFolder className={`mr-3 flex-shrink-0 h-5 w-5 ${isActive('/projects') ? 'text-white' : 'text-neutral-400 group-hover:text-neutral-300'}`} aria-hidden="true" />
+              <Disclosure.Button 
+                title={isCollapsed ? "Projects" : undefined}
+                className={`w-full flex items-center h-10 rounded-md text-sm font-medium 
+                                          ${isActive('/projects') ? 'bg-neutral-700 text-white' : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'}
+                                          ${isCollapsed ? 'justify-center px-3' : 'px-4 text-left'}`}>
+                <FiFolder className={`w-5 h-5 ${!isCollapsed ? 'mr-3' : ''}`} aria-hidden="true" />
                 {!isCollapsed && <span className="flex-1">Projects</span>}
                 {!isCollapsed && (
                   <FiChevronRight
@@ -150,13 +127,13 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Disclosure.Panel className="pl-8 pr-2 py-1 space-y-1">
+                  <Disclosure.Panel className="pl-6 pr-2 py-1 space-y-0.5">
                     <Link href="/projects"
-                      className={`block px-2 py-1 text-xs font-medium rounded-md ${pathname === '/projects' ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'}`}>
+                      className={`block px-2 py-1.5 text-xs font-medium rounded-md ${pathname === '/projects' ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'}`}>
                       My Projects
                     </Link>
                     <Link href="/projects?filter=shared"
-                      className={`block px-2 py-1 text-xs font-medium rounded-md ${pathname === '/projects?filter=shared' ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'}`}>
+                      className={`block px-2 py-1.5 text-xs font-medium rounded-md ${pathname === '/projects?filter=shared' ? 'text-neutral-100' : 'text-neutral-400 hover:text-neutral-200'}`}>
                       Shared With Me
                     </Link>
                   </Disclosure.Panel>
@@ -167,15 +144,16 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
         </Disclosure>
       </nav>
 
-      {/* Bottom Section - New Project Button */} 
-      <div className="mt-auto p-4 border-t border-neutral-800">
+      {/* Bottom Section - New Project Button */}
+      <div className={`mt-auto border-t border-neutral-800 ${isCollapsed? 'p-2' : 'p-3' }`}>
         <Button 
           variant="secondary"
-          className="w-full justify-center"
+          className={`w-full flex items-center justify-center h-10 ${isCollapsed ? 'px-0' : ''}`}
           onClick={() => router.push('/projects/new')}
+          title={isCollapsed ? "New Project" : undefined}
         >
           <FiFilePlus className={`h-5 w-5 ${!isCollapsed ? 'mr-2' : ''}`} />
-          {!isCollapsed && <span>New Project</span>}
+          {!isCollapsed && <span className="text-sm">New Project</span>}
         </Button>
       </div>
     </div>

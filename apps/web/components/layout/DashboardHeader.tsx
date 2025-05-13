@@ -54,7 +54,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="mr-4 p-2 text-neutral-400 hover:text-neutral-100 lg:hidden"
+          className="mr-4 p-2 text-neutral-400 hover:text-neutral-100"
         >
           {isSidebarCollapsed ? <FiMenu className="h-5 w-5" /> : <FiX className="h-5 w-5" />}
         </Button>
