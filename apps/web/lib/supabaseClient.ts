@@ -1,6 +1,9 @@
-// Import the Supabase client from the standard package
-import { createClient } from '@supabase/supabase-js';
+// Use the SSR version for the browser client
+// import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { type Database } from '../types/database.types';
+// Import the specific client type for explicit typing
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Custom error class for Supabase operations
@@ -27,54 +30,42 @@ if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
   console.error('Missing Supabase environment variables');
 }
 
-// Singleton instance for the Supabase client
-let instance: ReturnType<typeof createSupabaseClient> | null = null;
+// Singleton instance for the BROWSER client - Explicitly typed
+let browserClientInstance: SupabaseClient<Database> | null = null;
 
-/**
- * Creates a properly configured Supabase client with type safety
- */
-function createSupabaseClient() {
+// Function to create the SSR-compatible browser client
+function createSupabaseBrowserClient(): SupabaseClient<Database> {
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new SupabaseError('Missing Supabase environment variables', 500);
+    // Ensure this runs only client-side or variables are available server-side if needed elsewhere
+    throw new SupabaseError('Missing Supabase environment variables for browser client', 500);
   }
+  // Use createBrowserClient from @supabase/ssr
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+}
 
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  });
+// Export the function to get the singleton browser client instance
+export function getBrowserClient(): SupabaseClient<Database> {
+  // Ensure this function is only called client-side or handled appropriately if called server-side
+  // For server components, different strategies (cookies, server client) are needed.
+  if (browserClientInstance) return browserClientInstance;
+  browserClientInstance = createSupabaseBrowserClient();
+  return browserClientInstance;
 }
 
 /**
- * Returns the singleton Supabase client instance or creates it if it doesn't exist
+ * Resets the Supabase BROWSER client instance
+ * Useful for testing or when auth state changes significantly.
  */
-export function getSupabaseClient() {
-  if (instance) return instance;
-  instance = createSupabaseClient();
-  return instance;
+export function resetSupabaseClient() { // Consider renaming to resetBrowserClient for clarity
+  browserClientInstance = null;
 }
 
-/**
- * Returns the singleton browser-side Supabase client
- * Alias for getSupabaseClient for API compatibility
- */
-export function getBrowserClient() {
-  return getSupabaseClient();
-}
-
-/**
- * Resets the Supabase client instance
- * Useful for testing or when auth state changes
- */
-export function resetSupabaseClient() {
-  instance = null;
-}
-
-/**
- * Creates a new Supabase client instance
- * Useful for server-side operations that need isolated clients
- */
-export function createNewClient() {
-  return createSupabaseClient();
-} 
+// /**
+//  * DEPRECATED/REMOVE: If a standard client is needed (e.g., for server-only actions without SSR context),
+//  * create it explicitly where needed, perhaps using a different utility function.
+//  * Creates a new Supabase client instance
+//  * Useful for server-side operations that need isolated clients
+//  */
+// export function createNewClient() {
+//   // ... old implementation using createClient ...
+// } 
