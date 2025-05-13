@@ -2,15 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight } from 'react-icons/fi';
-import { Avatar } from '@/components/ui/Avatar'; // Assuming you have an Avatar component
+import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight, FiFilePlus } from 'react-icons/fi';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
 
+// Utility to capitalize first letter of each word
+function titleCase(str: string | null | undefined): string {
+  if (!str) return '';
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
 // TODO: Replace with actual user profile data from store or props
 const UserProfilePlaceholder = {
-  name: 'Maria Hill',
-  role: 'Workspace Owner',
+  name: 'User Name',
+  role: 'Researcher',
   avatarUrl: undefined, // Replace with actual avatar URL or leave undefined for fallback
 };
 
@@ -55,10 +61,16 @@ export function DashboardSidebar() {
   const { user, profile } = useAuthStore(); // Get user and profile from Zustand store
   const [openFolders, setOpenFolders] = useState(false);
 
-  // Determine user display info from profile or placeholder
-  const displayName = profile?.first_name ? `${profile.first_name} ${profile.last_name ?? ''}`.trim() : UserProfilePlaceholder.name;
+  // Use titleCase for display name
+  const rawFirstName = profile?.first_name;
+  const rawLastName = profile?.last_name;
+  const displayName = (rawFirstName || rawLastName) 
+    ? titleCase(`${rawFirstName ?? ''} ${rawLastName ?? ''}`.trim()) 
+    : UserProfilePlaceholder.name;
+  
   const displayAvatarUrl = profile?.avatar_url ?? UserProfilePlaceholder.avatarUrl;
-  const displayRole = UserProfilePlaceholder.role; // Role isn't in current profile schema
+  // Role: Assuming this might come from profile later or a default
+  const displayRole = UserProfilePlaceholder.role; 
 
   const navItems = [
     { href: '/dashboard', icon: FiGrid, label: 'Dashboard' },
@@ -97,9 +109,9 @@ export function DashboardSidebar() {
               hasNotification={item.hasNotification}
             />
           ))}
-          {/* Manual Folders implementation for now */}
+          {/* Folders section with expandable sub-items */}
            <li>
-            <div // Using a div for onClick to avoid Link navigation for parent
+            <div 
               onClick={() => setOpenFolders(!openFolders)}
               className={`flex items-center py-2.5 px-4 rounded-md text-sm transition-colors cursor-pointer 
                           text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100`}
@@ -110,21 +122,20 @@ export function DashboardSidebar() {
             </div>
             {openFolders && (
               <ul className='mt-1 space-y-1'>
-                <NavItem href='/dashboard/folders/work' icon={FiFolder} label='My Projects' isSubItem isActive={pathname === '/dashboard/folders/work'} />
-                <NavItem href='/dashboard/folders/family' icon={FiFolder} label='Shared With Me' isSubItem isActive={pathname === '/dashboard/folders/family'} />
-                {/* Add more sub-items here based on clarification */}
+                <NavItem href='/dashboard/projects/my' icon={FiFolder} label='My Projects' isSubItem isActive={pathname === '/dashboard/projects/my'} />
+                <NavItem href='/dashboard/projects/shared' icon={FiFolder} label='Shared With Me' isSubItem isActive={pathname === '/dashboard/projects/shared'} />
               </ul>
             )}
           </li>
         </ul>
       </nav>
 
-      {/* Add New Section - Placeholder */}
+      {/* Add New Section */}
       <div className='mt-auto p-2 border-t border-neutral-800 pt-4'>
-        <button className='w-full flex items-center justify-center py-3 px-4 bg-neutral-800 hover:bg-neutral-700 rounded-md text-neutral-200 text-sm'>
-          <FiPlusCircle className='w-5 h-5 mr-2' />
-          Add New Item {/* Clarify: New Project? File? */}
-        </button>
+        <Link href='/dashboard/projects/new' className='w-full flex items-center justify-center py-3 px-4 bg-neutral-800 hover:bg-neutral-700 rounded-md text-neutral-200 text-sm'>
+          <FiFilePlus className='w-5 h-5 mr-2' />
+          New Project
+        </Link>
       </div>
 
        {/* My Account / Shared Toggle - Placeholder */}

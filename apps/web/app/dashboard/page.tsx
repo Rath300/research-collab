@@ -18,7 +18,11 @@ import {
   FiUser,
   FiMapPin,
   FiList,
-  FiInfo
+  FiInfo,
+  FiBell,
+  FiLink,
+  FiActivity,
+  FiBriefcase
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -65,6 +69,11 @@ const GreenConnectionsPlaceholder = () => <PlaceholderCard title="Green Connecti
 const RecommendationsPlaceholder = () => <PlaceholderCard title="Recommendations" icon={FiList}>Recommendation List</PlaceholderCard>;
 const TrackingPlaceholder = () => <PlaceholderCard title="Tracking" icon={FiTrendingUp}>Device/Usage List</PlaceholderCard>;
 const GreenEnergyUsagePlaceholder = () => <PlaceholderCard title="Green Energy Usage" icon={FiTrendingUp}>Stats Area</PlaceholderCard>;
+
+const RecentActivityFeedPlaceholder = () => <PlaceholderCard title="Recent Activity" icon={FiActivity} className="h-96">Activity feed items...</PlaceholderCard>;
+const MyProjectsListPlaceholder = () => <PlaceholderCard title="My Projects" icon={FiBriefcase} className="h-96">List of user projects...</PlaceholderCard>;
+const CollaborationRequestsPlaceholder = () => <PlaceholderCard title="Collaboration Requests" icon={FiBell}>Incoming requests...</PlaceholderCard>;
+const SuggestedConnectionsPlaceholder = () => <PlaceholderCard title="Suggested Connections" icon={FiLink}>Potential collaborators...</PlaceholderCard>;
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -200,29 +209,17 @@ export default function DashboardPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-neutral-100">Welcome back, {welcomeName}!</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="md:col-span-2 lg:col-span-2">
-          <EnergyGraphPlaceholder />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <RecentActivityFeedPlaceholder />
+          {/* Optionally add MyProjectsListPlaceholder here too */}
         </div>
-        <div className="lg:col-span-1">
-          <RecommendationsPlaceholder />
-        </div>
-        
-        <div className="lg:col-span-1">
-          <TrackingPlaceholder />
-        </div>
-         <div className="md:col-span-2 lg:col-span-2">
-           <GreenConnectionsPlaceholder />
-         </div>
 
-         <div className="lg:col-span-1">
-           <GreenEnergyUsagePlaceholder />
-         </div>
-         <div className="md:col-span-2 lg:col-span-2 flex items-end">
-           <PlaceholderCard title="Reports" icon={FiInfo}>
-             <Button variant="secondary" size="sm" className="mt-4">View Detailed Report</Button>
-           </PlaceholderCard>
-         </div>
+        <div className="lg:col-span-1 space-y-6">
+          <CollaborationRequestsPlaceholder />
+          <SuggestedConnectionsPlaceholder />
+          {/* Add other relevant sidebar widgets here */}
+        </div>
       </div>
     </div>
   );
