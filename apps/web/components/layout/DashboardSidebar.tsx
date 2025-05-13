@@ -7,7 +7,7 @@ import {
   FiMessageSquare, FiSettings, FiPlus, FiLogOut, FiChevronsLeft, FiChevronsRight
 } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useChatStore } from '@/lib/store';
 import React, { useState, Fragment } from 'react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { Button } from '@/components/ui/Button';
@@ -48,23 +48,45 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, is
       )}
     >
       <Icon className={cn('w-5 h-5 flex-shrink-0', !isCollapsed && 'mr-3')} />
-      {!isCollapsed && <span className='flex-grow truncate'>{label}</span>}
+      <Transition
+        as={Fragment}
+        show={!isCollapsed}
+        enter="transition-opacity duration-150 ease-out"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity duration-150 ease-in"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <span className='flex-grow truncate'>{label}</span>
+      </Transition>
     </Link>
   );
 };
 
 const SidebarHeader: React.FC<{ isCollapsed: boolean; children: React.ReactNode }> = ({ isCollapsed, children }) => {
-  if (isCollapsed) return null;
   return (
-    <h3 className="px-3 pt-4 pb-2 text-xs font-semibold uppercase text-neutral-500">
-      {children}
-    </h3>
+    <Transition
+      as={Fragment}
+      show={!isCollapsed}
+      enter="transition-opacity duration-150 ease-out"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-150 ease-in"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <h3 className="px-3 pt-4 pb-2 text-xs font-semibold uppercase text-neutral-500">
+        {children}
+      </h3>
+    </Transition>
   );
 };
 
 export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { unreadMessages } = useChatStore();
 
   const displayName = profile?.first_name 
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
@@ -83,10 +105,10 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     { name: 'Settings', href: '/settings', icon: FiSettings },
   ];
 
-  const messages = [
-    { name: 'Erik Gunsel', avatar: undefined },
-    { name: 'Emily Smith', avatar: undefined },
-    { name: 'Arthur Adelk', avatar: undefined },
+  const recentChats = [
+    { id: 'erik-gunsel-id', name: 'Erik Gunsel', avatar_url: null },
+    { id: 'emily-smith-id', name: 'Emily Smith', avatar_url: null }, 
+    { id: 'arthur-adelk-id', name: 'Arthur Adelk', avatar_url: null },
   ];
 
   const isActive = (href: string) => {
@@ -117,12 +139,21 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           </Button>
         )}
         <Avatar src={displayAvatarUrl} alt={displayName} size={isCollapsed ? "sm" : "md"} fallback={<FiUser size={isCollapsed ? 20: 24}/>} />
-        {!isCollapsed && (
+        <Transition
+          as={Fragment}
+          show={!isCollapsed}
+          enter="transition-opacity duration-150 ease-out"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition-opacity duration-150 ease-in"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
           <div className="ml-3 overflow-hidden">
             <p className="text-sm font-semibold text-neutral-100 truncate" title={displayName}>{displayName}</p>
             <p className="text-xs text-neutral-400 truncate" title={displayRole}>{displayRole}</p>
           </div>
-        )}
+        </Transition>
       </div>
 
       <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
@@ -153,12 +184,32 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                   )}
                 >
                   <FiFolder className={cn('w-5 h-5 flex-shrink-0', !isCollapsed && 'mr-3')} aria-hidden="true" />
-                  {!isCollapsed && <span className="flex-1">Projects</span>}
-                  {!isCollapsed && (
+                  <Transition
+                    as={Fragment}
+                    show={!isCollapsed}
+                    enter="transition-opacity duration-150 ease-out"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="transition-opacity duration-150 ease-in"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <span className="flex-1">Projects</span>
+                  </Transition>
+                  <Transition
+                    as={Fragment}
+                    show={!isCollapsed}
+                    enter="transition-opacity duration-150 ease-out"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="transition-opacity duration-150 ease-in"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
                     <FiChevronRight
                       className={cn('ml-auto h-4 w-4 transition-transform duration-150 ease-in-out', open && 'rotate-90 transform' )}
                     />
-                  )}
+                  </Transition>
                 </Disclosure.Button>
                 {!isCollapsed && (
                   <Transition
@@ -195,13 +246,23 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           <SidebarHeader isCollapsed={isCollapsed}>Messages</SidebarHeader>
           {isCollapsed ? (
             <div className="flex flex-col items-center space-y-2 mt-2">
-                {messages.slice(0, 3).map((msg, index) => (
-                    <Avatar key={index} src={msg.avatar} alt={msg.name} size="sm" fallback={<FiUser size={16} />} />
-                ))}
-                {messages.length > 3 && (
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-700 text-neutral-400 text-xs" title={`+${messages.length - 3} more`}>
-                        +{messages.length - 3}
-                    </div>
+                {recentChats.slice(0, 3).map((chat) => {
+                  const unreadCount = unreadMessages[chat.id] || 0;
+                  return (
+                    <Link key={chat.id} href={`/chats/${chat.id}`} title={chat.name} className="relative">
+                      <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[9px] text-white">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+                {recentChats.length > 3 && (
+                    <Link href="/chats" className="relative flex items-center justify-center w-7 h-7 rounded-full bg-neutral-700 text-neutral-400 text-xs" title={`+${recentChats.length - 3} more chats`}>
+                         +{recentChats.length - 3}
+                    </Link>
                 )}
                 <Button variant="ghost" size="sm" className="h-8 w-8 mt-1 p-2" title="Add Message">
                     <FiPlus className="w-4 h-4" />
@@ -209,20 +270,72 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
             </div>
           ) : (
             <div className="space-y-1.5">
-              {messages.slice(0, 3).map((msg, index) => (
-                <Link key={index} href={`/chats/${msg.name.toLowerCase().replace(' ', '-')}`} className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
-                    <Avatar src={msg.avatar} alt={msg.name} size="sm" fallback={<FiUser size={16} />} className="mr-2.5" />
-                    <span className="text-sm text-neutral-300 truncate flex-grow">{msg.name}</span>
-                </Link>
-              ))}
-              {messages.length > 3 && (
+              {recentChats.slice(0, 3).map((chat) => {
+                 const unreadCount = unreadMessages[chat.id] || 0;
+                 return (
+                   <Link key={chat.id} href={`/chats/${chat.id}`} className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors relative'>
+                     <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} className="mr-2.5" />
+                     <Transition
+                         as={Fragment}
+                         show={!isCollapsed}
+                         enter="transition-opacity duration-150 ease-out"
+                         enterFrom="opacity-0"
+                         enterTo="opacity-100"
+                         leave="transition-opacity duration-150 ease-in"
+                         leaveFrom="opacity-100"
+                         leaveTo="opacity-0"
+                       >
+                       <span className="text-sm text-neutral-300 truncate flex-grow">{chat.name}</span>
+                     </Transition>
+                     {unreadCount > 0 && (
+                       <Transition
+                         as={Fragment}
+                         show={!isCollapsed}
+                         enter="transition-opacity duration-150 ease-out"
+                         enterFrom="opacity-0"
+                         enterTo="opacity-100"
+                         leave="transition-opacity duration-150 ease-in"
+                         leaveFrom="opacity-100"
+                         leaveTo="opacity-0"
+                       >
+                         <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                           {unreadCount > 9 ? '9+' : unreadCount}
+                         </span>
+                       </Transition>
+                     )}
+                   </Link>
+                 );
+              })}
+              {recentChats.length > 3 && (
                  <Link href="/chats" className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
-                     <span className="text-sm text-neutral-300 truncate flex-grow">+{messages.length-3} more</span>
+                    <Transition
+                      as={Fragment}
+                      show={!isCollapsed}
+                      enter="transition-opacity duration-150 ease-out"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="transition-opacity duration-150 ease-in"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <span className="text-sm text-neutral-400 truncate flex-grow pl-7">+{recentChats.length-3} more chats</span>
+                    </Transition>
                  </Link>
               )}
               <Button variant="ghost" size="sm" className='w-full justify-start text-neutral-400 hover:text-neutral-100 px-3 mt-1'>
                   <FiPlus className='mr-2.5 h-4 w-4' />
-                  Add Message
+                  <Transition
+                      as={Fragment}
+                      show={!isCollapsed}
+                      enter="transition-opacity duration-150 ease-out"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="transition-opacity duration-150 ease-in"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                    <span>Add Message</span>
+                  </Transition>
               </Button>
             </div>
           )}
@@ -248,7 +361,18 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                onClick={() => router.push('/projects/new')}
              >
                <FiFilePlus className="mr-2 h-4 w-4" />
-               New Project
+               <Transition
+                  as={Fragment}
+                  show={!isCollapsed}
+                  enter="transition-opacity duration-150 ease-out"
+                  enterFrom="opacity-0"
+                  enterTo="opacity-100"
+                  leave="transition-opacity duration-150 ease-in"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <span>New Project</span>
+                </Transition>
              </Button>
            )}
         </div>
