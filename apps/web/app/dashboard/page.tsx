@@ -137,10 +137,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       loadDashboardData();
-    } else if (!isLoading) {
+    } else {
       router.push('/login');
     }
-  }, [user, isLoading, loadDashboardData, router]);
+  }, [user, loadDashboardData, router]);
   
   if (isLoading) {
     return (
