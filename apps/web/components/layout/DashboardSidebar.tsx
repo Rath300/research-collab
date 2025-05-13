@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight, FiFilePlus } from 'react-icons/fi';
+import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight, FiFilePlus, FiSearch, FiMessageSquare } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
@@ -25,14 +25,13 @@ interface NavItemProps {
   icon: React.ElementType;
   label: string;
   isActive?: boolean;
-  hasNotification?: boolean;
   isSubItem?: boolean;
   onClick?: () => void;
   children?: React.ReactNode; // For expandable items
   isOpen?: boolean; // For expandable items
 }
 
-const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, hasNotification, isSubItem, children, isOpen, onClick }) => {
+const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, isSubItem, children, isOpen, onClick }) => {
   return (
     <li>
       <Link
@@ -45,7 +44,6 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, ha
         <Icon className={`w-5 h-5 mr-3 ${isSubItem ? 'mr-2' : ''}`} />
         <span className='flex-grow'>{label}</span>
         {children && (isOpen ? <FiChevronDown className='ml-auto w-4 h-4' /> : <FiChevronRight className='ml-auto w-4 h-4' />)}
-        {hasNotification && <span className='ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5'>2</span>}
       </Link>
       {children && isOpen && (
         <ul className='mt-1 space-y-1'>
@@ -59,7 +57,7 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, isActive, ha
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { user, profile } = useAuthStore(); // Get user and profile from Zustand store
-  const [openFolders, setOpenFolders] = useState(false);
+  const [openProjects, setOpenProjects] = useState(false);
 
   // Use titleCase for display name
   const rawFirstName = profile?.first_name;
@@ -74,14 +72,9 @@ export function DashboardSidebar() {
 
   const navItems = [
     { href: '/dashboard', icon: FiGrid, label: 'Dashboard' },
-    { href: '/settings/account', icon: FiUser, label: 'Account', hasNotification: true }, // Example notification
-    // Placeholder for expandable Folders section
-    // { href: '#', icon: FiFolder, label: 'Folders', isExpandable: true, subItems: [
-    //   { href: '/dashboard/projects/my', label: 'My Projects', icon: FiFolder },
-    //   { href: '/dashboard/projects/shared', label: 'Shared With Me', icon: FiFolder },
-    // ]},
-    { href: '/dashboard/favorites', icon: FiHeart, label: 'Favorites' },
-    { href: '/dashboard/archive', icon: FiArchive, label: 'Archive' },
+    { href: '/discover', icon: FiSearch, label: 'Discover' },
+    { href: '/chats', icon: FiMessageSquare, label: 'Chats' },
+    { href: '/settings/account', icon: FiUser, label: 'Account' },
     { href: '/settings', icon: FiSettings, label: 'Settings' },
   ];
 
@@ -106,24 +99,35 @@ export function DashboardSidebar() {
               icon={item.icon}
               label={item.label}
               isActive={pathname === item.href}
-              hasNotification={item.hasNotification}
             />
           ))}
           {/* Folders section with expandable sub-items */}
            <li>
             <div 
-              onClick={() => setOpenFolders(!openFolders)}
+              onClick={() => setOpenProjects(!openProjects)}
               className={`flex items-center py-2.5 px-4 rounded-md text-sm transition-colors cursor-pointer 
                           text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100`}
             >
               <FiFolder className={`w-5 h-5 mr-3`} />
-              <span className='flex-grow'>Folders</span>
-              {openFolders ? <FiChevronDown className='ml-auto w-4 h-4' /> : <FiChevronRight className='ml-auto w-4 h-4' />}
+              <span className='flex-grow'>Projects</span>
+              {openProjects ? <FiChevronDown className='ml-auto w-4 h-4' /> : <FiChevronRight className='ml-auto w-4 h-4' />}
             </div>
-            {openFolders && (
+            {openProjects && (
               <ul className='mt-1 space-y-1'>
-                <NavItem href='/dashboard/projects/my' icon={FiFolder} label='My Projects' isSubItem isActive={pathname === '/dashboard/projects/my'} />
-                <NavItem href='/dashboard/projects/shared' icon={FiFolder} label='Shared With Me' isSubItem isActive={pathname === '/dashboard/projects/shared'} />
+                <NavItem 
+                  href='/projects' 
+                  icon={FiFolder} 
+                  label='My Projects' 
+                  isSubItem 
+                  isActive={(pathname ?? '') === '/projects' || (pathname ?? '').startsWith('/projects/')} 
+                />
+                <NavItem 
+                  href='/projects?filter=shared' 
+                  icon={FiFolder} 
+                  label='Shared With Me' 
+                  isSubItem 
+                  isActive={(pathname ?? '').includes('?filter=shared')} 
+                />
               </ul>
             )}
           </li>
@@ -132,17 +136,14 @@ export function DashboardSidebar() {
 
       {/* Add New Section */}
       <div className='mt-auto p-2 border-t border-neutral-800 pt-4'>
-        <Link href='/dashboard/projects/new' className='w-full flex items-center justify-center py-3 px-4 bg-neutral-800 hover:bg-neutral-700 rounded-md text-neutral-200 text-sm'>
+        <Link href='/projects/new' className='w-full flex items-center justify-center py-3 px-4 bg-neutral-800 hover:bg-neutral-700 rounded-md text-neutral-200 text-sm'>
           <FiFilePlus className='w-5 h-5 mr-2' />
           New Project
         </Link>
       </div>
 
        {/* My Account / Shared Toggle - Placeholder */}
-       <div className='flex items-center justify-between p-2 mt-2 border-t border-neutral-800 pt-2'>
-        <button className='flex-1 py-2 px-3 rounded-md text-xs bg-neutral-700 text-white'>My account</button>
-        <button className='flex-1 py-2 px-3 rounded-md text-xs text-neutral-400 hover:bg-neutral-800'>Shared</button>
-      </div>
+       {/* <div className='flex items-center justify-between p-2 mt-2 border-t border-neutral-800 pt-2'> ... </div> */}
     </aside>
   );
 } 
