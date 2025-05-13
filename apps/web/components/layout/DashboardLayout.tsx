@@ -33,9 +33,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Simplified toggle for now
   const toggleSidebar = () => {
-    console.log('DashboardLayout: toggleSidebar function called. Current isCollapsed:', isSidebarCollapsed);
     setIsSidebarCollapsed(!isSidebarCollapsed);
-    console.log('DashboardLayout: toggleSidebar function finished. New isCollapsed:', !isSidebarCollapsed);
   };
 
   if (isAuthLoading || !user) {

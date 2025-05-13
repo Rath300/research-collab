@@ -105,7 +105,11 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     { name: 'Settings', href: '/settings', icon: FiSettings },
   ];
 
-  const recentChats: { id: string; name: string; avatar_url: string | null }[] = [];
+  const recentChats = [
+    { id: 'erik-gunsel-id', name: 'Erik Gunsel', avatar_url: null },
+    { id: 'emily-smith-id', name: 'Emily Smith', avatar_url: null }, 
+    { id: 'arthur-adelk-id', name: 'Arthur Adelk', avatar_url: null },
+  ];
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === href;
@@ -127,11 +131,8 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => {
-              console.log('!!! SIDEBAR COLLAPSE BUTTON CLICKED - Test Log !!!');
-              // toggleSidebar(); // Temporarily commented out
-            }} 
-            className="relative z-10 mr-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 p-2"
+            onClick={toggleSidebar} 
+            className="mr-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 p-2"
             aria-label="Collapse sidebar"
           >
             <FiChevronsLeft className="h-5 w-5" />
@@ -225,9 +226,6 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                   >
                     <Disclosure.Panel className="pl-3 pr-1 pt-1 space-y-0.5">
                       <NavLink href="/projects" label="My Projects" icon={FiFolder} isActive={pathname === '/projects'} isCollapsed={isCollapsed} isSubItem />
-                      {!isCollapsed && (
-                        <span className="text-xs text-neutral-500 pl-10">(0 projects)</span>
-                      )}
                       <NavLink href="/projects?filter=shared" label="Shared With Me" icon={FiFolder} isActive={pathname === '/projects?filter=shared'} isCollapsed={isCollapsed} isSubItem />
                     </Disclosure.Panel>
                   </Transition>
@@ -250,99 +248,83 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           <SidebarHeader isCollapsed={isCollapsed}>Messages</SidebarHeader>
           {isCollapsed ? (
             <div className="flex flex-col items-center space-y-2 mt-2">
-                {recentChats.length > 0 ? (
-                  <>
-                    {recentChats.slice(0, 3).map((chat) => {
-                      const unreadCount = unreadMessages[chat.id] || 0;
-                      return (
-                        <Link key={chat.id} href={`/chats/${chat.id}`} title={chat.name} className="relative">
-                          <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} />
-                          {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[9px] text-white">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                    {recentChats.length > 3 && (
-                        <Link href="/chats" className="relative flex items-center justify-center w-7 h-7 rounded-full bg-neutral-700 text-neutral-400 text-xs" title={`+${recentChats.length - 3} more chats`}>
-                             +{recentChats.length - 3}
-                        </Link>
-                    )}
-                  </>
-                ) : (
-                  <div className="p-2 text-neutral-500" title="No recent messages">
-                    <FiMessageSquare className="w-5 h-5 mx-auto" />
-                  </div>
+                {recentChats.slice(0, 3).map((chat) => {
+                  const unreadCount = unreadMessages[chat.id] || 0;
+                  return (
+                    <Link key={chat.id} href={`/chats/${chat.id}`} title={chat.name} className="relative">
+                      <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[9px] text-white">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+                {recentChats.length > 3 && (
+                    <Link href="/chats" className="relative flex items-center justify-center w-7 h-7 rounded-full bg-neutral-700 text-neutral-400 text-xs" title={`+${recentChats.length - 3} more chats`}>
+                         +{recentChats.length - 3}
+                    </Link>
                 )}
-                <Button variant="ghost" size="sm" className="h-8 w-8 mt-1 p-2" title="Add Message" onClick={() => router.push('/chats')}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 mt-1 p-2" title="Add Message">
                     <FiPlus className="w-4 h-4" />
                 </Button>
             </div>
           ) : (
             <div className="space-y-1.5">
-              {recentChats.length > 0 ? (
-                <>
-                  {recentChats.slice(0, 3).map((chat) => {
-                     const unreadCount = unreadMessages[chat.id] || 0;
-                     return (
-                       <Link key={chat.id} href={`/chats/${chat.id}`} className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors relative'>
-                         <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} className="mr-2.5" />
-                         <Transition
-                             as={Fragment}
-                             show={!isCollapsed}
-                             enter="transition-opacity duration-150 ease-out"
-                             enterFrom="opacity-0"
-                             enterTo="opacity-100"
-                             leave="transition-opacity duration-150 ease-in"
-                             leaveFrom="opacity-100"
-                             leaveTo="opacity-0"
-                           >
-                           <span className="text-sm text-neutral-300 truncate flex-grow">{chat.name}</span>
-                         </Transition>
-                         {unreadCount > 0 && (
-                           <Transition
-                             as={Fragment}
-                             show={!isCollapsed}
-                             enter="transition-opacity duration-150 ease-out"
-                             enterFrom="opacity-0"
-                             enterTo="opacity-100"
-                             leave="transition-opacity duration-150 ease-in"
-                             leaveFrom="opacity-100"
-                             leaveTo="opacity-0"
-                           >
-                             <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                               {unreadCount > 9 ? '9+' : unreadCount}
-                             </span>
-                           </Transition>
-                         )}
-                       </Link>
-                     );
-                  })}
-                  {recentChats.length > 3 && (
-                     <Link href="/chats" className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
-                        <Transition
-                          as={Fragment}
-                          show={!isCollapsed}
-                          enter="transition-opacity duration-150 ease-out"
-                          enterFrom="opacity-0"
-                          enterTo="opacity-100"
-                          leave="transition-opacity duration-150 ease-in"
-                          leaveFrom="opacity-100"
-                          leaveTo="opacity-0"
-                        >
-                          <span className="text-sm text-neutral-400 truncate flex-grow pl-7">+{recentChats.length-3} more chats</span>
-                        </Transition>
-                     </Link>
-                  )}
-                </>
-              ) : (
-                <div className="px-3 py-2 text-center text-neutral-500 text-sm">
-                  No recent messages.
-                </div>
+              {recentChats.slice(0, 3).map((chat) => {
+                 const unreadCount = unreadMessages[chat.id] || 0;
+                 return (
+                   <Link key={chat.id} href={`/chats/${chat.id}`} className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors relative'>
+                     <Avatar src={chat.avatar_url} alt={chat.name} size="sm" fallback={<FiUser size={16} />} className="mr-2.5" />
+                     <Transition
+                         as={Fragment}
+                         show={!isCollapsed}
+                         enter="transition-opacity duration-150 ease-out"
+                         enterFrom="opacity-0"
+                         enterTo="opacity-100"
+                         leave="transition-opacity duration-150 ease-in"
+                         leaveFrom="opacity-100"
+                         leaveTo="opacity-0"
+                       >
+                       <span className="text-sm text-neutral-300 truncate flex-grow">{chat.name}</span>
+                     </Transition>
+                     {unreadCount > 0 && (
+                       <Transition
+                         as={Fragment}
+                         show={!isCollapsed}
+                         enter="transition-opacity duration-150 ease-out"
+                         enterFrom="opacity-0"
+                         enterTo="opacity-100"
+                         leave="transition-opacity duration-150 ease-in"
+                         leaveFrom="opacity-100"
+                         leaveTo="opacity-0"
+                       >
+                         <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                           {unreadCount > 9 ? '9+' : unreadCount}
+                         </span>
+                       </Transition>
+                     )}
+                   </Link>
+                 );
+              })}
+              {recentChats.length > 3 && (
+                 <Link href="/chats" className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
+                    <Transition
+                      as={Fragment}
+                      show={!isCollapsed}
+                      enter="transition-opacity duration-150 ease-out"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="transition-opacity duration-150 ease-in"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <span className="text-sm text-neutral-400 truncate flex-grow pl-7">+{recentChats.length-3} more chats</span>
+                    </Transition>
+                 </Link>
               )}
-              <Button variant="ghost" size="sm" className='w-full justify-start text-neutral-400 hover:text-neutral-100 px-3 mt-1' onClick={() => router.push('/chats')}>
+              <Button variant="ghost" size="sm" className='w-full justify-start text-neutral-400 hover:text-neutral-100 px-3 mt-1'>
                   <FiPlus className='mr-2.5 h-4 w-4' />
                   <Transition
                       as={Fragment}
