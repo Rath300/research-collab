@@ -222,7 +222,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Disclosure.Panel className="pl-3 pr-1 pt-1 space-y-0.5" static>
+                    <Disclosure.Panel className="pl-3 pr-1 pt-1 space-y-0.5">
                       <NavLink href="/projects" label="My Projects" icon={FiFolder} isActive={pathname === '/projects'} isCollapsed={isCollapsed} isSubItem />
                       <NavLink href="/projects?filter=shared" label="Shared With Me" icon={FiFolder} isActive={pathname === '/projects?filter=shared'} isCollapsed={isCollapsed} isSubItem />
                     </Disclosure.Panel>
