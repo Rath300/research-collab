@@ -120,4 +120,11 @@ export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
     result[groupKey].push(currentItem);
     return result;
   }, {});
-} 
+}
+
+export function titleCase(str: string | null | undefined): string {
+  if (!str) return '';
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+// Add other utility functions here as needed 

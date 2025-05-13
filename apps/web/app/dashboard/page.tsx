@@ -63,14 +63,14 @@ function titleCase(str: string | null | undefined): string {
 
 const PlaceholderCard: React.FC<{ title?: string; icon?: React.ElementType; className?: string; children: React.ReactNode }> = 
   ({ title, icon: Icon, className = '', children }) => (
-  <div className={`bg-neutral-800 p-4 md:p-6 rounded-lg shadow-md ${className}`}> 
+  <div className={`bg-neutral-950 p-4 md:p-6 rounded-lg shadow-md ${className}`}> 
     {(title || Icon) && (
       <div className="flex items-center mb-4">
-        {Icon && <Icon className="w-5 h-5 text-neutral-400 mr-3" />}
-        {title && <h3 className="text-md font-semibold text-neutral-200">{title}</h3>}
+        {Icon && <Icon className="w-5 h-5 text-neutral-500 mr-3" />}
+        {title && <h3 className="text-md font-semibold text-neutral-100">{title}</h3>}
       </div>
     )}
-    <div className="text-neutral-300 text-sm">
+    <div className="text-neutral-400 text-sm">
       {children}
     </div>
   </div>
@@ -91,7 +91,7 @@ const MyProfileSnapshot = () => {
         <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
         <div>
           <h4 className="text-lg font-semibold text-neutral-100">{displayName}</h4>
-          <p className="text-xs text-neutral-400">Profile Completion: {profileCompletion}%</p> 
+          <p className="text-xs text-neutral-500">Profile Completion: {profileCompletion}%</p> 
         </div>
       </div>
       <div className="flex space-x-2">
@@ -107,16 +107,16 @@ const QuickStartActions = () => {
   return (
     <PlaceholderCard title="Quick Actions" icon={FiTarget}>
       <div className="grid grid-cols-2 gap-4 mt-2">
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/discover')}>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/discover')}>
           <FiSearch className="mb-1 w-6 h-6"/> Find Collaborators
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/projects/new')}>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/projects/new')}>
           <FiFilePlus className="mb-1 w-6 h-6"/> New Project
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/chats')}>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/chats')}>
           <FiMessageSquare className="mb-1 w-6 h-6"/> Messages
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/settings/account')}>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/settings/account')}>
           <FiCheckSquare className="mb-1 w-6 h-6"/> Update Profile
         </Button>
       </div>
@@ -130,9 +130,9 @@ const ActivityFeed = ({ hasActivity }: { hasActivity: boolean }) => {
     <PlaceholderCard title="Recent Activity" icon={FiActivity} className="min-h-[200px]">
       {hasActivity ? (
         <ul className="space-y-3">
-          <li className="text-xs"><span className="font-semibold text-neutral-100">New Match:</span> Dr. Emily Carter</li>
-          <li className="text-xs"><span className="font-semibold text-neutral-100">New Message:</span> Project Alpha Group</li>
-          <li className="text-xs"><span className="font-semibold text-neutral-100">Collaboration Request:</span> Prof. Davis</li>
+          <li className="text-xs"><span className="font-semibold text-neutral-200">New Match:</span> Dr. Emily Carter</li>
+          <li className="text-xs"><span className="font-semibold text-neutral-200">New Message:</span> Project Alpha Group</li>
+          <li className="text-xs"><span className="font-semibold text-neutral-200">Collaboration Request:</span> Prof. Davis</li>
         </ul>
       ) : (
         <div className="text-center py-6">
@@ -274,12 +274,12 @@ export default function DashboardPage() {
       setIsLoading(false);
     }
   }, [user]);
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-150px)]">
         <p className="text-neutral-400">Loading Dashboard...</p>
-      </div>
+        </div>
     );
   }
 
@@ -300,13 +300,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <MyProfileSnapshot />
             <QuickStartActions />
-          </div>
+              </div>
           <ActivityFeed hasActivity={hasActivity} />
-        </div>
+      </div>
 
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
           <CollaborationStats hasStats={hasStats} />
-        </div>
+            </div>
       </div>
     </div>
   );

@@ -49,9 +49,9 @@ export default function ResetPasswordPage() {
       <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
         <Link href="/" className="font-heading text-2xl font-bold text-neutral-200 hover:text-neutral-100 transition-colors">
           RESEARCH-BEE 
-        </Link>
-      </div>
-      
+          </Link>
+        </div>
+        
       <Card className="w-full max-w-sm bg-neutral-950 border-none shadow-none p-6 sm:p-8">
         <CardHeader className="text-center mb-6">
           <CardTitle className="font-heading text-3xl sm:text-4xl font-semibold text-neutral-100">
@@ -59,27 +59,27 @@ export default function ResetPasswordPage() {
           </CardTitle>
           <CardDescription className="mt-2 text-sm text-neutral-400 font-sans">
             Enter your email and we&apos;ll send a reset link.
-          </CardDescription>
-        </CardHeader>
+            </CardDescription>
+          </CardHeader>
           
         <CardContent>
           {isSuccess ? (
             <div className="p-4 mb-4 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-center space-x-3">
-              <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Password reset link sent!</p>
+                <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Password reset link sent!</p>
                 <p className="mt-1 text-xs">Check your email for instructions.</p>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
+                {error && (
                 <div className="p-3 mb-4 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm flex items-center space-x-2">
-                  <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-              
+                    <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+                
               <div>
                 <label htmlFor="email" className="sr-only">Email</label>
                 <Input
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
             </Link>
           </div>
         </CardContent>
-      </Card>
+        </Card>
 
       <footer className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans">
         &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.

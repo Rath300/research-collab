@@ -66,10 +66,10 @@ export default function LandingPage() {
           RESEARCH-BEE
         </Link>
         <AuthRedirectLink 
-          href="/login" 
+                href="/login" 
           className="font-sans text-neutral-300 hover:text-white transition-colors"
-        >
-          Log in
+              >
+                Log in
         </AuthRedirectLink>
       </header>
 
@@ -181,10 +181,10 @@ export default function LandingPage() {
                     animate={isActive ? "visible" : "hidden"}
                     initial="hidden"
                   >
-                    <div>
+                <div>
                       <h3 className={`text-2xl md:text-3xl font-heading font-semibold mb-3 transition-colors duration-500 ${isActive ? 'text-neutral-100' : 'text-neutral-500'}`}>{feature.title}</h3>
                       <p className={`text-base md:text-lg leading-relaxed transition-colors duration-500 ${isActive ? 'text-neutral-300' : 'text-neutral-600'}`}>{feature.description}</p>
-                    </div>
+                </div>
                   </motion.div>
                 );
               })}
@@ -251,7 +251,7 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </motion.div>
-          </div>
+              </div>
         </motion.section>
 
         {/* Placeholder for Features Video */}
@@ -261,9 +261,9 @@ export default function LandingPage() {
             <div className="aspect-video bg-neutral-800 rounded-lg flex items-center justify-center text-neutral-500">
               {/* Replace this div with your video player component when ready */}
               <span>Video Coming Soon!</span> 
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
         {/* Call to Action (Optional - Can reuse hero button or add another) */}
         {/* 

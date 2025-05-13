@@ -1,115 +1,106 @@
 'use client';
 
-import React, { useState } from 'react';
-import { FiSearch, FiBell, FiUser, FiChevronDown } from 'react-icons/fi';
-import { Avatar } from '@/components/ui/Avatar'; // Assuming Avatar component
-import { useAuthStore } from '@/lib/store';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { getBrowserClient } from '@/lib/supabaseClient'; // Import Supabase client
+import { useRouter } from 'next/navigation';
+import { FiSearch, FiBell, FiUser, FiSettings, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; 
+import { Avatar } from '@/components/ui/Avatar';
+import { Input } from '@/components/ui/Input'; // Assuming Input component exists
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Corrected path
+import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/lib/store';
+import { getBrowserClient } from '@/lib/supabaseClient';
+import { Database } from '@/lib/database.types';
+import { titleCase } from '@/lib/utils';
 
-// Utility to capitalize first letter of each word (can be moved to a shared util file)
-function titleCase(str: string | null | undefined): string {
-  if (!str) return '';
-  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
+interface DashboardHeaderProps {
+  profile: Profile | null;
+  toggleSidebar: () => void;
+  isSidebarCollapsed: boolean;
 }
 
-export function DashboardHeader() {
-  const { profile } = useAuthStore();
+export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: DashboardHeaderProps) {
   const router = useRouter();
   const supabase = getBrowserClient();
 
-  // State for search query
-  const [searchQuery, setSearchQuery] = useState('');
-  // State for dropdown
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // Clear Zustand store? Ensure AuthProvider handles this or add clear logic here.
+    // useAuthStore.setState({ user: null, profile: null }); // Example of clearing store
+    router.push('/login');
+  };
 
-  // User display info
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      const query = event.currentTarget.value;
+      if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      }
+    }
+  };
+
   const displayName = profile?.first_name 
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
     : 'User';
   const displayAvatarUrl = profile?.avatar_url;
 
-  // Handle search submission (e.g., on Enter key)
-  const handleSearchSubmit = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      // Optionally clear search query after navigation
-      // setSearchQuery(''); 
-    }
-  };
-
-  // Handle logout
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error logging out:', error);
-      // Handle error display if necessary
-    } else {
-      // Redirect to login page after successful logout
-      router.push('/login'); 
-      // Optionally clear auth store state here if needed, 
-      // though AuthProvider should handle session change
-    }
-  };
-
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 bg-neutral-900 border-b border-neutral-800">
-      {/* Search Bar */}
-      <div className="relative">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-        <input 
-          type="search" 
-          placeholder="Search anything..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearchSubmit} // Trigger search on Enter
-          className="pl-10 pr-4 py-2 w-64 text-sm bg-neutral-800 text-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 placeholder-neutral-500"
-        />
+    <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 md:px-6 bg-neutral-950 border-b border-neutral-800">
+      <div className="flex items-center">
+        {/* Sidebar Toggle Button */} 
+        <Button 
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className="mr-4 p-2 text-neutral-400 hover:text-neutral-100 lg:hidden"
+        >
+          {isSidebarCollapsed ? <FiMenu className="h-5 w-5" /> : <FiX className="h-5 w-5" />}
+        </Button>
+        
+        {/* Search Input - Adjusted width and placeholder */}
+        <div className="relative w-full max-w-xs">
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <Input
+            type="search"
+            placeholder="Search anything..."
+            className="pl-9 pr-4 py-2 text-sm w-full bg-neutral-800 border-neutral-700 focus:ring-blue-500 focus:border-blue-500 rounded-md text-neutral-100 placeholder-neutral-500"
+            onKeyDown={handleSearch}
+          />
+        </div>
       </div>
 
-      {/* Right Side Actions */}
       <div className="flex items-center space-x-4">
-        {/* Notifications Link */}
-        <Link 
-          href="/notifications" 
-          className="p-2 rounded-full text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 transition-colors relative"
-          title="View Notifications" // Accessibility improvement
-        >
+        {/* Notification Bell */}
+        <Link href="/notifications" className="p-2 rounded-full text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800">
           <FiBell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 block w-2 h-2 bg-red-500 rounded-full" aria-hidden="true"></span> {/* Static dot */}
+          {/* Optional: Add a badge for unread notifications */}
         </Link>
 
         {/* Profile Dropdown */}
-        <div className="relative">
-          <button 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center space-x-2 p-1 rounded-full hover:bg-neutral-700 transition-colors"
-            aria-label="Open user menu" // Accessibility
-            aria-expanded={isDropdownOpen}
-          >
-            <Avatar src={displayAvatarUrl} alt={displayName} size="sm" fallback={<FiUser size={18}/>} />
-          </button>
-          {isDropdownOpen && (
-            <div 
-              className="absolute right-0 mt-2 w-48 bg-neutral-800 rounded-md shadow-lg py-1 z-50 border border-neutral-700" 
-              role="menu" // Accessibility
-              aria-orientation="vertical"
-              aria-labelledby="user-menu-button" // Needs an ID on the button if using this
-            >
-              <Link href="/profile/me" role="menuitem" className="block px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-neutral-100">Your Profile</Link>
-              <Link href="/settings" role="menuitem" className="block px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-neutral-100">Settings</Link>
-              <hr className="border-neutral-700 my-1"/>
-              <button 
-                onClick={handleLogout} 
-                role="menuitem" 
-                className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700 hover:text-red-300"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar src={displayAvatarUrl} alt={displayName} size="sm" fallback={<FiUser size={16} />} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 bg-neutral-800 border-neutral-700 text-neutral-200" align="end" forceMount>
+            <DropdownMenuItem className="focus:bg-neutral-700 focus:text-neutral-100 cursor-pointer" onClick={() => router.push('/profile/me')}>
+              <FiUser className="mr-2 h-4 w-4" />
+              <span>My Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="focus:bg-neutral-700 focus:text-neutral-100 cursor-pointer" onClick={() => router.push('/settings')}>
+              <FiSettings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-neutral-700"/>
+            <DropdownMenuItem className="focus:bg-red-900/50 focus:text-red-400 text-red-500 cursor-pointer" onClick={handleLogout}>
+              <FiLogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
