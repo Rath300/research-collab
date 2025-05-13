@@ -50,6 +50,9 @@ interface DashboardStats {
   matchCount: number;
   messageCount: number;
   viewCount: number;
+  activeProjects?: number;
+  pendingRequests?: number;
+  unreadMessagesCount?: number;
 }
 
 interface ResearchPostWithProfile extends ResearchPost {
@@ -61,16 +64,16 @@ function titleCase(str: string | null | undefined): string {
   return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-const PlaceholderCard: React.FC<{ title?: string; icon?: React.ElementType; className?: string; children: React.ReactNode }> = 
-  ({ title, icon: Icon, className = '', children }) => (
-  <div className={`bg-neutral-950 p-4 md:p-6 rounded-lg shadow-md ${className}`}> 
-    {(title || Icon) && (
+const DashboardCard: React.FC<{ title?: string; titleIcon?: React.ElementType; className?: string; children: React.ReactNode }> = 
+  ({ title, titleIcon: TitleIconProp, className = '', children }) => (
+  <div className={`bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 ${className}`}> 
+    {(title || TitleIconProp) && (
       <div className="flex items-center mb-4">
-        {Icon && <Icon className="w-5 h-5 text-neutral-500 mr-3" />}
-        {title && <h3 className="text-md font-semibold text-neutral-100">{title}</h3>}
+        {TitleIconProp && <TitleIconProp className="w-6 h-6 text-neutral-400 mr-3" />}
+        {title && <h3 className="text-xl font-semibold text-neutral-100">{title}</h3>}
       </div>
     )}
-    <div className="text-neutral-400 text-sm">
+    <div>
       {children}
     </div>
   </div>
@@ -79,60 +82,73 @@ const PlaceholderCard: React.FC<{ title?: string; icon?: React.ElementType; clas
 const MyProfileSnapshot = () => {
   const { profile } = useAuthStore();
   const router = useRouter();
-  const displayName = profile?.first_name 
-    ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
-    : 'User';
+  const displayName = profile?.full_name || (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || 'User';
   const displayAvatarUrl = profile?.avatar_url;
-  const profileCompletion = 75;
 
   return (
-    <PlaceholderCard title="Profile Status" icon={FiUser}>
+    <DashboardCard title="Profile Status" titleIcon={FiUser} className="mb-6 md:mb-8">
       <div className="flex items-center space-x-4 mb-4">
         <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
         <div>
-          <h4 className="text-lg font-semibold text-neutral-100">{displayName}</h4>
-          <p className="text-xs text-neutral-500">Profile Completion: {profileCompletion}%</p> 
+          <h4 className="text-lg font-semibold text-neutral-100 truncate max-w-xs">{displayName}</h4>
+          <Link href={profile?.id ? `/profile/${profile.id}` : '/settings/account'} className="text-sm text-blue-400 hover:underline">
+            View Profile
+          </Link>
         </div>
       </div>
       <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" onClick={() => router.push('/profile/me')}><FiUser className="mr-1"/> View</Button>
-        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')}><FiEdit2 className="mr-1"/> Edit</Button>
+        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')}><FiUser className="mr-1"/> View Full</Button>
+        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')}><FiEdit2 className="mr-1"/> Edit Profile</Button>
       </div>
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
-const QuickStartActions = () => {
+const QuickActions = () => {
   const router = useRouter();
+  const actions = [
+    { label: "Find Collaborators", href: "/collaborators", icon: FiSearch },
+    { label: "New Project", href: "/projects/new", icon: FiFilePlus },
+    { label: "Messages", href: "/chats", icon: FiMessageSquare },
+    { label: "Update Profile", href: "/settings/account", icon: FiCheckSquare }
+  ];
+
   return (
-    <PlaceholderCard title="Quick Actions" icon={FiTarget}>
-      <div className="grid grid-cols-2 gap-4 mt-2">
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/discover')}>
-          <FiSearch className="mb-1 w-6 h-6"/> Find Collaborators
-        </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/projects/new')}>
-          <FiFilePlus className="mb-1 w-6 h-6"/> New Project
-        </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/chats')}>
-          <FiMessageSquare className="mb-1 w-6 h-6"/> Messages
-        </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/settings/account')}>
-          <FiCheckSquare className="mb-1 w-6 h-6"/> Update Profile
-        </Button>
+    <DashboardCard title="Quick Actions" titleIcon={FiTarget} className="mb-6 md:mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {actions.map((action) => (
+          <button
+            key={action.label}
+            onClick={() => router.push(action.href)}
+            className="flex flex-col items-center justify-center p-4 bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors aspect-square"
+          >
+            <action.icon className="w-7 h-7 text-neutral-300 mb-2" />
+            <span className="text-sm text-neutral-200 text-center">{action.label}</span>
+          </button>
+        ))}
       </div>
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
-const ActivityFeed = ({ hasActivity }: { hasActivity: boolean }) => {
+const ActivityFeed = () => {
   const router = useRouter();
+  const activities = [
+    { text: "New Match: Dr. Emily Carter", time: "2h ago" },
+    { text: "New Message: Project Alpha Group", time: "5h ago" },
+    { text: "Collaboration Request: Prof. Davis", time: "1d ago" },
+  ];
+  const hasActualActivity = activities.length > 0;
+
   return (
-    <PlaceholderCard title="Recent Activity" icon={FiActivity} className="min-h-[200px]">
-      {hasActivity ? (
+    <DashboardCard title="Recent Activity" titleIcon={FiActivity} className="min-h-[200px] mb-6 md:mb-8">
+      {hasActualActivity ? (
         <ul className="space-y-3">
-          <li className="text-xs"><span className="font-semibold text-neutral-200">New Match:</span> Dr. Emily Carter</li>
-          <li className="text-xs"><span className="font-semibold text-neutral-200">New Message:</span> Project Alpha Group</li>
-          <li className="text-xs"><span className="font-semibold text-neutral-200">Collaboration Request:</span> Prof. Davis</li>
+          {activities.map((activity, index) => (
+            <li key={index} className="text-sm text-neutral-400">
+              {activity.text} - <span className="text-xs text-neutral-500">{activity.time}</span>
+            </li>
+          ))}
         </ul>
       ) : (
         <div className="text-center py-6">
@@ -140,29 +156,25 @@ const ActivityFeed = ({ hasActivity }: { hasActivity: boolean }) => {
           <Button variant="secondary" size="sm" onClick={() => router.push('/discover')}><FiSearch className="mr-1"/> Find Collaborators</Button>
         </div>
       )}
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
-const CollaborationStats = ({ hasStats }: { hasStats: boolean }) => {
-  const router = useRouter();
-  const stats = { projects: 2, requests: 1, messages: 5 };
+const CollaborationStatsDisplay = () => {
+  const stats = {
+    activeProjects: 2,
+    pendingRequests: 1,
+    unreadMessages: 5,
+  };
 
   return (
-    <PlaceholderCard title="Collaboration Stats" icon={FiTrendingUp}>
-      {hasStats ? (
-        <div className="space-y-2 mt-2">
-          <p>Active Projects: <span className="font-semibold text-neutral-100">{stats.projects}</span></p>
-          <p>Pending Requests: <span className="font-semibold text-neutral-100">{stats.requests}</span></p>
-          <p>Unread Messages: <span className="font-semibold text-neutral-100">{stats.messages}</span></p>
-        </div>
-      ) : (
-        <div className="text-center py-6">
-          <p className="text-neutral-500 mb-3">Start collaborating to see your stats.</p>
-          <Button variant="secondary" size="sm" onClick={() => router.push('/projects/new')}><FiFilePlus className="mr-1"/> Start a Project</Button>
-        </div>
-      )}
-    </PlaceholderCard>
+    <DashboardCard title="Collaboration Stats" titleIcon={FiTrendingUp} className="mb-6 md:mb-8">
+      <div className="space-y-3 text-neutral-300">
+        <p className="flex justify-between text-md">Active Projects: <span className="font-bold text-neutral-100">{stats.activeProjects}</span></p>
+        <p className="flex justify-between text-md">Pending Requests: <span className="font-bold text-neutral-100">{stats.pendingRequests}</span></p>
+        <p className="flex justify-between text-md">Unread Messages: <span className="font-bold text-neutral-100">{stats.unreadMessages}</span></p>
+      </div>
+    </DashboardCard>
   );
 };
 
@@ -291,18 +303,21 @@ export default function DashboardPage() {
     );
   }
 
-  const welcomeName = profile?.first_name || 'Researcher';
+  const welcomeName = profile?.full_name || (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || "Explorer";
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-8 p-1">
+      <h1 className="text-3xl font-bold text-neutral-100">Welcome back, {welcomeName}!</h1>
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          <MyProfileSnapshot />
+          <QuickActions />
+          <ActivityFeed /> 
         </div>
 
-        <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <QuickStartActions />
-          <CollaborationStats hasStats={hasStats} /> 
+        <div className="space-y-6 md:space-y-8">
+          <MyProfileSnapshot />
+          <CollaborationStatsDisplay />
         </div>
       </div>
     </div>
