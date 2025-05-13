@@ -206,9 +206,11 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <FiChevronRight
-                      className={cn('ml-auto h-4 w-4 transition-transform duration-150 ease-in-out', open && 'rotate-90 transform' )}
-                    />
+                    <span>
+                      <FiChevronRight
+                        className={cn('ml-auto h-4 w-4 transition-transform duration-150 ease-in-out', open && 'rotate-90 transform' )}
+                      />
+                    </span>
                   </Transition>
                 </Disclosure.Button>
                 {!isCollapsed && (
