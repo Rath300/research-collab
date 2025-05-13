@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getBrowserClient } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -18,7 +18,7 @@ export default function Signup() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = getSupabaseClient();
+  const supabase = getBrowserClient();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

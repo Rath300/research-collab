@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { ChatInterface } from '@/components/chat/ChatInterface';
@@ -9,9 +9,7 @@ import { getProfile } from '@/lib/api';
 import { type Profile as DbProfile } from '@research-collab/db'; // Corrected import for Profile type
 import { FiLoader, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
 import { Button } from '@/components/ui/Button';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-import { RealtimeChannel, User } from '@supabase/supabase-js';
-import { Message, Match } from '@/types';
+import { getBrowserClient } from '@/lib/supabaseClient';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -22,11 +20,6 @@ export default function ChatPage() {
   const [recipientProfile, setRecipientProfile] = useState<DbProfile | null>(null);
   const [loadingRecipient, setLoadingRecipient] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = getSupabaseClient();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [matchDetails, setMatchDetails] = useState<Match | null>(null);
-  const [otherUser, setOtherUser] = useState<User | null>(null);
-  const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     if (authLoading || !currentUser || !matchId) return;
@@ -35,6 +28,7 @@ export default function ChatPage() {
       setLoadingRecipient(true);
       setError(null);
       try {
+        const supabase = getBrowserClient();
         // 1. Get the match details to find the other user's ID
         const { data: matchData, error: matchError } = await supabase
           .from('matches')

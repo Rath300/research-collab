@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { getSupabaseClient } from '@/lib/supabaseClient'
+import { getBrowserClient } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -31,7 +31,7 @@ interface ProfileFormProps {
 
 export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) {
   const router = useRouter()
-  const supabase = getSupabaseClient()
+  const supabase = getBrowserClient()
   const { user, setProfile } = useAuthStore()
 
   const [loading, setLoading] = useState(false)

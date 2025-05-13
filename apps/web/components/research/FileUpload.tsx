@@ -1,100 +1,72 @@
 'use client'
 
-import React, { useState } from 'react';
-import { useAuth } from '@/components/providers/auth-provider';
-import { getSupabaseClient } from '@/lib/supabaseClient';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { UploadCloud, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { SupabaseStorageError } from '@/lib/errors';
-
-const supabase = getSupabaseClient();
+import { useState } from 'react'
+import { getBrowserClient } from '@/lib/supabaseClient'
+import { Button } from '@/components/ui/Button'
 
 interface FileUploadProps {
   researchPostId: string
-  onUploadSuccess: (url: string) => void;
+  onUploadComplete?: (filePath: string) => void
 }
 
-export function FileUpload({ researchPostId, onUploadSuccess }: FileUploadProps) {
-  const { user } = useAuth();
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const maxFileSizeMB = 10;
-  const bucketName = 'project_files';
+export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps) {
+  const supabase = getBrowserClient()
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      if (file.size > (maxFileSizeMB * 1024 * 1024)) {
-         setUploadError(`File size exceeds ${maxFileSizeMB}MB limit.`);
-         setSelectedFile(null);
-         event.target.value = '';
-         return;
-      }
-      setSelectedFile(file);
-      setUploadError(null);
-      setUploadProgress(0);
-      setUploadedUrl(null);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile || !user) {
-      setUploadError('Please select a file and ensure you are logged in.');
-      return;
-    }
-
-    setUploading(true);
-    setUploadError(null);
-    setUploadProgress(0);
-    toast.loading('Uploading file...', { id: 'upload-toast' });
-
-    const fileExt = selectedFile.name.split('.').pop();
-    const filePath = `${user.id}/${Date.now()}-${selectedFile.name}`;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    const file = e.target.files[0]
+    setUploadedFilePath(null)
+    setError(null)
 
     try {
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      setUploading(true)
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
 
-      if (error) {
-        throw new SupabaseStorageError(error.message);
+      const fileExt = file.name.split('.').pop()
+      const randomFileName = `${Math.random().toString(36).slice(2)}.${fileExt}`
+      const filePath = `research-posts/${researchPostId}/${user.id}/${randomFileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('project_files')
+        .upload(filePath, file, { 
+            cacheControl: '3600',
+            upsert: false
+        })
+
+      if (uploadError) throw uploadError
+      setUploadedFilePath(filePath)
+
+      // Record file in database
+      const { error: dbError } = await supabase
+        .from('project_files')
+        .insert({
+          research_post_id: researchPostId,
+          uploader_id: user.id,
+          file_name: file.name,
+          file_path: filePath,
+          file_type: file.type,
+          file_size: file.size,
+        })
+
+      if (dbError) {
+        await supabase.storage.from('project-files').remove([filePath])
+        throw dbError
       }
+      
+      if (onUploadComplete) onUploadComplete(filePath)
 
-      console.log('File uploaded successfully:', data);
-
-      const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-      const publicUrl = urlData?.publicUrl;
-
-      if (!publicUrl) {
-        throw new Error('Could not retrieve public URL for the uploaded file.');
-      }
-
-      console.log('Public URL:', publicUrl);
-      setUploading(false);
-      setUploadedUrl(publicUrl);
-      onUploadSuccess(publicUrl);
-      setUploadProgress(100);
-      toast.success('File uploaded successfully!', { id: 'upload-toast' });
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      const errorMessage = error instanceof SupabaseStorageError ? error.message : 'An unexpected error occurred during upload.';
-      setUploadError(errorMessage);
-      setUploading(false);
-      setUploadProgress(0);
-      toast.error('Upload Failed', { description: errorMessage, id: 'upload-toast' });
+    } catch (err) {
+      console.error("File upload error:", err)
+      setError(err instanceof Error ? err.message : 'Failed to upload file')
+    } finally {
+      setUploading(false)
     }
-  };
+  }
 
   return (
     <div className="space-y-2">
@@ -107,7 +79,7 @@ export function FileUpload({ researchPostId, onUploadSuccess }: FileUploadProps)
           id={`file-upload-${researchPostId}`}
           type="file"
           className="hidden"
-          onChange={handleFileChange}
+          onChange={handleFileUpload}
           disabled={uploading}
         />
       </label>

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import { getBrowserClient } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { getProfile } from '@/lib/api'; // Assuming getProfile is here
 import type { User } from '@supabase/supabase-js';
@@ -17,8 +17,9 @@ const isAuthPathClient = (currentPathname: string | null): boolean => {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setProfile, setLoading } = useAuthStore();
-  const supabase = getSupabaseClient();
+  const supabase = getBrowserClient();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     console.log('AuthProvider Effect: Setting up listener.');
@@ -26,24 +27,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        const currentPath = window.location.pathname; 
+        const currentPath = window.location.pathname; // Get fresh pathname inside callback
         console.log(`AuthProvider: onAuthStateChange event: ${event}, Path: ${currentPath}, Session: ${!!session}`);
         const currentUser = session?.user ?? null;
-        
-        // Update store immediately
         setUser(currentUser); 
 
         if (currentUser) {
           console.log('AuthProvider: User detected.');
-          // Check for redirect BEFORE fetching profile
+          // REDIRECT LOGIC MOVED HERE - Check current path inside callback
           if (isAuthPathClient(currentPath) && currentPath !== '/auth/check-email') {
             console.log(`AuthProvider: Redirecting from auth path ${currentPath} to /dashboard`);
-            // setLoading(false); // No need to set loading false here, redirect happens
-            router.replace('/dashboard'); 
-            return; // Exit early
+            router.replace('/dashboard'); // Use replace
+            setLoading(false); // Ensure loading is false before early return
+            return; // Exit early if redirecting
           }
 
-          // If not redirecting, fetch profile (ensure store has user first)
+          // If not redirecting, fetch profile
           try {
             console.log('AuthProvider: Fetching profile...');
             const profileData = await getProfile(currentUser.id);
@@ -53,7 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Error fetching profile:', error);
             setProfile(null); 
           } finally {
-             // Always set loading false after profile attempt or if no profile needed on this path
             setLoading(false); 
           }
         } else {
@@ -64,11 +62,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // Removed explicit initial check, rely on onAuthStateChange firing initially
+
     return () => {
       console.log('AuthProvider Effect: Cleaning up listener.');
       authListener.subscription?.unsubscribe();
     };
-  }, [supabase, setUser, setProfile, setLoading, router]); // Added router back as dependency for the replace call
+    // Dependencies: only things that, if changed, require setting up the listener again.
+  }, [supabase, setUser, setProfile, setLoading]); // Removed router/pathname
 
   return <>{children}</>;
 } 
