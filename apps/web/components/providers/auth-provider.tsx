@@ -6,6 +6,10 @@ import { getBrowserClient } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { getProfile } from '@/lib/api'; // Assuming getProfile is here
 import type { User } from '@supabase/supabase-js';
+import { Database } from '@/lib/database.types'; // Import Database type
+
+// Define Profile type based on the database schema
+type ProfileFromDb = Database['public']['Tables']['profiles']['Row'];
 
 // Define auth paths here as well for client-side check
 const AUTH_PATHS = ['/login', '/signup', '/reset-password'];
@@ -35,6 +39,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentUser) {
           console.log('AuthProvider: User detected.');
           
+          // --- START ONBOARDING CHECK ---
+          let profileDataForOnboarding: any = useAuthStore.getState().profile; 
+          if (!profileDataForOnboarding) {
+              try {
+                  console.log('AuthProvider: Onboarding check - fetching profile...');
+                  profileDataForOnboarding = await getProfile(currentUser.id);
+                  // Assuming getProfile returns a type compatible enough for the store or needs mapping
+                  // For now, to avoid blocking, let's assume setProfile can handle it or types will be aligned later.
+                  setProfile(profileDataForOnboarding as ProfileFromDb | null); 
+                  console.log('AuthProvider: Onboarding check - profile fetched.');
+              } catch (error) {
+                  console.error('AuthProvider: Onboarding check - Error fetching profile:', error);
+                  profileDataForOnboarding = null; 
+              }
+          }
+
+          // Check for an optional 'onboarding_completed' flag. 
+          // ADD THIS FIELD TO YOUR SUPABASE 'profiles' TABLE (boolean, default false)
+          const needsOnboarding = profileDataForOnboarding ? !profileDataForOnboarding.onboarding_completed : true;
+          const isOnboardingPage = currentPath === '/onboarding';
+
+          if (needsOnboarding && !isOnboardingPage) {
+            console.log('AuthProvider: User needs onboarding. Redirecting to /onboarding.');
+            router.replace('/onboarding');
+            setLoading(false);
+            return;
+          }
+          // --- END ONBOARDING CHECK ---
+
           // MODIFIED REDIRECT LOGIC:
           // Redirect if:
           // 1. We are on an auth path (excluding check-email)
@@ -52,18 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return; 
           }
 
-          // If not redirecting, fetch profile
-          try {
-            console.log('AuthProvider: Fetching profile...');
-            const profileData = await getProfile(currentUser.id);
-            setProfile(profileData);
-             console.log('AuthProvider: Profile fetched.');
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            setProfile(null); 
-          } finally {
-            setLoading(false); 
+          // This profile fetching logic might be redundant if onboarding check already fetched it.
+          // Only fetch if not on onboarding, not needing it, and profile not already in store.
+          if (!isOnboardingPage && !needsOnboarding && !useAuthStore.getState().profile) { 
+            try {
+              console.log('AuthProvider: Main profile fetch (after onboarding check)...');
+              const profileDataFromMainFetch = await getProfile(currentUser.id);
+              setProfile(profileDataFromMainFetch as ProfileFromDb | null);
+              console.log('AuthProvider: Main profile fetched.');
+            } catch (error) {
+              console.error('Error fetching profile (main):', error);
+              setProfile(null); 
+            }
           }
+          setLoading(false); 
         } else {
            console.log('AuthProvider: No user session.');
           setProfile(null); 

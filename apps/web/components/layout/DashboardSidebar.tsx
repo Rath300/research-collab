@@ -105,11 +105,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     { name: 'Settings', href: '/settings', icon: FiSettings },
   ];
 
-  const recentChats = [
-    { id: 'erik-gunsel-id', name: 'Erik Gunsel', avatar_url: null },
-    { id: 'emily-smith-id', name: 'Emily Smith', avatar_url: null }, 
-    { id: 'arthur-adelk-id', name: 'Arthur Adelk', avatar_url: null },
-  ];
+  const recentChats: { id: string; name: string; avatar_url: string | null }[] = [];
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === href;
@@ -131,7 +127,10 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={toggleSidebar} 
+            onClick={() => {
+              console.log('!!! SIDEBAR COLLAPSE BUTTON CLICKED - Test Log !!!');
+              // toggleSidebar(); // Temporarily commented out
+            }} 
             className="relative z-10 mr-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 p-2"
             aria-label="Collapse sidebar"
           >
@@ -226,6 +225,9 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                   >
                     <Disclosure.Panel className="pl-3 pr-1 pt-1 space-y-0.5">
                       <NavLink href="/projects" label="My Projects" icon={FiFolder} isActive={pathname === '/projects'} isCollapsed={isCollapsed} isSubItem />
+                      {!isCollapsed && (
+                        <span className="text-xs text-neutral-500 pl-10">(0 projects)</span>
+                      )}
                       <NavLink href="/projects?filter=shared" label="Shared With Me" icon={FiFolder} isActive={pathname === '/projects?filter=shared'} isCollapsed={isCollapsed} isSubItem />
                     </Disclosure.Panel>
                   </Transition>

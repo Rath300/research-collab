@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { 
   FiUsers, 
@@ -27,7 +26,8 @@ import {
   FiLink2,
   FiEdit2,
   FiFilePlus,
-  FiCheckSquare
+  FiCheckSquare,
+  FiPlusCircle
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -76,51 +76,98 @@ const PlaceholderCard: React.FC<{ title?: string; icon?: React.ElementType; clas
   </div>
 );
 
+const DashboardCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`bg-neutral-950 border border-neutral-800 rounded-lg shadow-lg p-4 md:p-6 ${className || ''}`}>
+    {children}
+  </div>
+);
+
+const CardTitle = ({ children, icon: Icon }: { children: React.ReactNode, icon?: React.ElementType }) => (
+  <h2 className="flex items-center text-lg font-semibold text-neutral-100 mb-4">
+    {Icon && <Icon className="mr-2 h-5 w-5 text-neutral-400" />}
+    {children}
+  </h2>
+);
+
 const MyProfileSnapshot = () => {
-  const { profile } = useAuthStore();
   const router = useRouter();
-  const displayName = profile?.first_name 
-    ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
-    : 'User';
+  const { profile } = useAuthStore();
+  const displayName = profile?.first_name ? `${profile.first_name} ${profile.last_name ?? ''}`.trim() : 'User';
   const displayAvatarUrl = profile?.avatar_url;
-  const profileCompletion = 75;
 
   return (
-    <PlaceholderCard title="Profile Status" icon={FiUser}>
+    <DashboardCard className="col-span-1">
+      <CardTitle icon={FiUser}>My Profile</CardTitle>
       <div className="flex items-center space-x-4 mb-4">
         <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
         <div>
-          <h4 className="text-lg font-semibold text-neutral-100">{displayName}</h4>
-          <p className="text-xs text-neutral-500">Profile Completion: {profileCompletion}%</p> 
+          <p className="text-base font-medium text-neutral-100">{displayName}</p>
+          <p className="text-sm text-neutral-400">Your role/status</p>
         </div>
       </div>
+      <p className="text-sm text-neutral-400 mb-4">
+        Quick overview of your profile status and activity.
+      </p>
       <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" onClick={() => router.push('/profile/me')}><FiUser className="mr-1"/> View</Button>
-        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')}><FiEdit2 className="mr-1"/> Edit</Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:border-neutral-600"
+          onClick={() => router.push('/profile/me')}
+        >
+         <FiUser className="mr-1"/> View Profile
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="border-neutral-700 text-neutral-300 hover:bg-neutral-800 hover:border-neutral-600"
+          onClick={() => router.push('/settings/account')}
+        >
+          <FiEdit2 className="mr-1"/> Edit Profile
+        </Button>
       </div>
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
 const QuickStartActions = () => {
   const router = useRouter();
   return (
-    <PlaceholderCard title="Quick Actions" icon={FiTarget}>
-      <div className="grid grid-cols-2 gap-4 mt-2">
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/discover')}>
-          <FiSearch className="mb-1 w-6 h-6"/> Find Collaborators
+    <DashboardCard className="col-span-1">
+      <CardTitle icon={FiPlusCircle}>Quick Start</CardTitle>
+      <div className="space-y-3">
+        <Button 
+          variant="secondary"
+          size="sm" 
+          className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-neutral-200"
+          onClick={() => router.push('/projects/new')}
+        >
+          <FiFilePlus className="mr-2" /> Start a New Project
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/projects/new')}>
-          <FiFilePlus className="mb-1 w-6 h-6"/> New Project
+        <Button 
+          variant="secondary"
+          size="sm" 
+          className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-neutral-200"
+          onClick={() => router.push('/discover')}
+        >
+          <FiSearch className="mr-2" /> Discover Collaborators
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/chats')}>
-          <FiMessageSquare className="mb-1 w-6 h-6"/> Messages
+        <Button 
+            variant="secondary" 
+            size="sm" 
+            className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-neutral-200" 
+            onClick={() => router.push('/chats')}>
+            <FiMessageSquare className="mr-2"/> Messages
         </Button>
-        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100" onClick={() => router.push('/settings/account')}>
-          <FiCheckSquare className="mb-1 w-6 h-6"/> Update Profile
+        <Button 
+            variant="secondary" 
+            size="sm" 
+            className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-neutral-200" 
+            onClick={() => router.push('/settings/account')}>
+            <FiCheckSquare className="mr-2"/> Update Profile
         </Button>
       </div>
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
@@ -149,7 +196,11 @@ const CollaborationStats = ({ hasStats }: { hasStats: boolean }) => {
   const stats = { projects: 2, requests: 1, messages: 5 };
 
   return (
-    <PlaceholderCard title="Collaboration Stats" icon={FiTrendingUp}>
+    <DashboardCard className="col-span-1">
+      <CardTitle icon={FiBarChart2}>Collaboration Stats</CardTitle>
+      <p className="text-sm text-neutral-400 mb-4">
+        Overview of your project collaborations and connections.
+      </p>
       {hasStats ? (
         <div className="space-y-2 mt-2">
           <p>Active Projects: <span className="font-semibold text-neutral-100">{stats.projects}</span></p>
@@ -162,7 +213,7 @@ const CollaborationStats = ({ hasStats }: { hasStats: boolean }) => {
           <Button variant="secondary" size="sm" onClick={() => router.push('/projects/new')}><FiFilePlus className="mr-1"/> Start a Project</Button>
         </div>
       )}
-    </PlaceholderCard>
+    </DashboardCard>
   );
 };
 
@@ -294,16 +345,14 @@ export default function DashboardPage() {
   const welcomeName = profile?.first_name || 'Researcher';
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          <MyProfileSnapshot />
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="lg:col-span-1 space-y-4 md:space-y-6">
+        <MyProfileSnapshot />
+      </div>
 
-        <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <QuickStartActions />
-          <CollaborationStats hasStats={hasStats} /> 
-        </div>
+      <div className="lg:col-span-2 space-y-4 md:space-y-6">
+        <QuickStartActions />
+        <CollaborationStats hasStats={hasStats} />
       </div>
     </div>
   );
