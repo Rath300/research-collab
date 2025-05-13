@@ -18,8 +18,8 @@ import {
   FiUser
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
-import { createBrowserClient } from '@supabase/ssr';
 import { Database } from '@/lib/database.types';
+import { getBrowserClient } from '@/lib/supabaseClient';
 import { ResearchPostCard } from '@/components/research/ResearchPostCard';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -59,10 +59,7 @@ export default function DashboardPage() {
   const [recentPosts, setRecentPosts] = useState<ResearchPostWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getBrowserClient();
   
   const loadDashboardData = useCallback(async () => {
     try {
