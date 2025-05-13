@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FiSearch, FiUsers, FiMessageSquare, FiTarget } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { AuthRedirectLink } from '@/components/ui/AuthRedirectLink';
+import React, { useState, useEffect } from 'react';
 
 // Helper component for Feature Cards (Modern/Sleek)
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
@@ -25,7 +26,38 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
   </motion.div>
 );
 
+const features = [ 
+  { 
+    title: "Intelligent Profile Discovery", 
+    description: "Find student researchers by skills, interests, and project needs using powerful search and filtering tools. Our AI helps surface the most relevant collaborators for you.",
+  },
+  { 
+    title: "AI-Powered Project Matching", 
+    description: "Post your research ideas or find ongoing projects. Our matching algorithm connects you with opportunities aligned with your expertise and aspirations.",
+  },
+  { 
+    title: "Dynamic Network Building", 
+    description: "Connect with peers, mentors, and potential supervisors. Expand your academic and professional circle within a vibrant, supportive community.",
+  },
+  { 
+    title: "Secure & Streamlined Communication", 
+    description: "Initiate conversations and collaborate securely through our integrated messaging system, designed for focused research discussions.",
+  }
+];
+
 export default function LandingPage() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((currentActiveIndex) => 
+        (currentActiveIndex + 1) % features.length
+      );
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-ic-text-primary flex flex-col">
       {/* Header - Updated to remove yellow accents */}
@@ -79,7 +111,7 @@ export default function LandingPage() {
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
               }}
             >
-              Find Your Next Research Partner. Manage Your Projects. Join a Community.
+              Research for Everybody.
             </motion.h1>
             <motion.p 
               className="font-sans text-base sm:text-lg md:text-xl text-neutral-300 mb-12 max-w-2xl leading-relaxed"
@@ -135,43 +167,26 @@ export default function LandingPage() {
                 visible: { transition: { staggerChildren: 0.4 } }
               }}
             >
-              {[ 
-                { 
-                  title: "Intelligent Profile Discovery", 
-                  description: "Find student researchers by skills, interests, and project needs using powerful search and filtering tools. Our AI helps surface the most relevant collaborators for you.",
-                  Icon: FiSearch 
-                },
-                { 
-                  title: "AI-Powered Project Matching", 
-                  description: "Post your research ideas or find ongoing projects. Our matching algorithm connects you with opportunities aligned with your expertise and aspirations.",
-                  Icon: FiTarget
-                },
-                { 
-                  title: "Dynamic Network Building", 
-                  description: "Connect with peers, mentors, and potential supervisors. Expand your academic and professional circle within a vibrant, supportive community.",
-                  Icon: FiUsers
-                },
-                { 
-                  title: "Secure & Streamlined Communication", 
-                  description: "Initiate conversations and collaborate securely through our integrated messaging system, designed for focused research discussions.",
-                  Icon: FiMessageSquare
-                }
-              ].map((feature, index) => (
-                <motion.div 
-                  key={index} 
-                  className="flex flex-col md:flex-row items-center md:space-x-8" 
-                  variants={{
-                    hidden: { opacity: 0, x: -30 }, // Slide in from left
-                    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
-                  }}
-                >
-                  <div className="mb-4 md:mb-0 p-3 bg-neutral-800 rounded-full"><feature.Icon className="h-8 w-8 text-neutral-300" /></div>
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-heading font-semibold text-neutral-100 mb-3">{feature.title}</h3>
-                    <p className="text-neutral-300 text-base md:text-lg leading-relaxed">{feature.description}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {features.map((feature, index) => {
+                const isActive = index === activeIndex;
+                return (
+                  <motion.div 
+                    key={index} 
+                    className="flex flex-col md:flex-row items-center md:space-x-8" 
+                    variants={{
+                      hidden: { opacity: 0.5 },
+                      visible: { opacity: 1, transition: { duration: 0.5 } }
+                    }}
+                    animate={isActive ? "visible" : "hidden"}
+                    initial="hidden"
+                  >
+                    <div>
+                      <h3 className={`text-2xl md:text-3xl font-heading font-semibold mb-3 transition-colors duration-500 ${isActive ? 'text-neutral-100' : 'text-neutral-500'}`}>{feature.title}</h3>
+                      <p className={`text-base md:text-lg leading-relaxed transition-colors duration-500 ${isActive ? 'text-neutral-300' : 'text-neutral-600'}`}>{feature.description}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
         </motion.section>
