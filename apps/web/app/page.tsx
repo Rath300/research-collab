@@ -53,13 +53,25 @@ export default function LandingPage() {
             visible: { opacity: 1, transition: { staggerChildren: 0.3 } }
           }}
         >
-          {/* Subtle Background Pattern - Placeholder for potential SVG/CSS later */}
-          <div className="absolute inset-0 z-0 opacity-10">
+          {/* Video Background */}
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline // Important for iOS
+            className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-30" // Adjust opacity as needed
+          >
+            <source src="/videos/landingpagebackground.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
+          {/* Subtle Background Pattern - Kept for layering if desired, or remove if video is primary */}
+          {/* <div className="absolute inset-0 z-0 opacity-10"> */}
             {/* Example: Add subtle geometric pattern or radial gradient */}
             {/* <svg ...> or <div className="bg-radial-gradient..."> */}
-          </div>
+          {/* </div> */}
           
-          <div className="z-10 flex flex-col items-center">
+          <div className="z-10 flex flex-col items-center relative"> {/* Ensure content is above video */}
             <motion.h1 
               className="font-heading text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold text-neutral-100 mb-8 max-w-5xl leading-tight tracking-tight"
               variants={{
@@ -94,92 +106,90 @@ export default function LandingPage() {
           </div>
         </motion.section>
 
-        {/* Features Section */}
+        {/* Features Section - Redesigned to be Vertical with Animated Text */}
         <motion.section 
           id="features" 
           className="py-16 md:py-24 bg-black"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }} // Trigger when 20% of the section is visible
+          viewport={{ once: true, amount: 0.2 }} 
           variants={{
             hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.2 } } // Stagger children (title and grid)
+            visible: { opacity: 1, transition: { duration: 0.5 } } // Parent animation
           }}
         >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.h2 
-              className="font-heading text-3xl md:text-4xl font-bold text-ic-text-primary text-center mb-12 md:mb-16"
+              className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-100 text-center mb-12 md:mb-16"
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
               }}
             >
-              Connect and Collaborate Seamlessly
+              Key Features to Empower Your Research Journey
             </motion.h2>
+            {/* Vertical list of features */}
             <motion.div 
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-              variants={{
-                // Inherit parent's visible state, but apply stagger to direct children (FeatureCards)
-                visible: { transition: { staggerChildren: 0.15 } }
+              className="space-y-12 md:space-y-16"
+              variants={{ // Stagger children for sequential animation
+                visible: { transition: { staggerChildren: 0.4 } }
               }}
             >
-              <FeatureCard 
-                icon={FiSearch}
-                title="Profile Discovery"
-                description="Find student researchers by skills, interests, and project needs using powerful search and filtering tools."
-              />
-              <FeatureCard 
-                icon={FiTarget}
-                title="Project Matching"
-                description="Post your research ideas or find ongoing projects seeking collaborators that align with your expertise."
-              />
-              <FeatureCard 
-                icon={FiUsers}
-                title="Build Your Network"
-                description="Connect with peers, mentors, and potential supervisors to expand your academic and professional circle."
-              />
-              <FeatureCard 
-                icon={FiMessageSquare}
-                title="Secure Messaging"
-                description="Initiate conversations and collaborate securely through our integrated messaging system."
-              />
-               {/* Add more features as needed */}
-               <div className="md:col-span-1 lg:col-span-1"> {/* Placeholder to balance grid or add another feature */}
-                 {/* Example: 
-                 <FeatureCard 
-                   icon={FiAward}
-                   title="Showcase Your Work"
-                   description="Display your publications, projects, and achievements on your public profile."
-                 /> 
-                 */}
-            </div>
-               <div className="md:col-span-1 lg:col-span-1"> {/* Placeholder */}
-                 {/* Example: 
-                 <FeatureCard 
-                   icon={FiZap}
-                   title="Idea Validation"
-                   description="Get feedback on early-stage research concepts within a trusted community environment."
-                 /> 
-                 */}
-          </div>
+              {[ 
+                { 
+                  title: "Intelligent Profile Discovery", 
+                  description: "Find student researchers by skills, interests, and project needs using powerful search and filtering tools. Our AI helps surface the most relevant collaborators for you.",
+                  Icon: FiSearch 
+                },
+                { 
+                  title: "AI-Powered Project Matching", 
+                  description: "Post your research ideas or find ongoing projects. Our matching algorithm connects you with opportunities aligned with your expertise and aspirations.",
+                  Icon: FiTarget
+                },
+                { 
+                  title: "Dynamic Network Building", 
+                  description: "Connect with peers, mentors, and potential supervisors. Expand your academic and professional circle within a vibrant, supportive community.",
+                  Icon: FiUsers
+                },
+                { 
+                  title: "Secure & Streamlined Communication", 
+                  description: "Initiate conversations and collaborate securely through our integrated messaging system, designed for focused research discussions.",
+                  Icon: FiMessageSquare
+                }
+              ].map((feature, index) => (
+                <motion.div 
+                  key={index} 
+                  className="flex flex-col md:flex-row items-center md:space-x-8" 
+                  variants={{
+                    hidden: { opacity: 0, x: -30 }, // Slide in from left
+                    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
+                  }}
+                >
+                  <div className="mb-4 md:mb-0 p-3 bg-neutral-800 rounded-full"><feature.Icon className="h-8 w-8 text-neutral-300" /></div>
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-heading font-semibold text-neutral-100 mb-3">{feature.title}</h3>
+                    <p className="text-neutral-300 text-base md:text-lg leading-relaxed">{feature.description}</p>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </motion.section>
 
-        {/* How It Works Section (Vertical Timeline Style) */}
+        {/* How It Works Section (Horizontal Steps) */}
         <motion.section 
-          className="py-16 md:py-24 bg-black"
+          className="py-16 md:py-24 bg-black" 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={{
             hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.2 } }
+            visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.2 } } 
           }}
         >
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.h2 
-              className="font-heading text-3xl md:text-4xl font-bold text-ic-text-primary mb-12"
+              className="font-heading text-3xl md:text-4xl font-bold text-neutral-100 mb-12 md:mb-16"
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -187,62 +197,57 @@ export default function LandingPage() {
             >
               Get Started in 3 Simple Steps
             </motion.h2>
+            {/* Horizontal layout for steps */}
             <motion.div 
-              className="flex flex-col items-center space-y-12 md:space-y-16 mt-16" 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mt-16" 
               variants={{
-                visible: { transition: { staggerChildren: 0.2 } }
+                visible: { transition: { staggerChildren: 0.2 } } 
               }}
             >
-              {/* Step 1 */}
-              <motion.div 
-                className="flex flex-col items-center text-center max-w-md"
-                variants={{
-                  hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-                }}
-              >
-                {/* Styled Number Circle */}
-                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">1</div>
-                {/* Heading Font */}
-                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Create Profile</h3>
-                {/* Sans Font (Inter), Adjusted size/color */}
-                <p className="text-ic-text-secondary text-base leading-relaxed">Sign up for free and showcase your research interests and skills.</p>
-              </motion.div>
-              
-              {/* Step 2 */}
-              <motion.div 
-                className="flex flex-col items-center text-center max-w-md"
-                variants={{
-                  hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-                }}
-              >
-                 {/* Styled Number Circle */}
-                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">2</div>
-                 {/* Heading Font */}
-                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Discover Peers</h3>
-                 {/* Sans Font (Inter), Adjusted size/color */}
-                <p className="text-ic-text-secondary text-base leading-relaxed">Browse profiles or search for specific expertise to find potential collaborators.</p>
-              </motion.div>
-              
-              {/* Step 3 */}
-              <motion.div 
-                className="flex flex-col items-center text-center max-w-md"
-                variants={{
-                  hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-                }}
-              >
-                 {/* Styled Number Circle */}
-                <div className="w-20 h-20 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-3xl font-heading font-semibold mb-6">3</div>
-                 {/* Heading Font */}
-                <h3 className="text-2xl font-heading font-semibold text-ic-text-primary mb-3">Connect & Collaborate</h3>
-                 {/* Sans Font (Inter), Adjusted size/color */}
-                <p className="text-ic-text-secondary text-base leading-relaxed">Initiate contact, discuss ideas, and start collaborating on research projects.</p>
-              </motion.div>
+              {[ // Array of steps for mapping
+                { 
+                  number: 1,
+                  title: "Create Profile", 
+                  description: "Sign up for free and showcase your research interests and skills." 
+                },
+                { 
+                  number: 2,
+                  title: "Discover Peers", 
+                  description: "Browse profiles or search for specific expertise to find potential collaborators." 
+                },
+                { 
+                  number: 3,
+                  title: "Connect & Collaborate", 
+                  description: "Initiate contact, discuss ideas, and start collaborating on research projects." 
+                }
+              ].map((step) => (
+                <motion.div 
+                  key={step.number}
+                  className="flex flex-col items-center text-center" 
+                  variants={{
+                    hidden: { opacity: 0, y: 30 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+                  }}
+                >
+                  <div className="w-16 h-16 rounded-full border-2 border-neutral-700 text-white flex items-center justify-center text-2xl font-heading font-semibold mb-6">{step.number}</div>
+                  <h3 className="text-xl md:text-2xl font-heading font-semibold text-neutral-100 mb-3">{step.title}</h3>
+                  <p className="text-neutral-300 text-base leading-relaxed">{step.description}</p>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </motion.section>
+
+        {/* Placeholder for Features Video */}
+        <section className="py-16 md:py-24 bg-neutral-900"> 
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-100 mb-6">See Research-Bee in Action</h2>
+            <div className="aspect-video bg-neutral-800 rounded-lg flex items-center justify-center text-neutral-500">
+              {/* Replace this div with your video player component when ready */}
+              <span>Video Coming Soon!</span> 
+            </div>
+          </div>
+        </section>
 
         {/* Call to Action (Optional - Can reuse hero button or add another) */}
         {/* 

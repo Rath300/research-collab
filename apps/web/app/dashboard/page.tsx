@@ -15,7 +15,10 @@ import {
   FiCalendar, 
   FiBarChart2,
   FiBookmark,
-  FiUser
+  FiUser,
+  FiMapPin,
+  FiList,
+  FiInfo
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -44,10 +47,28 @@ interface ResearchPostWithProfile extends ResearchPost {
   profiles: Profile;
 }
 
+const PlaceholderCard: React.FC<{ title: string; icon: React.ElementType; className?: string; children?: React.ReactNode }> = 
+  ({ title, icon: Icon, className = '', children }) => (
+  <div className={`bg-neutral-800 p-4 md:p-6 rounded-lg shadow-md ${className}`}> 
+    <div className="flex items-center mb-4">
+      <Icon className="w-5 h-5 text-neutral-400 mr-3" />
+      <h3 className="text-md font-semibold text-neutral-200">{title}</h3>
+    </div>
+    <div className="text-neutral-300 text-sm">
+      {children || <p>Placeholder content for {title}.</p>}
+    </div>
+  </div>
+);
+
+const EnergyGraphPlaceholder = () => <PlaceholderCard title="Total Energy Consumption" icon={FiBarChart2} className="h-64 md:h-80">Graph Area</PlaceholderCard>;
+const GreenConnectionsPlaceholder = () => <PlaceholderCard title="Green Connections" icon={FiMapPin} className="h-64 md:h-80">Map Area</PlaceholderCard>;
+const RecommendationsPlaceholder = () => <PlaceholderCard title="Recommendations" icon={FiList}>Recommendation List</PlaceholderCard>;
+const TrackingPlaceholder = () => <PlaceholderCard title="Tracking" icon={FiTrendingUp}>Device/Usage List</PlaceholderCard>;
+const GreenEnergyUsagePlaceholder = () => <PlaceholderCard title="Green Energy Usage" icon={FiTrendingUp}>Stats Area</PlaceholderCard>;
+
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
-  
+  const { user, profile } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats>({
     postCount: 0,
     matchCount: 0,
@@ -142,165 +163,66 @@ export default function DashboardPage() {
     }
   }, [user, loadDashboardData, router]);
   
+  useEffect(() => {
+    if (!isLoading && !user) {
+      console.log('DashboardPage: No user found, redirecting to login.');
+      router.replace('/login');
+    }
+  }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setIsLoading(false);
+    }
+  }, [user]);
+
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-        </div>
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+        <p className="text-neutral-400">Loading Dashboard...</p>
       </div>
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+        <p className="text-neutral-400">Redirecting to login...</p>
+      </div>
+    );
+  }
+
+  const welcomeName = profile?.first_name || 'Researcher';
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Research Posts</p>
-                <h3 className="text-2xl font-bold mt-2">{stats.postCount}</h3>
-              </div>
-              <div className="bg-primary-100 p-3 rounded-full dark:bg-primary-900/30">
-                <FiBookmark className="text-primary-600 dark:text-primary-400" size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Matches</p>
-                <h3 className="text-2xl font-bold mt-2">{stats.matchCount}</h3>
-              </div>
-              <div className="bg-green-100 p-3 rounded-full dark:bg-green-900/30">
-                <FiUsers className="text-green-600 dark:text-green-400" size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Messages</p>
-                <h3 className="text-2xl font-bold mt-2">{stats.messageCount}</h3>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-full dark:bg-blue-900/30">
-                <FiMessageSquare className="text-blue-600 dark:text-blue-400" size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Profile Views</p>
-                <h3 className="text-2xl font-bold mt-2">{stats.viewCount}</h3>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-full dark:bg-purple-900/30">
-                <FiBarChart2 className="text-purple-600 dark:text-purple-400" size={24} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-100">Welcome back, {welcomeName}!</h1>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Posts */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Posts</CardTitle>
-              <Button variant="ghost" onClick={() => router.push('/research')}>
-                View All <FiChevronRight className="ml-2" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {recentPosts.length > 0 ? (
-                recentPosts.map((post) => (
-                  <ResearchPostCard
-                    key={post.id}
-                    post={post}
-                    onLike={() => {}}
-                    onBoost={() => {}}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">No research posts yet</p>
-                  <Button onClick={() => router.push('/research/new')}>
-                    <FiPlus className="mr-2" /> Create Post
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="md:col-span-2 lg:col-span-2">
+          <EnergyGraphPlaceholder />
+        </div>
+        <div className="lg:col-span-1">
+          <RecommendationsPlaceholder />
+        </div>
+        
+        <div className="lg:col-span-1">
+          <TrackingPlaceholder />
+        </div>
+         <div className="md:col-span-2 lg:col-span-2">
+           <GreenConnectionsPlaceholder />
+         </div>
 
-        {/* Recent Matches */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Matches</CardTitle>
-              <Button variant="ghost" onClick={() => router.push('/collaborators')}>
-                View All <FiChevronRight className="ml-2" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentMatches.length > 0 ? (
-                recentMatches.map((match) => (
-                  <div
-                    key={match.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <Avatar
-                        src={match.matched_profile.avatar_url}
-                        alt={`${match.matched_profile.first_name} ${match.matched_profile.last_name}`}
-                        size="md"
-                        fallback={<FiUser className="text-gray-400" size={24} />}
-                      />
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {match.matched_profile.first_name} {match.matched_profile.last_name}
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {match.matched_profile.title || match.matched_profile.institution || 'Researcher'}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      onClick={() => router.push(`/profile/${match.matched_profile.id}`)}
-                    >
-                      View Profile
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">No matches yet</p>
-                  <Button onClick={() => router.push('/discover')}>
-                    <FiSearch className="mr-2" /> Find Collaborators
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+         <div className="lg:col-span-1">
+           <GreenEnergyUsagePlaceholder />
+         </div>
+         <div className="md:col-span-2 lg:col-span-2 flex items-end">
+           <PlaceholderCard title="Reports" icon={FiInfo}>
+             <Button variant="secondary" size="sm" className="mt-4">View Detailed Report</Button>
+           </PlaceholderCard>
+         </div>
       </div>
     </div>
   );
