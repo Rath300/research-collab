@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   FiGrid, FiUser, FiFolder, FiChevronRight, FiFilePlus, FiSearch,
-  FiMessageSquare, FiSettings, FiPlus, FiLogOut
+  FiMessageSquare, FiSettings, FiPlus, FiLogOut, FiChevronsLeft, FiChevronsRight
 } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/lib/store';
@@ -20,6 +20,7 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 interface SidebarProps {
   profile: Profile | null;
   isCollapsed: boolean;
+  toggleSidebar: () => void;
 }
 
 interface NavLinkProps {
@@ -61,7 +62,7 @@ const SidebarHeader: React.FC<{ isCollapsed: boolean; children: React.ReactNode 
   );
 };
 
-export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
+export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -104,6 +105,17 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
       )}
     >
       <div className={cn('flex items-center p-3 border-b border-neutral-800', isCollapsed ? 'justify-center h-[68px]' : 'h-16')}>
+        {!isCollapsed && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={toggleSidebar} 
+            className="mr-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 p-2"
+            aria-label="Collapse sidebar"
+          >
+            <FiChevronsLeft className="h-5 w-5" />
+          </Button>
+        )}
         <Avatar src={displayAvatarUrl} alt={displayName} size={isCollapsed ? "sm" : "md"} fallback={<FiUser size={isCollapsed ? 20: 24}/>} />
         {!isCollapsed && (
           <div className="ml-3 overflow-hidden">
@@ -198,37 +210,47 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
           ) : (
             <div className="space-y-1.5">
               {messages.slice(0, 3).map((msg, index) => (
-                <button key={index} className="flex items-center w-full px-3 py-1.5 rounded-lg text-left text-sm text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100">
-                  <Avatar src={msg.avatar} alt={msg.name} size="sm" fallback={<FiUser size={16} />} />
-                  <span className="ml-2 truncate flex-grow">{msg.name}</span>
-                </button>
+                <Link key={index} href={`/chats/${msg.name.toLowerCase().replace(' ', '-')}`} className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
+                    <Avatar src={msg.avatar} alt={msg.name} size="sm" fallback={<FiUser size={16} />} className="mr-2.5" />
+                    <span className="text-sm text-neutral-300 truncate flex-grow">{msg.name}</span>
+                </Link>
               ))}
               {messages.length > 3 && (
-                 <button className="flex items-center w-full px-3 py-1.5 rounded-lg text-left text-sm text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300">
-                   <span className="ml-8 truncate">+{messages.length-3} more</span>
-                 </button>
+                 <Link href="/chats" className='flex items-center px-3 h-8 rounded-md hover:bg-neutral-800 transition-colors'>
+                     <span className="text-sm text-neutral-300 truncate flex-grow">+{messages.length-3} more</span>
+                 </Link>
               )}
-              <button className="flex items-center w-full px-3 py-1.5 rounded-lg text-left text-sm text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300">
-                <FiPlus className="w-4 h-4 mr-2 text-neutral-500"/>
-                <span>Add Message</span>
-              </button>
+              <Button variant="ghost" size="sm" className='w-full justify-start text-neutral-400 hover:text-neutral-100 px-3 mt-1'>
+                  <FiPlus className='mr-2.5 h-4 w-4' />
+                  Add Message
+              </Button>
             </div>
           )}
         </nav>
         
-        <div className={`mt-auto border-t border-neutral-800 ${isCollapsed? 'p-2' : 'p-3' }`}>
-          <Button 
-            variant="secondary"
-            className={cn(
-                'w-full flex items-center justify-center h-10 rounded-lg text-sm font-semibold',
-                'bg-orange-600 hover:bg-orange-500 text-white'
-            )}
-            onClick={() => router.push('/projects/new')}
-            title={isCollapsed ? "New Project" : undefined}
-          >
-            <FiFilePlus className={`h-5 w-5 ${!isCollapsed ? 'mr-2' : ''}`} />
-            {!isCollapsed && <span>New Project</span>}
-          </Button>
+        <div className="mt-auto p-2 border-t border-neutral-800">
+           {isCollapsed && (
+             <Button 
+               variant="ghost" 
+               size="sm"
+               onClick={toggleSidebar} 
+               className="w-full h-10 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700" 
+               aria-label="Expand sidebar"
+              >
+               <FiChevronsRight className="h-5 w-5" />
+             </Button>
+           )}
+           {!isCollapsed && (
+             <Button 
+               variant="secondary"
+               size="md"
+               className='w-full text-neutral-100'
+               onClick={() => router.push('/projects/new')}
+             >
+               <FiFilePlus className="mr-2 h-4 w-4" />
+               New Project
+             </Button>
+           )}
         </div>
       </div>
     </aside>

@@ -1,12 +1,16 @@
 import { create } from 'zustand';
-import { Profile, ResearchPost, Match } from '@research-collab/db';
+import { ResearchPost, Match } from '@research-collab/db';
+import { Database } from '@/lib/database.types';
+
+// Define Profile type based on the database schema
+type ProfileFromDb = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthState {
   user: any | null;
-  profile: Profile | null;
+  profile: ProfileFromDb | null;
   isLoading: boolean;
   setUser: (user: any | null) => void;
-  setProfile: (profile: Profile | null) => void;
+  setProfile: (profile: ProfileFromDb | null) => void;
   setLoading: (isLoading: boolean) => void;
   signOut: () => void;
   clearAuth: () => void;

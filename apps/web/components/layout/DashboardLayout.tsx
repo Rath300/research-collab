@@ -50,8 +50,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <DashboardSidebar 
         isCollapsed={isSidebarCollapsed} 
         profile={profile} 
+        toggleSidebar={toggleSidebar}
       />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[72px]' : 'ml-64'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[68px]' : 'ml-64'}`}>
         <DashboardHeader 
           profile={profile} 
           toggleSidebar={toggleSidebar} 
