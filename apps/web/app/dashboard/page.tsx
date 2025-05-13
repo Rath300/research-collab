@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -22,7 +23,11 @@ import {
   FiBell,
   FiLink,
   FiActivity,
-  FiBriefcase
+  FiBriefcase,
+  FiLink2,
+  FiEdit2,
+  FiFilePlus,
+  FiCheckSquare
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -51,29 +56,115 @@ interface ResearchPostWithProfile extends ResearchPost {
   profiles: Profile;
 }
 
-const PlaceholderCard: React.FC<{ title: string; icon: React.ElementType; className?: string; children?: React.ReactNode }> = 
+function titleCase(str: string | null | undefined): string {
+  if (!str) return '';
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+const PlaceholderCard: React.FC<{ title?: string; icon?: React.ElementType; className?: string; children: React.ReactNode }> = 
   ({ title, icon: Icon, className = '', children }) => (
   <div className={`bg-neutral-800 p-4 md:p-6 rounded-lg shadow-md ${className}`}> 
-    <div className="flex items-center mb-4">
-      <Icon className="w-5 h-5 text-neutral-400 mr-3" />
-      <h3 className="text-md font-semibold text-neutral-200">{title}</h3>
-    </div>
+    {(title || Icon) && (
+      <div className="flex items-center mb-4">
+        {Icon && <Icon className="w-5 h-5 text-neutral-400 mr-3" />}
+        {title && <h3 className="text-md font-semibold text-neutral-200">{title}</h3>}
+      </div>
+    )}
     <div className="text-neutral-300 text-sm">
-      {children || <p>Placeholder content for {title}.</p>}
+      {children}
     </div>
   </div>
 );
 
-const EnergyGraphPlaceholder = () => <PlaceholderCard title="Total Energy Consumption" icon={FiBarChart2} className="h-64 md:h-80">Graph Area</PlaceholderCard>;
-const GreenConnectionsPlaceholder = () => <PlaceholderCard title="Green Connections" icon={FiMapPin} className="h-64 md:h-80">Map Area</PlaceholderCard>;
-const RecommendationsPlaceholder = () => <PlaceholderCard title="Recommendations" icon={FiList}>Recommendation List</PlaceholderCard>;
-const TrackingPlaceholder = () => <PlaceholderCard title="Tracking" icon={FiTrendingUp}>Device/Usage List</PlaceholderCard>;
-const GreenEnergyUsagePlaceholder = () => <PlaceholderCard title="Green Energy Usage" icon={FiTrendingUp}>Stats Area</PlaceholderCard>;
+const MyProfileSnapshot = () => {
+  const { profile } = useAuthStore();
+  const router = useRouter();
+  const displayName = profile?.first_name 
+    ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
+    : 'User';
+  const displayAvatarUrl = profile?.avatar_url;
+  const profileCompletion = 75;
 
-const RecentActivityFeedPlaceholder = () => <PlaceholderCard title="Recent Activity" icon={FiActivity} className="h-96">Activity feed items...</PlaceholderCard>;
-const MyProjectsListPlaceholder = () => <PlaceholderCard title="My Projects" icon={FiBriefcase} className="h-96">List of user projects...</PlaceholderCard>;
-const CollaborationRequestsPlaceholder = () => <PlaceholderCard title="Collaboration Requests" icon={FiBell}>Incoming requests...</PlaceholderCard>;
-const SuggestedConnectionsPlaceholder = () => <PlaceholderCard title="Suggested Connections" icon={FiLink}>Potential collaborators...</PlaceholderCard>;
+  return (
+    <PlaceholderCard title="Profile Status" icon={FiUser}>
+      <div className="flex items-center space-x-4 mb-4">
+        <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
+        <div>
+          <h4 className="text-lg font-semibold text-neutral-100">{displayName}</h4>
+          <p className="text-xs text-neutral-400">Profile Completion: {profileCompletion}%</p> 
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <Button variant="secondary" size="sm" onClick={() => router.push('/profile/me')}><FiUser className="mr-1"/> View</Button>
+        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')}><FiEdit2 className="mr-1"/> Edit</Button>
+      </div>
+    </PlaceholderCard>
+  );
+};
+
+const QuickStartActions = () => {
+  const router = useRouter();
+  return (
+    <PlaceholderCard title="Quick Actions" icon={FiTarget}>
+      <div className="grid grid-cols-2 gap-4 mt-2">
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/discover')}>
+          <FiSearch className="mb-1 w-6 h-6"/> Find Collaborators
+        </Button>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/projects/new')}>
+          <FiFilePlus className="mb-1 w-6 h-6"/> New Project
+        </Button>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/chats')}>
+          <FiMessageSquare className="mb-1 w-6 h-6"/> Messages
+        </Button>
+        <Button variant="ghost" className="flex flex-col items-center h-20 justify-center text-center" onClick={() => router.push('/settings/account')}>
+          <FiCheckSquare className="mb-1 w-6 h-6"/> Update Profile
+        </Button>
+      </div>
+    </PlaceholderCard>
+  );
+};
+
+const ActivityFeed = ({ hasActivity }: { hasActivity: boolean }) => {
+  const router = useRouter();
+  return (
+    <PlaceholderCard title="Recent Activity" icon={FiActivity} className="min-h-[200px]">
+      {hasActivity ? (
+        <ul className="space-y-3">
+          <li className="text-xs"><span className="font-semibold text-neutral-100">New Match:</span> Dr. Emily Carter</li>
+          <li className="text-xs"><span className="font-semibold text-neutral-100">New Message:</span> Project Alpha Group</li>
+          <li className="text-xs"><span className="font-semibold text-neutral-100">Collaboration Request:</span> Prof. Davis</li>
+        </ul>
+      ) : (
+        <div className="text-center py-6">
+          <p className="text-neutral-500 mb-3">No recent activity yet.</p>
+          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')}><FiSearch className="mr-1"/> Find Collaborators</Button>
+        </div>
+      )}
+    </PlaceholderCard>
+  );
+};
+
+const CollaborationStats = ({ hasStats }: { hasStats: boolean }) => {
+  const router = useRouter();
+  const stats = { projects: 2, requests: 1, messages: 5 };
+
+  return (
+    <PlaceholderCard title="Collaboration Stats" icon={FiTrendingUp}>
+      {hasStats ? (
+        <div className="space-y-2 mt-2">
+          <p>Active Projects: <span className="font-semibold text-neutral-100">{stats.projects}</span></p>
+          <p>Pending Requests: <span className="font-semibold text-neutral-100">{stats.requests}</span></p>
+          <p>Unread Messages: <span className="font-semibold text-neutral-100">{stats.messages}</span></p>
+        </div>
+      ) : (
+        <div className="text-center py-6">
+          <p className="text-neutral-500 mb-3">Start collaborating to see your stats.</p>
+          <Button variant="secondary" size="sm" onClick={() => router.push('/projects/new')}><FiFilePlus className="mr-1"/> Start a Project</Button>
+        </div>
+      )}
+    </PlaceholderCard>
+  );
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -88,6 +179,8 @@ export default function DashboardPage() {
   const [recentMatches, setRecentMatches] = useState<ProfileMatch[]>([]);
   const [recentPosts, setRecentPosts] = useState<ResearchPostWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasActivity, setHasActivity] = useState(true);
+  const [hasStats, setHasStats] = useState(true);
 
   const supabase = getBrowserClient();
   
@@ -97,7 +190,6 @@ export default function DashboardPage() {
       
       setIsLoading(true);
       
-      // Get profile stats
       const [
         { count: postCount },
         { count: matchCount },
@@ -121,10 +213,9 @@ export default function DashboardPage() {
         postCount: postCount || 0,
         matchCount: matchCount || 0,
         messageCount: messageCount || 0,
-        viewCount: 0 // TODO: Implement view count
+        viewCount: 0
       });
       
-      // Get recent matches with full profile data
       const { data: matchesData, error: matchesError } = await supabase
         .from('profile_matches')
         .select(`
@@ -141,7 +232,6 @@ export default function DashboardPage() {
         setRecentMatches(matchesData as ProfileMatch[]);
       }
       
-      // Get recent posts in feed
       const { data: postsData, error: postsError } = await supabase
         .from('research_posts')
         .select(`
@@ -187,7 +277,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
         <p className="text-neutral-400">Loading Dashboard...</p>
       </div>
     );
@@ -195,7 +285,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
         <p className="text-neutral-400">Redirecting to login...</p>
       </div>
     );
@@ -205,20 +295,17 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-100">Welcome back, {welcomeName}!</h1>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <RecentActivityFeedPlaceholder />
-          {/* Optionally add MyProjectsListPlaceholder here too */}
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <MyProfileSnapshot />
+            <QuickStartActions />
+          </div>
+          <ActivityFeed hasActivity={hasActivity} />
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
-          <CollaborationRequestsPlaceholder />
-          <SuggestedConnectionsPlaceholder />
-          {/* Add other relevant sidebar widgets here */}
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+          <CollaborationStats hasStats={hasStats} />
         </div>
       </div>
     </div>
