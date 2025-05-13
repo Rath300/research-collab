@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight, FiFilePlus, FiSearch, FiMessageSquare } from 'react-icons/fi';
+import { FiGrid, FiUser, FiFolder, FiHeart, FiArchive, FiSettings, FiPlusCircle, FiChevronDown, FiChevronRight, FiFilePlus, FiSearch, FiMessageSquare, FiCommand } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/lib/store';
 import React, { useState, Fragment } from 'react';
@@ -83,9 +83,23 @@ export function DashboardSidebar({ profile, isCollapsed }: SidebarProps) {
 
   return (
     <div className={`fixed inset-y-0 left-0 z-30 flex flex-col bg-neutral-950 text-neutral-300 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
-      <div className="flex items-center h-16 px-4 border-b border-neutral-800">
-        {/* TODO: Replace with actual logo? */} 
-        {!isCollapsed && <h1 className="text-xl font-bold text-white ml-2">ResearchCollab</h1>}
+      {/* Top Section: Logo and User Info */}
+      <div className={`h-auto py-4 border-b border-neutral-800 ${isCollapsed ? 'px-2' : 'px-4'}`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center mb-3' : 'mb-4'}`}>
+            {isCollapsed ? 
+                <FiCommand className="w-7 h-7 text-white" /> :
+                <h1 className="text-xl font-bold text-white">ResearchCollab</h1>
+            }
+        </div>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
+            <Avatar src={displayAvatarUrl} alt={displayName} size={isCollapsed ? "sm" : "md"} fallback={<FiUser size={isCollapsed ? 16: 20}/>} />
+            {!isCollapsed && (
+              <div className="ml-3">
+                <p className="text-sm font-medium text-neutral-100">{displayName}</p>
+                {/* <p className="text-xs text-neutral-400">{profile?.role || 'Researcher'}</p> */}
+              </div>
+            )}
+        </div>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">

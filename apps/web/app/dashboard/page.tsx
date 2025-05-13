@@ -297,16 +297,13 @@ export default function DashboardPage() {
     <div className="space-y-6 md:space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <MyProfileSnapshot />
-            <QuickStartActions />
-              </div>
-          <ActivityFeed hasActivity={hasActivity} />
-      </div>
+          <MyProfileSnapshot />
+        </div>
 
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <CollaborationStats hasStats={hasStats} />
-            </div>
+          <QuickStartActions />
+          <CollaborationStats hasStats={hasStats} /> 
+        </div>
       </div>
     </div>
   );
