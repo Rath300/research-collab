@@ -34,12 +34,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (currentUser) {
           console.log('AuthProvider: User detected.');
-          // REDIRECT LOGIC MOVED HERE - Check current path inside callback
-          if (isAuthPathClient(currentPath) && currentPath !== '/auth/check-email') {
-            console.log(`AuthProvider: Redirecting from auth path ${currentPath} to /dashboard`);
-            router.replace('/dashboard'); // Use replace
-            setLoading(false); // Ensure loading is false before early return
-            return; // Exit early if redirecting
+          
+          // MODIFIED REDIRECT LOGIC:
+          // Redirect if:
+          // 1. We are on an auth path (excluding check-email)
+          // 2. AND (it's NOT the login page a SIGNED_IN event just happened on (handleLogin will do it))
+          //    OR the event is something else (like INITIAL_SESSION, TOKEN_REFRESHED) and we found a session.
+          const shouldAuthProviderRedirect = 
+            isAuthPathClient(currentPath) && 
+            currentPath !== '/auth/check-email' &&
+            !(event === 'SIGNED_IN' && currentPath === '/login');
+
+          if (shouldAuthProviderRedirect) {
+            console.log(`AuthProvider: Redirecting from ${currentPath} to /dashboard (event: ${event})`);
+            router.replace('/dashboard'); 
+            setLoading(false); 
+            return; 
           }
 
           // If not redirecting, fetch profile
