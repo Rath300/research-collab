@@ -91,9 +91,10 @@ export default function LandingPage() {
             loop 
             muted 
             playsInline // Important for iOS
-            className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-30" // Adjust opacity as needed
+            className="absolute top-0 left-0 w-full h-full object-cover z-0" 
+            style={{ filter: 'brightness(1.2)', opacity: 0.25 }} // Added brightness filter and adjusted opacity
           >
-            <source src="/videos/heropagebackground.mp4" type="video/mp4" />
+            <source src="/videos/3582427-hd_1920_1080_24fps (1) (online-video-cutter.com).mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           
