@@ -26,7 +26,14 @@ export const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseKey(
 export const profileSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid().optional(),
-  updated_at: z.date().optional().nullable(),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      // Check if the date is valid before returning
+      return isNaN(date.getTime()) ? null : date; 
+    }
+    return null; // Return null if the input is not a string or Date, or if parsing fails
+  }, z.date().optional().nullable()),
   first_name: z.string().min(1, 'First name is required').max(255).optional().nullable(),
   last_name: z.string().min(1, 'Last name is required').max(255).optional().nullable(),
   email: z.string().email().optional().nullable(),
