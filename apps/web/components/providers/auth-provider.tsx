@@ -15,14 +15,14 @@ import { getProfile } from '@/lib/api';
 // };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user: storeUser, setUser, setProfile, setLoading } = useAuthStore(); // Reordered for consistency
+  const { setUser, setProfile, setLoading } = useAuthStore(); // Remove storeUser from destructuring here
   const supabase = getBrowserClient();
   // const router = useRouter(); // No longer needed
   // const pathname = usePathname(); // No longer needed
 
   useEffect(() => {
     console.log('[AuthProvider] Effect RUNNING. Initializing onAuthStateChange listener.');
-    setLoading(true); // Set loading true at the start of the effect
+    setLoading(true);
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -31,12 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`[AuthProvider] Session available: ${!!session}`);
         
         const currentUser = session?.user ?? null;
-        console.log('[AuthProvider] Current session user (currentUser):', currentUser ? { id: currentUser.id, email: currentUser.email } : null);
-        console.log('[AuthProvider] Zustand store user BEFORE update (storeUser):', storeUser ? { id: storeUser.id, email: storeUser.email } : null);
+        const currentStoreUser = useAuthStore.getState().user; // Get current storeUser directly
 
-        // Update user in store only if it has actually changed
-        // Comparing stringified versions is a simple way to check for value changes in the user object
-        if (JSON.stringify(currentUser) !== JSON.stringify(storeUser)) {
+        console.log('[AuthProvider] Current session user (currentUser):', currentUser ? { id: currentUser.id, email: currentUser.email } : null);
+        console.log('[AuthProvider] Zustand store user BEFORE update (currentStoreUser):', currentStoreUser ? { id: currentStoreUser.id, email: currentStoreUser.email } : null);
+
+        if (JSON.stringify(currentUser) !== JSON.stringify(currentStoreUser)) {
           console.log('[AuthProvider] Detected change in user object. Updating Zustand store user.');
           setUser(currentUser);
         } else {
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListener.subscription?.unsubscribe();
     };
-  }, [supabase, setUser, setProfile, setLoading, storeUser]); // storeUser added as dependency
+  }, [supabase, setUser, setProfile, setLoading]); // Removed storeUser from dependencies
 
   return <>{children}</>;
 } 
