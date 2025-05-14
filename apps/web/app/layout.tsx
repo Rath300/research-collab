@@ -5,7 +5,7 @@ import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { GeistSans } from 'geist/font/sans';
 // import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
-import { Sidebar } from '@/components/layout/Sidebar';
+// import { Sidebar } from '@/components/layout/Sidebar'; // Commented out Sidebar import
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
 import { useEffect } from 'react';
@@ -38,11 +38,12 @@ export default function RootLayout({
       <body className="bg-black text-neutral-100 min-h-screen flex flex-col">
         <AuthProvider>
           <div className="flex flex-1"> {/* Flex container for sidebar and main content */}
-            {showSidebar && <Sidebar />}
+            {showSidebar && <div>Sidebar Placeholder</div>} {/* Replaced Sidebar component with a placeholder */}
             <main 
               className={`flex-grow transition-all duration-300 ease-in-out ${
                 showSidebar 
-                  ? sidebarOpen ? 'ml-[270px]' : 'ml-[80px]' 
+                  // ? sidebarOpen ? 'ml-[270px]' : 'ml-[80px]' // Temporarily remove margin adjustments
+                  ? 'ml-0' // Set to ml-0 for testing with placeholder
                   : 'ml-0'
               } w-full`}
             >
