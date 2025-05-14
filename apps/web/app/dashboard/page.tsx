@@ -44,6 +44,8 @@ interface ProfileMatch extends BaseProfileMatch {
   matched_profile: Profile;
 }
 
+type UserNotification = Database['public']['Tables']['user_notifications']['Row'];
+
 type Message = Database['public']['Tables']['messages']['Row'];
 
 interface DashboardStats {
@@ -126,10 +128,10 @@ const QuickActions = () => {
           <button
             key={action.label}
             onClick={() => router.push(action.href)}
-            className="flex flex-col items-center justify-center p-4 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
+            className="flex flex-col items-center justify-center p-3 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
           >
-            <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-2 transition-colors" />
-            <span className="text-sm font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
+            <action.icon className="w-6 h-6 text-neutral-300 group-hover:text-white mb-1.5 transition-colors" />
+            <span className="text-xs font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
           </button>
         ))}
       </div>
@@ -137,29 +139,49 @@ const QuickActions = () => {
   );
 };
 
-const ActivityFeed = () => {
+const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) => {
   const router = useRouter();
-  const activities = [
-    { text: "New Match: Dr. Emily Carter", time: "2h ago", type: "match" },
-    { text: "New Message: Project Alpha Group", time: "5h ago", type: "message" },
-    { text: "Collaboration Request: Prof. Davis", time: "1d ago", type: "request" },
-  ];
-  const hasActualActivity = activities.length > 0;
+  const hasActualActivity = notifications && notifications.length > 0;
+
+  const formatTimeAgo = (dateString?: string | null) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+    const minutes = Math.round(seconds / 60);
+    const hours = Math.round(minutes / 60);
+    const days = Math.round(hours / 24);
+
+    if (seconds < 60) return `${seconds}s ago`;
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
 
   return (
     <DashboardCard title="Recent Activity" titleIcon={FiActivity} className="min-h-[200px] mb-6 md:mb-8">
       {hasActualActivity ? (
         <ul className="space-y-3">
-          {activities.map((activity, index) => (
-            <li key={index} className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
-              {activity.text} - <span className="text-xs text-neutral-500">{activity.time}</span>
+          {notifications.map((activity) => (
+            <li key={activity.id} className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+              {activity.link_to ? (
+                <Link href={activity.link_to} className="hover:underline">
+                  {activity.content}
+                </Link>
+              ) : (
+                <span>{activity.content}</span>
+              )}
+              {' - '}
+              <span className="text-xs text-neutral-500">{formatTimeAgo(activity.created_at)}</span>
             </li>
           ))}
         </ul>
       ) : (
         <div className="text-center py-6 font-sans">
           <p className="text-neutral-500 mb-3">No recent activity yet.</p>
-          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')} className="font-sans"><FiSearch className="mr-1"/> Find Collaborators</Button>
+          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')} className="font-sans">
+            <FiSearch className="mr-1"/> Explore Platform
+          </Button>
         </div>
       )}
     </DashboardCard>
@@ -212,6 +234,7 @@ export default function DashboardPage() {
   
   const [recentMatches, setRecentMatches] = useState<ProfileMatch[]>([]);
   const [recentPosts, setRecentPosts] = useState<ResearchPostWithProfile[]>([]);
+  const [recentNotifications, setRecentNotifications] = useState<UserNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = getBrowserClient();
@@ -226,44 +249,25 @@ export default function DashboardPage() {
     try {
       const userId = user.id;
 
+      // Fetch all counts in parallel
+      const countsPromises = [
+        supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
+        supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
+        supabase.from('project_collaborators').select('project_id!inner(status)', { count: 'exact', head: true }).eq('user_id', userId).eq('project_id.status', 'active'),
+        supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'), // Assuming target_user_id, adjust if different
+        supabase.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', userId).eq('is_read', false)
+      ];
+
       const [
         { count: postCount },
         { count: matchCount },
-        { count: messageCount }
-      ] = await Promise.all([
-        supabase
-          .from('research_posts')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', userId),
-        supabase
-          .from('profile_matches')
-          .select('id', { count: 'exact', head: true })
-          .eq('matcher_user_id', userId)
-          .eq('status', 'matched'),
-        supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
-      ]);
+        { count: messageCount },
+        { count: activeProjectsCount, error: activeProjectsError },
+        { count: pendingRequestsCount, error: pendingRequestsError },
+        { count: unreadMessagesCount, error: unreadMessagesError }
+      ] = await Promise.all(countsPromises.map(p => p.then(response => ({ ...response, count: response.count || 0 }))));
       
-      const { count: activeProjectsCount, error: activeProjectsError } = await supabase
-        .from('project_collaborators')
-        .select('project_id!inner(status)', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('project_id.status', 'active');
-
-      const { count: pendingRequestsCount, error: pendingRequestsError } = await supabase
-        .from('collaborator_matches')
-        .select('id', { count: 'exact', head: true })
-        .eq('matched_user_id', userId)
-        .eq('status', 'pending');
-
-      const { count: unreadMessagesCount, error: unreadMessagesError } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('receiver_id', userId)
-        .eq('is_read', false);
-
       if (activeProjectsError) console.error('Error fetching active projects count:', activeProjectsError.message);
       if (pendingRequestsError) console.error('Error fetching pending requests count:', pendingRequestsError.message);
       if (unreadMessagesError) console.error('Error fetching unread messages count:', unreadMessagesError.message);
@@ -272,41 +276,55 @@ export default function DashboardPage() {
         postCount: postCount || 0,
         matchCount: matchCount || 0,
         messageCount: messageCount || 0,
-        viewCount: 0,
+        viewCount: 0, // viewCount is not fetched, keeping as 0
         activeProjectsCount: activeProjectsCount || 0,
         pendingRequestsCount: pendingRequestsCount || 0,
         unreadMessagesCount: unreadMessagesCount || 0
       });
       
-      const { data: matchesData, error: matchesError } = await supabase
-        .from('profile_matches')
-        .select(`
-          *,
-          matched_profile:profiles!profile_matches_matchee_user_id_fkey (*)
-        `)
-        .eq('matcher_user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(3);
-      
+      // Fetch detailed data
+      const detailedDataPromises = [
+        supabase
+          .from('profile_matches')
+          .select('*, matched_profile:profiles!profile_matches_matchee_user_id_fkey (*)')
+          .eq('matcher_user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('research_posts')
+          .select('*, profiles (*)')
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('user_notifications')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(4) // Fetch 4 notifications for the activity feed
+      ];
+
+      const [
+        { data: matchesData, error: matchesError },
+        { data: postsData, error: postsError },
+        { data: notificationsData, error: notificationsError }
+      ] = await Promise.all(detailedDataPromises);
+            
       if (matchesError) {
         console.error('Error fetching matches:', matchesError);
       } else {
-        setRecentMatches(matchesData as ProfileMatch[]);
+        setRecentMatches(matchesData as ProfileMatch[] || []);
       }
       
-      const { data: postsData, error: postsError } = await supabase
-        .from('research_posts')
-        .select(`
-          *,
-          profiles (*)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(3);
-
       if (postsError) {
         console.error('Error fetching recent posts:', postsError);
       } else {
-        setRecentPosts(postsData as ResearchPostWithProfile[]);
+        setRecentPosts(postsData as ResearchPostWithProfile[] || []);
+      }
+
+      if (notificationsError) {
+        console.error('Error fetching notifications:', notificationsError);
+      } else {
+        setRecentNotifications(notificationsData as UserNotification[] || []);
       }
 
     } catch (error) {
@@ -351,7 +369,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <ActivityFeed />
+          <ActivityFeed notifications={recentNotifications} />
           <CollaborationStatsDisplay stats={stats} />
         </div>
         
