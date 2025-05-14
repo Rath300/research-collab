@@ -1,20 +1,20 @@
-'use client'; // Add 'use client' because we will use hooks
+'use client';
 
-import type { Metadata } from 'next';
+// import type { Metadata } from 'next'; // Cannot be in 'use client'
 import './globals.css';
-import dynamic from 'next/dynamic'; // Added for dynamic import
+// import dynamic from 'next/dynamic'; // Not needed as AuthProvider is removed for now
 import { GeistSans } from 'geist/font/sans';
-// import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
+// import { Toaster } from '@/components/ui/toaster'; // Still commented
 // import { Sidebar } from '@/components/layout/Sidebar'; // Sidebar still commented out
 import { usePathname } from 'next/navigation';
-import { useUIStore } from '@/lib/store';
-import { useEffect } from 'react';
+// import { useUIStore } from '@/lib/store'; // Removed for this test
+// import { useEffect } from 'react'; // Removed for this test
 
 // Dynamically import AuthProvider with SSR turned off
-const AuthProvider = dynamic(
-  () => import('@/components/providers/auth-provider').then(mod => mod.AuthProvider),
-  { ssr: false, loading: () => <div className="min-h-screen flex flex-1 justify-center items-center"><p>Loading authentication...</p></div> }
-);
+// const AuthProvider = dynamic(
+//   () => import('@/components/providers/auth-provider').then(mod => mod.AuthProvider),
+//   { ssr: false, loading: () => <div className="min-h-screen flex flex-1 justify-center items-center"><p>Loading authentication...</p></div> }
+// );
 
 // export const metadata: Metadata = { // Metadata should be defined in a server component, cannot be in a 'use client' file.
 // title: 'Research Collab',
@@ -27,48 +27,43 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen, darkMode, setDarkMode } = useUIStore();
+  // const { sidebarOpen, setSidebarOpen, darkMode, setDarkMode } = useUIStore(); // Removed for this test
 
   const noSidebarPaths = ['/', '/login', '/signup'];
   const showSidebar = !noSidebarPaths.includes(pathname || '/');
 
   // Effect to set dark mode based on system preference
-  useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setDarkMode(prefersDark);
+  // useEffect(() => { // Removed for this test
+  //   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  //   setDarkMode(prefersDark);
 
-    const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
-    const matcher = window.matchMedia('(prefers-color-scheme: dark)');
-    matcher.addEventListener('change', handleChange);
-    return () => matcher.removeEventListener('change', handleChange);
-  }, [setDarkMode]);
+  //   const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+  //   const matcher = window.matchMedia('(prefers-color-scheme: dark)');
+  //   matcher.addEventListener('change', handleChange);
+  //   return () => matcher.removeEventListener('change', handleChange);
+  // }, [setDarkMode]);
 
   // Optional: Close sidebar on mobile when navigating to a new page if it was forced open
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-      // setSidebarOpen(false); // Potentially too aggressive, depends on desired UX
-    }
-  }, [pathname, sidebarOpen, setSidebarOpen]);
+  // useEffect(() => { // Removed for this test
+  //   if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+  //     // setSidebarOpen(false); // Potentially too aggressive, depends on desired UX
+  //   }
+  // }, [pathname, sidebarOpen, setSidebarOpen]);
 
   return (
-    <html lang="en" className={`${GeistSans.variable} font-sans antialiased ${darkMode ? 'dark' : ''}`}>
-      <body className="bg-white dark:bg-black text-neutral-900 dark:text-neutral-100 min-h-screen flex flex-col">
-        <AuthProvider>
+    <html lang="en" className={`${GeistSans.variable} font-sans antialiased`}> {/* Simplified: Removed dark mode class */}
+      <body className="min-h-screen flex flex-col"> {/* Simplified: Removed dark mode classes and text colors */}
+        {/* <AuthProvider> */} {/* AuthProvider completely removed for this test */}
           <div className="flex flex-1"> {/* Flex container for sidebar and main content */}
             {showSidebar && <div>Sidebar Placeholder</div>} {/* Replaced Sidebar component with a placeholder */}
             <main 
-              className={`flex-grow transition-all duration-300 ease-in-out ${
-                showSidebar 
-                  // ? sidebarOpen ? 'ml-[270px]' : 'ml-[80px]' // Temporarily remove margin adjustments
-                  ? 'ml-0' // Set to ml-0 for testing with placeholder
-                  : 'ml-0'
-              } w-full`}
+              className={'flex-grow transition-all duration-300 ease-in-out ml-0 w-full'} // Simplified margin logic
             >
               {children}
             </main>
           </div>
           {/* <Toaster /> */}
-        </AuthProvider>
+        {/* </AuthProvider> */}
       </body>
     </html>
   );
