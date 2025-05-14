@@ -125,16 +125,50 @@ export default function ResearchPostPage() {
       return false;
     }
     setInteractionError(null);
+
+    // Optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: PostCommentWithAuthor = {
+      id: tempId,
+      post_id: post.id,
+      user_id: user.id,
+      content: content.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      profiles: { // Assuming profiles is always an object, even if details are null/undefined
+        id: user.id,
+        first_name: user.user_metadata?.first_name || 'You',
+        last_name: user.user_metadata?.last_name || '',
+        avatar_url: user.user_metadata?.avatar_url || null,
+      }
+    };
+
+    setComments(prevComments => [optimisticComment, ...prevComments]); // Add to top for visibility
+    const originalCommentCount = engagement?.commentCount || 0;
+    setEngagement(prev => ({...(prev!), commentCount: originalCommentCount + 1 }));
+
     try {
       const newComment = await addPostComment(post.id, user.id, content);
       if (newComment) {
-        setComments(prevComments => [...prevComments, newComment]);
-        setEngagement(prev => ({...(prev!), commentCount: prev!.commentCount + 1 }));
-        return true; // Indicate success
+        // Replace optimistic comment with actual comment from API
+        setComments(prevComments => 
+          prevComments.map(c => c.id === tempId ? newComment : c)
+        );
+        // Ensure engagement count is accurate if it wasn't updated by a trigger/subscription
+        setEngagement(prev => ({...(prev!), commentCount: prev!.commentCount })); 
+        return true; 
+      } else {
+        // API returned no comment, revert optimistic update
+        setComments(prevComments => prevComments.filter(c => c.id !== tempId));
+        setEngagement(prev => ({...(prev!), commentCount: originalCommentCount }));
+        setInteractionError("Failed to add comment: No response from server.");
+        return false;
       }
-      return false;
     } catch (err: any) {
       console.error("Error adding comment:", err);
+      // Revert optimistic update on error
+      setComments(prevComments => prevComments.filter(c => c.id !== tempId));
+      setEngagement(prev => ({...(prev!), commentCount: originalCommentCount }));
       setInteractionError(err.message || "Failed to add comment.");
       return false;
     }
@@ -410,6 +444,11 @@ const CommentItemComponent = ({ comment }: { comment: PostCommentWithAuthor }) =
     ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }) 
     : 'some time ago';
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const MAX_LENGTH = 200; // Show more threshold
+  const canTruncate = comment.content.length > MAX_LENGTH;
+  const displayText = isExpanded ? comment.content : `${comment.content.substring(0, MAX_LENGTH)}${canTruncate ? '...' : ''}`;
+
   return (
     <div className="p-4 rounded-lg bg-neutral-800/50 border border-neutral-700/50">
       <div className="flex items-center mb-2">
@@ -425,7 +464,15 @@ const CommentItemComponent = ({ comment }: { comment: PostCommentWithAuthor }) =
           <p className="text-xs text-neutral-400">{commentDate}</p>
         </div>
       </div>
-      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{comment.content}</p>
+      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{displayText}</p>
+      {canTruncate && (
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)} 
+          className="text-xs text-accent-purple hover:underline mt-1"
+        >
+          {isExpanded ? 'Show Less' : 'Read More'}
+        </button>
+      )}
     </div>
   );
 }; 

@@ -13,7 +13,7 @@ export function PageContainer({ title, children, className }: PageContainerProps
       <Head>
         <title>{`${title} | ResearchCollab`}</title>
       </Head>
-      <main className={`container mx-auto px-4 py-8 ${className || ''}`}>
+      <main className={`px-4 sm:px-6 lg:px-8 py-8 ${className || ''}`}>
         {children}
       </main>
     </>
