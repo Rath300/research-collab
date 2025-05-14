@@ -6,27 +6,23 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select } from '@/components/ui/select'
 import { useAuthStore } from '@/lib/store'
 import { uploadAvatar } from '@/lib/api'
-import { type Profile } from '@research-collab/db'
+import { type Profile, profileSchema } from '@research-collab/db'
 import { FiUser, FiUpload, FiAlertCircle, FiCheckCircle, FiX, FiSave, FiPlusCircle, FiTrash2 } from 'react-icons/fi'
 import { Avatar } from '@/components/ui/Avatar'
 
 interface ProfileFormData {
   full_name: string;
-  title: string;
   bio: string;
   institution: string;
   research_interests: string[];
   skills: string[];
-  looking_for: string[];
   collaboration_pitch: string;
   location: string;
   field_of_study: string;
   availability: 'full-time' | 'part-time' | 'weekends' | 'not-available';
-  availability_hours: number | string;
-  project_preference: string;
   visibility: 'public' | 'private' | 'connections';
   website: string;
   education_json: string;
@@ -43,7 +39,7 @@ const formatJsonString = (jsonString: string | null | undefined): string => {
     const parsed = JSON.parse(jsonString);
     return JSON.stringify(parsed, null, 2);
   } catch (e) {
-    return jsonString;
+    return typeof jsonString === 'string' ? jsonString : '[]';
   }
 };
 
@@ -56,24 +52,25 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
-  const [formData, setFormData] = useState<ProfileFormData>(() => ({
-    full_name: initialData?.full_name || authProfile?.full_name || '',
-    title: initialData?.title || authProfile?.title || '',
-    bio: initialData?.bio || authProfile?.bio || '',
-    institution: initialData?.institution || authProfile?.institution || '',
-    research_interests: initialData?.interests || authProfile?.interests || [],
-    skills: initialData?.skills || authProfile?.skills || [],
-    looking_for: initialData?.looking_for || authProfile?.looking_for || [],
-    collaboration_pitch: initialData?.collaboration_pitch || authProfile?.collaboration_pitch || '',
-    location: initialData?.location || authProfile?.location || '',
-    field_of_study: initialData?.field_of_study || authProfile?.field_of_study || '',
-    availability: initialData?.availability || authProfile?.availability || 'full-time',
-    availability_hours: initialData?.availability_hours || authProfile?.availability_hours || 0,
-    project_preference: initialData?.project_preference || authProfile?.project_preference || '',
-    visibility: initialData?.visibility || authProfile?.visibility || 'public',
-    website: initialData?.website || authProfile?.website || '',
-    education_json: formatJsonString(initialData?.education as string || authProfile?.education as string),
-  }))
+  const [formData, setFormData] = useState<ProfileFormData>(() => {
+    const source = initialData || authProfile;
+    const constructedFullName = source ? `${source.first_name || ''} ${source.last_name || ''}`.trim() : '';
+    
+    return {
+      full_name: constructedFullName,
+      bio: source?.bio || '',
+      institution: source?.institution || '',
+      research_interests: source?.interests || [],
+      skills: source?.skills || [],
+      collaboration_pitch: source?.collaboration_pitch || '',
+      location: source?.location || '',
+      field_of_study: source?.field_of_study || '',
+      availability: source?.availability || 'full-time',
+      visibility: source?.visibility || 'public',
+      website: source?.website || '',
+      education_json: formatJsonString(source?.education as string | undefined),
+    };
+  });
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData?.avatar_url || authProfile?.avatar_url || null)
@@ -82,23 +79,20 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
   useEffect(() => {
     const currentProfileSource = initialData || authProfile;
     if (currentProfileSource) {
+        const constructedFullName = `${currentProfileSource.first_name || ''} ${currentProfileSource.last_name || ''}`.trim();
         setFormData({
-            full_name: currentProfileSource.full_name || '',
-            title: currentProfileSource.title || '',
+            full_name: constructedFullName,
             bio: currentProfileSource.bio || '',
             institution: currentProfileSource.institution || '',
             research_interests: currentProfileSource.interests || [], 
             skills: currentProfileSource.skills || [],
-            looking_for: currentProfileSource.looking_for || [],
             collaboration_pitch: currentProfileSource.collaboration_pitch || '',
             location: currentProfileSource.location || '',
             field_of_study: currentProfileSource.field_of_study || '',
             availability: currentProfileSource.availability || 'full-time',
-            availability_hours: currentProfileSource.availability_hours || 0,
-            project_preference: currentProfileSource.project_preference || '',
             visibility: currentProfileSource.visibility || 'public',
             website: currentProfileSource.website || '',
-            education_json: formatJsonString(currentProfileSource.education as string),
+            education_json: formatJsonString(currentProfileSource.education as string | undefined),
         });
         if (currentProfileSource.avatar_url) {
             setAvatarPreview(currentProfileSource.avatar_url);
@@ -108,11 +102,11 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'availability_hours' ? parseInt(value, 10) || 0 : value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
   const handleSelectChange = (name: keyof ProfileFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value as any }));
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,37 +149,33 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       try {
         educationDataToSave = formData.education_json ? JSON.parse(formData.education_json) : null;
       } catch (jsonError) {
-        throw new Error('Education data is not valid JSON.');
+        console.warn("Education data is not valid JSON, attempting to save as raw string if non-empty.");
+        educationDataToSave = formData.education_json || null;
       }
 
-      const profileDataToSave: Partial<Profile> & { id: string; user_id: string; updated_at: string } = {
+      const profileDataToSave: Omit<Profile, 'id' | 'user_id' | 'updated_at' | 'email'> & { id: string; user_id: string; updated_at: string } = {
         id: user.id,
         user_id: user.id, 
-        full_name: formData.full_name.trim(),
         first_name: firstName,
         last_name: lastName,
-        title: formData.title,
-        bio: formData.bio,
-        institution: formData.institution,
+        bio: formData.bio || null,
+        institution: formData.institution || null,
         interests: formData.research_interests, 
         skills: formData.skills,
-        looking_for: formData.looking_for,
-        collaboration_pitch: formData.collaboration_pitch,
-        location: formData.location,
-        field_of_study: formData.field_of_study,
+        collaboration_pitch: formData.collaboration_pitch || null,
+        location: formData.location || null,
+        field_of_study: formData.field_of_study || null,
         availability: formData.availability as Profile['availability'],
-        availability_hours: Number(formData.availability_hours) || null,
-        project_preference: formData.project_preference,
         visibility: formData.visibility as Profile['visibility'],
-        website: formData.website,
+        website: formData.website || null,
         education: educationDataToSave,
-        avatar_url: newAvatarUrl,
+        avatar_url: newAvatarUrl || null,
         updated_at: new Date().toISOString(),
       };
 
       const { data: updatedProfileData, error: upsertError } = await supabase
         .from('profiles')
-        .upsert(profileDataToSave)
+        .upsert(profileDataToSave as any)
         .select('*')
         .single();
 
@@ -194,29 +184,24 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       setSuccess('Profile saved successfully!');
       if (updatedProfileData) {
         const profileForStore: Profile = {
-          ...updatedProfileData,
-          interests: updatedProfileData.interests ?? [],
-          skills: updatedProfileData.skills ?? [],
-          looking_for: updatedProfileData.looking_for ?? [],
-          education: updatedProfileData.education ?? null,
-          joining_date: updatedProfileData.joining_date ? new Date(updatedProfileData.joining_date) : new Date(),
-          created_at: updatedProfileData.created_at ? new Date(updatedProfileData.created_at) : new Date(),
+          id: updatedProfileData.id,
+          user_id: updatedProfileData.user_id || user.id,
           updated_at: updatedProfileData.updated_at ? new Date(updatedProfileData.updated_at) : new Date(),
-          first_name: updatedProfileData.first_name ?? null,
-          last_name: updatedProfileData.last_name ?? null,
-          email: updatedProfileData.email ?? null,
-          title: updatedProfileData.title ?? null,
-          institution: updatedProfileData.institution ?? null,
-          location: updatedProfileData.location ?? null,
-          field_of_study: updatedProfileData.field_of_study ?? null,
-          project_preference: updatedProfileData.project_preference ?? null,
-          website: updatedProfileData.website ?? null,
-          collaboration_pitch: updatedProfileData.collaboration_pitch ?? null,
-          avatar_url: updatedProfileData.avatar_url ?? null,
-          bio: updatedProfileData.bio ?? null,
-          availability_hours: updatedProfileData.availability_hours ?? null,
+          first_name: updatedProfileData.first_name || null,
+          last_name: updatedProfileData.last_name || null,
+          email: authProfile?.email || user.email || null,
+          avatar_url: updatedProfileData.avatar_url || null,
+          institution: updatedProfileData.institution || null,
+          bio: updatedProfileData.bio || null,
+          website: updatedProfileData.website || null,
+          skills: updatedProfileData.skills || [],
+          interests: updatedProfileData.interests || [],
+          collaboration_pitch: updatedProfileData.collaboration_pitch || null,
+          location: updatedProfileData.location || null,
+          field_of_study: updatedProfileData.field_of_study || null,
+          availability: updatedProfileData.availability as Profile['availability'] || 'full-time',
+          education: updatedProfileData.education ?? null,
           visibility: updatedProfileData.visibility as Profile['visibility'] ?? 'public',
-          availability: updatedProfileData.availability as Profile['availability'] ?? 'full-time',
         };
          setProfile(profileForStore);
       } else if (!upsertError) {
@@ -225,7 +210,6 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       if (onProfileUpdate) {
         onProfileUpdate();
       }
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.')
     } finally {
@@ -248,206 +232,246 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         setInputValue('');
       }
     };
+
+    const commonLabelClass = "block text-sm font-medium text-neutral-300 mb-1.5 font-sans";
+    const commonInputClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
+
     return (
       <div>
         <label className={commonLabelClass}>{label}</label>
-        <div className="flex items-center mb-2">
-          <Input 
-            type="text" 
-            value={inputValue} 
-            onChange={(e) => setInputValue(e.target.value)} 
-            onKeyDown={handleKeyDown} 
-            placeholder={placeholder || `Add ${label.toLowerCase()} and press Enter`}
-            className={`${commonInputClass} mr-2`}
-          />
-          <Button type="button" variant="outline" size="sm" onClick={() => { if(inputValue) { onAddTag(inputValue); setInputValue('');}}}>Add</Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {tags.map(tag => (
-            <span key={tag} className={tagClass}>
+        <div className="flex flex-wrap gap-2 items-center p-2 border border-neutral-700 rounded-md bg-neutral-800">
+          {tags.map((tag, index) => (
+            <span key={index} className="flex items-center bg-neutral-700 text-sm text-neutral-200 px-2 py-1 rounded">
               {tag}
-              <button type="button" onClick={() => onRemoveTag(tag)} className={tagRemoveButtonClass} aria-label={`Remove ${tag}`}>
+              <button type="button" onClick={() => onRemoveTag(tag)} className="ml-2 text-neutral-400 hover:text-red-400">
                 <FiX size={14} />
               </button>
             </span>
           ))}
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder || 'Add a tag...'}
+            className="flex-grow bg-transparent text-sm text-neutral-100 outline-none placeholder:text-neutral-500 min-w-[100px]"
+          />
         </div>
       </div>
     );
   };
 
-  const commonLabelClass = "block text-sm font-medium text-gray-200 mb-1.5";
-  const commonInputClass = "w-full bg-neutral-800 border-neutral-700 text-neutral-100 placeholder-neutral-500 focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm";
-  const tagClass = "flex items-center bg-indigo-600/80 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border border-indigo-500/60 shadow-sm";
-  const tagRemoveButtonClass = "ml-2 text-indigo-200 hover:text-white focus:outline-none";
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 text-neutral-100">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          <div className="w-32 h-32 rounded-full bg-neutral-700/50 backdrop-blur-md border border-neutral-600/50 flex items-center justify-center overflow-hidden shadow-lg">
-            <Avatar 
-              src={avatarPreview} 
-              alt="Profile Avatar" 
-              size="xl"
-              fallback={<FiUser className="text-gray-400" size={60} />}
-            />
+    <form onSubmit={handleSubmit} className="space-y-8 text-neutral-100 max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {error && (
+        <div className="rounded-md bg-red-900/30 p-4 border border-red-700">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FiAlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-400">Error saving profile</h3>
+              <div className="mt-2 text-sm text-red-500">
+                <p>{error}</p>
+              </div>
+            </div>
           </div>
-           <Button
-            type="button"
-            variant="glass"
-            size="sm"
-            className="absolute -bottom-2 -right-2 !p-2 rounded-full shadow-md bg-neutral-800 hover:bg-neutral-700 border border-neutral-600"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Change profile photo"
-          >
-            <FiUpload size={16} />
-          </Button>
         </div>
-        <input
-          type="file"
+      )}
+      {success && (
+         <div className="rounded-md bg-green-900/30 p-4 border border-green-700">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FiCheckCircle className="h-5 w-5 text-green-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-400">{success}</h3>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-2 flex flex-col items-center">
+        <Avatar src={avatarPreview} alt="Profile Avatar" size={128} fallbackIcon={<FiUser size={64} />} />
+        <input 
+          type="file" 
+          accept="image/*" 
+          onChange={handleAvatarChange} 
+          className="hidden" 
           ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleAvatarChange}
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="full_name" className={commonLabelClass}>Full Name</label>
-          <Input id="full_name" name="full_name" type="text" value={formData.full_name} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., Dr. Jane Doe" />
-        </div>
-        <div>
-          <label htmlFor="title" className={commonLabelClass}>Title/Headline</label>
-          <Input id="title" name="title" type="text" value={formData.title} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., Professor of Astrophysics, AI Researcher" />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="bio" className={commonLabelClass}>Bio</label>
-        <Textarea id="bio" name="bio" value={formData.bio} onChange={handleInputChange} className={`${commonInputClass} min-h-[100px]`} placeholder="Tell us a bit about yourself, your research, and what you're passionate about." />
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-neutral-700 hover:bg-neutral-600 border-neutral-600 text-neutral-200"
+        >
+          <FiUpload className="mr-2" /> Upload Avatar
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="institution" className={commonLabelClass}>Institution/Affiliation</label>
-          <Input id="institution" name="institution" type="text" value={formData.institution} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., University of Research" />
+        <div className="md:col-span-2">
+          <Input
+            label="Full Name"
+            name="full_name"
+            value={formData.full_name}
+            onChange={handleInputChange}
+            placeholder="e.g., Dr. Jane Doe"
+            required
+          />
         </div>
         <div>
-          <label htmlFor="location" className={commonLabelClass}>Location</label>
-          <Input id="location" name="location" type="text" value={formData.location} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., City, Country" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-         <div>
-          <label htmlFor="field_of_study" className={commonLabelClass}>Primary Field of Study</label>
-          <Input id="field_of_study" name="field_of_study" type="text" value={formData.field_of_study} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., Computer Science, Marine Biology" />
+          <Input
+            label="Field of Study / Specialization"
+            name="field_of_study"
+            value={formData.field_of_study}
+            onChange={handleInputChange}
+            placeholder="e.g., Computational Neuroscience"
+          />
         </div>
         <div>
-          <label htmlFor="website" className={commonLabelClass}>Website/Portfolio Link</label>
-          <Input id="website" name="website" type="url" value={formData.website} onChange={handleInputChange} className={commonInputClass} placeholder="https://your-research-profile.com" />
+          <Input
+            label="Institution / Affiliation"
+            name="institution"
+            value={formData.institution}
+            onChange={handleInputChange}
+            placeholder="e.g., University of Research"
+          />
         </div>
-      </div>
-
-      <div>
-        <label htmlFor="collaboration_pitch" className={commonLabelClass}>Collaboration Pitch</label>
-        <Textarea id="collaboration_pitch" name="collaboration_pitch" value={formData.collaboration_pitch} onChange={handleInputChange} className={`${commonInputClass} min-h-[80px]`} placeholder="What kind of projects are you looking to collaborate on? What can you bring to a team?" />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div>
-          <label htmlFor="availability" className={commonLabelClass}>Availability</label>
-          <Select value={formData.availability} onValueChange={(value) => handleSelectChange('availability', value)}>
-            <SelectTrigger className={commonInputClass} id="availability"><SelectValue placeholder="Select availability" /></SelectTrigger>
-            <SelectContent className="bg-neutral-800 border-neutral-700 text-neutral-100">
-              <SelectItem value="full-time">Full-time</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-              <SelectItem value="weekends">Weekends only</SelectItem>
-              <SelectItem value="not-available">Not currently available</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="md:col-span-2">
+          <Textarea
+            label="Bio / Professional Summary"
+            name="bio"
+            value={formData.bio}
+            onChange={handleInputChange}
+            placeholder="Tell us about yourself, your research, and your collaboration goals."
+            rows={4}
+          />
         </div>
         <div>
-          <label htmlFor="availability_hours" className={commonLabelClass}>Weekly Availability (Hours)</label>
-          <Input id="availability_hours" name="availability_hours" type="number" value={formData.availability_hours} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., 10" min="0" />
+          <Input
+            label="Location"
+            name="location"
+            value={formData.location}
+            onChange={handleInputChange}
+            placeholder="e.g., San Francisco, CA or Remote"
+          />
         </div>
-         <div>
-          <label htmlFor="project_preference" className={commonLabelClass}>Project Preference</label>
-          <Input id="project_preference" name="project_preference" type="text" value={formData.project_preference} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., Short-term, Long-term, Specific topics" />
+        <div>
+          <Input
+            label="Website / Portfolio URL"
+            name="website"
+            type="url"
+            value={formData.website}
+            onChange={handleInputChange}
+            placeholder="https://your-research-page.com"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <TagInput
+            label="Research Interests"
+            tags={formData.research_interests}
+            onAddTag={(tag) => setFormData(prev => ({ ...prev, research_interests: [...prev.research_interests, tag] }))}
+            onRemoveTag={(tagToRemove) => setFormData(prev => ({ ...prev, research_interests: prev.research_interests.filter(tag => tag !== tagToRemove) }))}
+            placeholder="Add interest (e.g., AI, Climate Change) and press Enter"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <TagInput
+            label="Skills"
+            tags={formData.skills}
+            onAddTag={(tag) => setFormData(prev => ({ ...prev, skills: [...prev.skills, tag] }))}
+            onRemoveTag={(tagToRemove) => setFormData(prev => ({ ...prev, skills: prev.skills.filter(tag => tag !== tagToRemove) }))}
+            placeholder="Add skill (e.g., Python, Data Analysis) and press Enter"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Textarea
+            label="Collaboration Pitch / What You're Looking For"
+            name="collaboration_pitch"
+            value={formData.collaboration_pitch}
+            onChange={handleInputChange}
+            placeholder="Describe the type of collaborations or projects you are interested in."
+            rows={3}
+          />
+        </div>
+        <div className="col-span-1">
+           <Select
+             label="Availability"
+             name="availability"
+             id="availability"
+             value={formData.availability}
+             onChange={(e) => handleSelectChange('availability', e.target.value)}
+             options={[
+               { value: 'full-time', label: 'Full-time' },
+               { value: 'part-time', label: 'Part-time' },
+               { value: 'weekends', label: 'Weekends' },
+               { value: 'not-available', label: 'Not Available' },
+             ]}
+             placeholder="Select availability"
+             className="mt-1"
+           />
+        </div>
+        <div className="md:col-span-2">
+            <Textarea
+                label="Education (JSON format)"
+                name="education_json"
+                value={formData.education_json}
+                onChange={handleInputChange}
+                placeholder='[{"degree": "PhD", "field": "Physics", "institution": "MIT", "year": 2020}]'
+                rows={5}
+                className="font-mono text-sm"
+            />
+            <p className="mt-1 text-xs text-neutral-400">
+                Enter as a JSON array of objects. Each object can have keys like "degree", "field", "institution", "year".
+            </p>
+        </div>
+        <div className="col-span-1 md:col-span-2">
+           <Select
+             label="Profile Visibility"
+             name="visibility"
+             id="visibility"
+             value={formData.visibility}
+             onChange={(e) => handleSelectChange('visibility', e.target.value)}
+             options={[
+               { value: 'public', label: 'Public (Visible to everyone)' },
+               { value: 'private', label: 'Private (Only you can see your full profile)' },
+               { value: 'connections', label: 'Connections Only (Visible to your connections)' },
+             ]}
+             placeholder="Select visibility"
+             className="mt-1"
+           />
         </div>
       </div>
 
-      <TagInput 
-        label="Research Interests" 
-        tags={formData.research_interests} 
-        onAddTag={(tag) => setFormData(prev => ({ ...prev, research_interests: [...prev.research_interests, tag] }))}
-        onRemoveTag={(tag) => setFormData(prev => ({ ...prev, research_interests: prev.research_interests.filter(i => i !== tag) }))}
-        placeholder="Add an interest (e.g., AI Ethics)"
-      />
-      <TagInput 
-        label="Skills"
-        tags={formData.skills} 
-        onAddTag={(tag) => setFormData(prev => ({ ...prev, skills: [...prev.skills, tag] }))}
-        onRemoveTag={(tag) => setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== tag) }))}
-        placeholder="Add a skill (e.g., Python, Data Analysis)"
-      />
-      <TagInput 
-        label="Looking For (Collaboration Types/Roles)"
-        tags={formData.looking_for} 
-        onAddTag={(tag) => setFormData(prev => ({ ...prev, looking_for: [...prev.looking_for, tag] }))}
-        onRemoveTag={(tag) => setFormData(prev => ({ ...prev, looking_for: prev.looking_for.filter(l => l !== tag) }))}
-        placeholder="Add what you're seeking (e.g., Co-author, Data Sharing)"
-      />
-
-      <div>
-        <label htmlFor="education_json" className={commonLabelClass}>Education History (JSON format)</label>
-        <Textarea 
-          id="education_json" 
-          name="education_json" 
-          value={formData.education_json} 
-          onChange={handleInputChange} 
-          className={`${commonInputClass} min-h-[120px] font-mono text-sm`}
-          placeholder={'Example: [\n  {\n    "institution": "University of Science",\n    "degree": "PhD in Physics",\n    "year": 2020\n  }\n]'}
-        />
-        <p className="text-xs text-neutral-500 mt-1">Enter as a JSON array of objects. Each object should have institution, degree, and year.</p>
-      </div>
-
-      <div>
-        <label htmlFor="visibility" className={commonLabelClass}>Profile Visibility</label>
-        <Select value={formData.visibility} onValueChange={(value) => handleSelectChange('visibility', value)}>
-          <SelectTrigger className={commonInputClass} id="visibility"><SelectValue placeholder="Select visibility" /></SelectTrigger>
-          <SelectContent className="bg-neutral-800 border-neutral-700 text-neutral-100">
-            <SelectItem value="public">Public (Visible to everyone)</SelectItem>
-            <SelectItem value="connections">Connections Only (Not yet implemented)</SelectItem>
-            <SelectItem value="private">Private (Only you can see)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="pt-6 border-t border-neutral-800">
-        {error && (
-          <div className="mb-4 flex items-center text-red-400 bg-red-900/30 p-3 rounded-md border border-red-700/50">
-            <FiAlertCircle className="mr-2 flex-shrink-0" size={20}/> 
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 flex items-center text-green-300 bg-green-800/30 p-3 rounded-md border border-green-600/50">
-            <FiCheckCircle className="mr-2 flex-shrink-0" size={20}/> 
-            <span className="text-sm">{success}</span>
-          </div>
-        )}
-        <div className="flex justify-end space-x-3">
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" isLoading={loading} icon={<FiSave />}>
-            Save Changes
-          </Button>
-        </div>
+      <div className="flex justify-end space-x-3 pt-8 border-t border-neutral-700 mt-8">
+        <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => router.back()} 
+            className="bg-neutral-700 hover:bg-neutral-600 border-neutral-600 text-neutral-200"
+            disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button 
+            type="submit" 
+            variant="default" 
+            className="bg-accent-purple hover:bg-accent-purple-hover text-white"
+            disabled={loading}
+        >
+          {loading ? (
+            <>
+              <FiLoader className="animate-spin mr-2" /> Saving...
+            </>
+          ) : (
+            <>
+              <FiSave className="mr-2" /> Save Profile
+            </>
+          )}
+        </Button>
       </div>
     </form>
-  )
+  );
 } 
