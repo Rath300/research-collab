@@ -130,8 +130,8 @@ const QuickActions = () => {
             onClick={() => router.push(action.href)}
             className="flex flex-col items-center justify-center p-3 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
           >
-            <action.icon className="w-6 h-6 text-neutral-300 group-hover:text-white mb-1.5 transition-colors" />
-            <span className="text-xs font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
+            <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-1 transition-colors" />
+            <span className="text-[11px] leading-tight font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
           </button>
         ))}
       </div>
@@ -207,7 +207,7 @@ const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
       <div className="space-y-4 font-sans">
         {statItems.map((item) => (
           <div key={item.label} className="bg-neutral-800/60 p-4 rounded-lg flex items-center transition-all hover:bg-neutral-800/90">
-            <item.icon className="w-6 h-6 text-sky-400 mr-4 flex-shrink-0" />
+            <item.icon className="w-6 h-6 text-accent-purple mr-4 flex-shrink-0" />
             <div className="flex-grow">
               <p className="text-sm text-neutral-400">{item.label}</p>
               <p className="text-xl font-heading text-neutral-100">{item.value}</p>
@@ -384,7 +384,7 @@ export default function DashboardPage() {
             ) : (
               <p className="text-neutral-500">No recent posts to display.</p>
             )}
-            <Link href="/research" className="block mt-4 text-sm text-sky-400 hover:text-sky-300 font-sans hover:underline">View All Posts</Link>
+            <Link href="/research" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">View All Posts</Link>
           </DashboardCard>
 
           <DashboardCard title="Recent Matches" titleIcon={FiUsers}>
@@ -405,7 +405,7 @@ export default function DashboardPage() {
             ) : (
               <p className="text-neutral-500">No recent matches yet.</p>
             )}
-            <Link href="/collaborators" className="block mt-4 text-sm text-sky-400 hover:text-sky-300 font-sans hover:underline">Find New Collaborators</Link>
+            <Link href="/collaborators" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">Find New Collaborators</Link>
           </DashboardCard>
         </div>
       </div>

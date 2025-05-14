@@ -26,6 +26,10 @@ module.exports = {
         'ic-text-primary': '#F9FAFB', // Tailwind gray-50
         'ic-text-secondary': '#D1D5DB', // Tailwind gray-300
         'ic-border': '#374151', // Tailwind gray-700 for borders on dark bg
+
+        // New Accent Colors
+        'accent-purple': '#8B5CF6', // Tailwind violet-500
+        'accent-purple-hover': '#A78BFA', // Tailwind violet-400
       },
       fontFamily: {
         sans: ['Inter', ...fontFamily.sans],
