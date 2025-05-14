@@ -120,7 +120,7 @@ export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
     result[groupKey].push(currentItem);
     return result;
   }, {});
-}
+} 
 
 export function titleCase(str: string | null | undefined): string {
   if (!str) return '';

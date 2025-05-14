@@ -382,3 +382,4 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     </aside>
   );
 }
+ 

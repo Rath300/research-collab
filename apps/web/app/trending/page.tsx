@@ -15,17 +15,12 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface TrendingPost extends ResearchPost {
   profiles: Profile | null;
-  // Add engagement_count if it's part of your research_posts table and you want to use it for sorting
-  // engagement_count?: number;
 }
 
-// Dummy data for "Hot Right Now" topics until a real algorithm/source is defined
-const hotTopicsDummy = [
-  { id: 'ai-ethics', name: 'AI Ethics & Governance', trendScore: 95 },
-  { id: 'quantum-ml', name: 'Quantum Machine Learning', trendScore: 92 },
-  { id: 'sustainable-materials', name: 'Sustainable Materials Science', trendScore: 88 },
-  { id: 'neuro-tech', name: 'Neuro-enhancement Technologies', trendScore: 85 },
-];
+interface HotTopic {
+  name: string;
+  count: number;
+}
 
 const PostCard = ({ post }: { post: TrendingPost }) => {
   const calculatedAuthorName = (post.profiles?.first_name && post.profiles?.last_name 
@@ -100,33 +95,48 @@ const PostCard = ({ post }: { post: TrendingPost }) => {
 export default function TrendingPage() {
   const supabase = getBrowserClient();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
+  const [hotTopics, setHotTopics] = useState<HotTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadTrendingPosts = useCallback(async () => {
+  const loadTrendingData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // For now, ordering by created_at. Replace with 'engagement_count' if available and preferred.
-      const { data, error: postsError } = await supabase
+      const { data: fetchedPosts, error: postsError } = await supabase
         .from('research_posts')
-        .select('*, profiles (*), engagement_count') // Ensure engagement_count is selected if you use it
-        .order('created_at', { ascending: false }) // Or order by engagement_count
-        .limit(15); 
+        .select('*, profiles (*), engagement_count')
+        .order('created_at', { ascending: false })
+        .limit(30);
 
       if (postsError) throw postsError;
-      setPosts((data as TrendingPost[] | null) || []);
+      const currentPosts = (fetchedPosts as TrendingPost[] | null) || [];
+      setPosts(currentPosts.slice(0, 15));
+
+      const tagCounts: Record<string, number> = {};
+      currentPosts.forEach(post => {
+        post.tags?.forEach(tag => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      });
+
+      const sortedTags = Object.entries(tagCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      setHotTopics(sortedTags.slice(0, 4));
+
     } catch (err) {
-      console.error("Error loading trending posts:", err);
-      setError(err instanceof Error ? err.message : 'Failed to load posts');
+      console.error("Error loading trending data:", err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
   useEffect(() => {
-    loadTrendingPosts();
-  }, [loadTrendingPosts]);
+    loadTrendingData();
+  }, [loadTrendingData]);
 
   return (
     <PageContainer title="Trending" className="bg-black min-h-screen text-neutral-100 font-sans">
@@ -140,7 +150,6 @@ export default function TrendingPage() {
             Trending Insights
         </motion.h1>
 
-        {/* Section for Hot Topics - Using Dummy Data for now */}
         <motion.section 
             className="mb-10 md:mb-12"
             initial={{ opacity: 0 }}
@@ -148,18 +157,22 @@ export default function TrendingPage() {
             transition={{ delay: 0.2, duration: 0.5 }}
         >
           <h2 className="text-2xl font-heading text-neutral-200 mb-4 flex items-center"><FiZap className="mr-2 text-accent-purple"/>Hot Right Now</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {hotTopicsDummy.map(topic => (
-              <motion.div 
-                key={topic.id} 
-                className="bg-neutral-800/70 p-4 rounded-lg border border-neutral-700/70 hover:bg-neutral-700/90 transition-colors cursor-pointer"
-                whileHover={{ scale: 1.03 }}
-              >
-                <p className="font-sans font-medium text-neutral-100 text-sm truncate">{topic.name}</p>
-                {/* <p className="text-xs text-accent-purple">Score: {topic.trendScore}</p> */}
-              </motion.div>
-            ))}
-          </div>
+          {hotTopics.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {hotTopics.map(topic => (
+                <motion.div 
+                  key={topic.name} 
+                  className="bg-neutral-800/70 p-4 rounded-lg border border-neutral-700/70 hover:bg-neutral-700/90 transition-colors cursor-pointer"
+                  whileHover={{ scale: 1.03 }}
+                >
+                  <p className="font-sans font-medium text-neutral-100 text-sm truncate">{topic.name}</p>
+                  <p className="text-xs text-accent-purple/80">{topic.count} mention{topic.count === 1 ? '' : 's'}</p>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            !loading && <p className="font-sans text-sm text-neutral-500">No trending topics to show right now.</p>
+          )}
         </motion.section>
         
         <motion.section
@@ -169,7 +182,7 @@ export default function TrendingPage() {
         >
           <h2 className="text-2xl font-heading text-neutral-200 mb-5 flex items-center"><FiBarChart2 className="mr-2 text-accent-purple"/>Popular Research</h2>
           
-          {loading && (
+          {loading && !posts.length && (
             <div className="flex justify-center items-center py-10">
               <FiLoader className="animate-spin text-accent-purple text-5xl" />
             </div>
@@ -181,7 +194,7 @@ export default function TrendingPage() {
               <h3 className="text-lg font-heading text-neutral-100 mb-1">Error Loading Posts</h3>
               <p className="text-neutral-400 text-sm mb-3">{error}</p>
               <button 
-                onClick={loadTrendingPosts}
+                onClick={loadTrendingData}
                 className="px-3 py-1.5 bg-accent-purple hover:bg-accent-purple-hover text-white font-sans text-sm rounded-md transition-colors"
               >
                 Try Again

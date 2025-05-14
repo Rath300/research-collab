@@ -141,7 +141,7 @@ export default function NewProjectPage() {
         setPageError('A post with this title already exists. Please choose a different title.');
         setErrors(prev => ({...prev, title: 'This title is already taken.'}));
       } else {
-        setPageError(err.message || 'Failed to create research post. Please try again.');
+      setPageError(err.message || 'Failed to create research post. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -280,15 +280,15 @@ export default function NewProjectPage() {
                     </div>
                   )}
                 </div>
-
+                
                 <div>
                   <label htmlFor="visibility" className={commonLabelClass}>
                     Visibility<span className="text-red-500 ml-1">*</span>
                   </label>
-                  <select
-                    id="visibility"
-                    name="visibility"
-                    value={formData.visibility}
+                  <select 
+                    id="visibility" 
+                    name="visibility" 
+                    value={formData.visibility} 
                     onChange={handleInputChange}
                     className={`${inputBaseClass} appearance-none`}
                   >
@@ -300,14 +300,14 @@ export default function NewProjectPage() {
                 </div>
 
                 <div className="pt-4">
-                  <Button 
-                    type="submit" 
+                <Button 
+                  type="submit" 
                     className="w-full font-sans bg-neutral-100 text-black hover:bg-neutral-300 focus-visible:ring-neutral-400"
                     isLoading={isSubmitting}
-                    disabled={isSubmitting}
-                  >
+                  disabled={isSubmitting}
+                >
                     {isSubmitting ? 'Saving...' : 'Save Details & Next'}
-                  </Button>
+                </Button>
                 </div>
               </form>
             ) : (

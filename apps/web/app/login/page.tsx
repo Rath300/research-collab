@@ -48,7 +48,7 @@ export default function Login() {
       console.error("Generic Login Error:", err);
       setError(err.message || "An unexpected error occurred. Please try again.");
       setIsLoading(false); // Ensure loading is stopped on generic errors
-    } 
+    }
     // Removed finally block as loading state is handled within try/catch
   };
 
@@ -56,7 +56,7 @@ export default function Login() {
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
         <Link href="/" className="font-heading text-2xl font-bold text-neutral-200 hover:text-neutral-100 transition-colors">
-          RESEARCH-BEE 
+          RESEARCH-BEE
         </Link>
       </div>
 

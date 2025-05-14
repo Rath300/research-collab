@@ -3,13 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getResearchPostById, type ResearchPostWithDetails } from '@/lib/api';
+import { 
+  getResearchPostById, type ResearchPostWithDetails, 
+  getPostEngagement, type PostEngagementData, 
+  addPostLike, removePostLike, 
+  getPostComments, type PostCommentWithAuthor, addPostComment 
+} from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar'; // Assuming Avatar component exists and handles null src
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { FiLoader, FiAlertCircle, FiUser, FiFileText, FiDownload, FiTag, FiCalendar, FiEye, FiMessageSquare } from 'react-icons/fi';
+import { FiLoader, FiAlertCircle, FiUser, FiFileText, FiDownload, FiTag, FiCalendar, FiEye, FiMessageSquare, FiThumbsUp, FiHeart } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function ResearchPostPage() {
@@ -21,37 +26,41 @@ export default function ResearchPostPage() {
   const [post, setPost] = useState<ResearchPostWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [engagement, setEngagement] = useState<PostEngagementData | null>(null);
+  const [comments, setComments] = useState<PostCommentWithAuthor[]>([]);
+  const [interactionError, setInteractionError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) return; // Wait for auth state to be clear
-    // if (!user) {
-    //   router.push('/login'); // Optional: redirect if not logged in and post is not public
-    //   return;
-    // }
-
+    if (authLoading) return;
     if (postId) {
-      const fetchPost = async () => {
+      const fetchPageData = async () => {
         setLoading(true);
         setError(null);
+        setInteractionError(null);
         try {
           const fetchedPost = await getResearchPostById(postId);
           if (fetchedPost) {
             setPost(fetchedPost);
+            // Fetch engagement data and comments after post is fetched
+            const engData = await getPostEngagement(postId, user?.id);
+            setEngagement(engData);
+            const fetchedComments = await getPostComments(postId);
+            setComments(fetchedComments);
           } else {
             setError('Research post not found.');
           }
         } catch (err: any) {
-          console.error('Error fetching research post:', err);
+          console.error('Error fetching research post page data:', err);
           setError(err.message || 'Failed to load research post.');
         }
         setLoading(false);
       };
-      fetchPost();
+      fetchPageData();
     } else {
       setError('Post ID is missing.');
       setLoading(false);
     }
-  }, [postId, user, authLoading, router]);
+  }, [postId, user?.id, authLoading]); // Added user.id to dependency array for engagement
 
   const handleFileDownload = (filePath: string, fileName: string) => {
     // This would typically involve getting a signed URL from Supabase storage
@@ -74,6 +83,60 @@ export default function ResearchPostPage() {
             link.click();
             document.body.removeChild(link);
         }
+    }
+  };
+
+  const handleLikeToggle = async () => {
+    if (!user || !post || !engagement) {
+      setInteractionError("Please log in to like posts.");
+      return;
+    }
+    setInteractionError(null);
+    try {
+      if (engagement.currentUserHasLiked) {
+        await removePostLike(post.id, user.id);
+        setEngagement(prev => ({ 
+          ...(prev!),
+          likeCount: prev!.likeCount - 1, 
+          currentUserHasLiked: false 
+        }));
+      } else {
+        await addPostLike(post.id, user.id);
+        setEngagement(prev => ({ 
+          ...(prev!),
+          likeCount: prev!.likeCount + 1, 
+          currentUserHasLiked: true 
+        }));
+      }
+    } catch (err: any) {
+      console.error("Error toggling like:", err);
+      setInteractionError(err.message || "Failed to update like.");
+      // Optionally revert UI changes here if API call failed hard
+    }
+  };
+
+  const handleAddComment = async (content: string) => {
+    if (!user || !post) {
+      setInteractionError("Please log in to comment.");
+      return false;
+    }
+    if (!content.trim()) {
+      setInteractionError("Comment cannot be empty.");
+      return false;
+    }
+    setInteractionError(null);
+    try {
+      const newComment = await addPostComment(post.id, user.id, content);
+      if (newComment) {
+        setComments(prevComments => [...prevComments, newComment]);
+        setEngagement(prev => ({...(prev!), commentCount: prev!.commentCount + 1 }));
+        return true; // Indicate success
+      }
+      return false;
+    } catch (err: any) {
+      console.error("Error adding comment:", err);
+      setInteractionError(err.message || "Failed to add comment.");
+      return false;
     }
   };
 
@@ -126,7 +189,9 @@ export default function ResearchPostPage() {
 
   // Post found, render details
   const author = post.profiles;
-  const postDate = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'some time ago';
+  const postDate = post.created_at && !isNaN(new Date(post.created_at).getTime()) 
+    ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) 
+    : 'some time ago';
 
   return (
     <PageContainer title={post.title || "Research Post"} className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white">
@@ -147,6 +212,17 @@ export default function ResearchPostPage() {
                   <FiEye className="mr-1.5" /> {post.visibility}
                 </div>
               )}
+              {/* Display Like and Comment Counts */}
+              {engagement && (
+                <>
+                  <div className="flex items-center">
+                    <FiThumbsUp className="mr-1.5" /> {engagement.likeCount} Likes
+                  </div>
+                  <div className="flex items-center">
+                    <FiMessageSquare className="mr-1.5" /> {engagement.commentCount} Comments
+                  </div>
+                </>
+              )}
             </div>
           </CardHeader>
         </Card>
@@ -158,6 +234,57 @@ export default function ResearchPostPage() {
               <CardContent className="p-6 md:p-8 prose prose-invert prose-sm sm:prose-base max-w-none text-gray-200 !leading-relaxed">
                 {/* Using prose classes for rich text styling if content is markdown/html, otherwise adjust */} 
                 <div dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} />
+              </CardContent>
+            </Card>
+
+            {/* Interaction Error Display */}
+            {interactionError && (
+              <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-md text-sm">
+                <p>{interactionError}</p>
+              </div>
+            )}
+
+            {/* Like Button Placeholder */}
+            {user && engagement && (
+              <Card className="glass-card shadow-xl">
+                <CardContent className="p-6">
+                  <Button 
+                    onClick={handleLikeToggle} 
+                    variant={engagement.currentUserHasLiked ? 'primary' : 'outline'}
+                    className={`w-full ${engagement.currentUserHasLiked ? 'bg-pink-600 hover:bg-pink-700 text-white' : 'border-pink-500 text-pink-500 hover:bg-pink-500/10'}`}
+                  >
+                    <FiHeart className={`mr-2 ${engagement.currentUserHasLiked ? 'fill-current' : ''}`} />
+                    {engagement.currentUserHasLiked ? 'Liked' : 'Like'} ({engagement.likeCount})
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Comment Form Placeholder */}
+            {user && (
+              <Card className="glass-card shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-white">Leave a Comment</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <CommentFormComponent postId={post.id} onCommentAdded={handleAddComment} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Comments List Placeholder */}
+            <Card className="glass-card shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-white">Comments ({engagement?.commentCount || 0})</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {comments.length > 0 ? (
+                  comments.map(comment => (
+                    <CommentItemComponent key={comment.id} comment={comment} />
+                  ))
+                ) : (
+                  <p className="text-neutral-400">No comments yet. Be the first to comment!</p>
+                )}
               </CardContent>
             </Card>
 
@@ -241,4 +368,64 @@ export default function ResearchPostPage() {
     </div>
     </PageContainer>
   );
-} 
+}
+
+// Placeholder for CommentForm component
+const CommentFormComponent = ({ postId, onCommentAdded }: { postId: string, onCommentAdded: (content: string) => Promise<boolean> }) => {
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const success = await onCommentAdded(content);
+    if (success) {
+      setContent(''); // Clear form on success
+    }
+    setIsSubmitting(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <textarea 
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Write your comment..."
+        rows={3}
+        className="w-full p-3 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-200 focus:ring-2 focus:ring-accent-purple focus:border-accent-purple transition-shadow"
+        disabled={isSubmitting}
+      />
+      <Button type="submit" variant="primary" className="bg-accent-purple hover:bg-accent-purple-hover text-white" disabled={isSubmitting || !content.trim()}>
+        {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiMessageSquare className="mr-2" />} 
+        Post Comment
+      </Button>
+    </form>
+  );
+};
+
+// Placeholder for CommentItem component
+const CommentItemComponent = ({ comment }: { comment: PostCommentWithAuthor }) => {
+  const authorName = comment.profiles ? `${comment.profiles.first_name || ''} ${comment.profiles.last_name || ''}`.trim() : 'Anonymous';
+  const commentDate = comment.created_at && !isNaN(new Date(comment.created_at).getTime()) 
+    ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }) 
+    : 'some time ago';
+
+  return (
+    <div className="p-4 rounded-lg bg-neutral-800/50 border border-neutral-700/50">
+      <div className="flex items-center mb-2">
+        <Avatar 
+          src={comment.profiles?.avatar_url || null} 
+          alt={authorName} 
+          size="sm"
+          fallback={authorName.substring(0,1)}
+          className="mr-3"
+        />
+        <div>
+          <p className="font-semibold text-sm text-neutral-100">{authorName}</p>
+          <p className="text-xs text-neutral-400">{commentDate}</p>
+        </div>
+      </div>
+      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{comment.content}</p>
+    </div>
+  );
+}; 
