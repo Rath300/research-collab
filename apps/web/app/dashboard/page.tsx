@@ -51,9 +51,9 @@ interface DashboardStats {
   matchCount: number;
   messageCount: number;
   viewCount: number;
-  activeProjects?: number;
-  pendingRequests?: number;
-  unreadMessagesCount?: number;
+  activeProjectsCount: number;
+  pendingRequestsCount: number;
+  unreadMessagesCount: number;
 }
 
 interface ResearchPostWithProfile extends ResearchPost {
@@ -166,19 +166,32 @@ const ActivityFeed = () => {
   );
 };
 
-const CollaborationStatsDisplay = () => {
-  const stats = {
-    activeProjects: 2,
-    pendingRequests: 1,
-    unreadMessages: 5,
-  };
+const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
+  
+  interface StatDetail {
+    label: string;
+    value: number;
+    icon: React.ElementType;
+  }
+
+  const statItems: StatDetail[] = [
+    { label: "Active Projects", value: stats.activeProjectsCount, icon: FiBriefcase },
+    { label: "Pending Requests", value: stats.pendingRequestsCount, icon: FiUsers },
+    { label: "Unread Messages", value: stats.unreadMessagesCount, icon: FiMessageSquare },
+  ];
 
   return (
     <DashboardCard title="Collaboration Stats" titleIcon={FiTrendingUp} className="mb-6 md:mb-8">
-      <div className="space-y-3 font-sans text-neutral-300">
-        <p className="flex justify-between text-md">Active Projects: <span className="font-heading text-neutral-100">{stats.activeProjects}</span></p>
-        <p className="flex justify-between text-md">Pending Requests: <span className="font-heading text-neutral-100">{stats.pendingRequests}</span></p>
-        <p className="flex justify-between text-md">Unread Messages: <span className="font-heading text-neutral-100">{stats.unreadMessages}</span></p>
+      <div className="space-y-4 font-sans">
+        {statItems.map((item) => (
+          <div key={item.label} className="bg-neutral-800/60 p-4 rounded-lg flex items-center transition-all hover:bg-neutral-800/90">
+            <item.icon className="w-6 h-6 text-sky-400 mr-4 flex-shrink-0" />
+            <div className="flex-grow">
+              <p className="text-sm text-neutral-400">{item.label}</p>
+              <p className="text-xl font-heading text-neutral-100">{item.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </DashboardCard>
   );
@@ -191,7 +204,10 @@ export default function DashboardPage() {
     postCount: 0,
     matchCount: 0,
     messageCount: 0,
-    viewCount: 0
+    viewCount: 0,
+    activeProjectsCount: 0,
+    pendingRequestsCount: 0,
+    unreadMessagesCount: 0
   });
   
   const [recentMatches, setRecentMatches] = useState<ProfileMatch[]>([]);
@@ -208,6 +224,8 @@ export default function DashboardPage() {
     setIsLoading(true);
     
     try {
+      const userId = user.id;
+
       const [
         { count: postCount },
         { count: matchCount },
@@ -215,23 +233,49 @@ export default function DashboardPage() {
       ] = await Promise.all([
         supabase
           .from('research_posts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id),
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId),
         supabase
           .from('profile_matches')
-          .select('*', { count: 'exact', head: true })
-          .eq('matcher_user_id', user.id),
+          .select('id', { count: 'exact', head: true })
+          .eq('matcher_user_id', userId)
+          .eq('status', 'matched'),
         supabase
           .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+          .select('id', { count: 'exact', head: true })
+          .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       ]);
+      
+      const { count: activeProjectsCount, error: activeProjectsError } = await supabase
+        .from('project_collaborators')
+        .select('project_id!inner(status)', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('project_id.status', 'active');
+
+      const { count: pendingRequestsCount, error: pendingRequestsError } = await supabase
+        .from('collaborator_matches')
+        .select('id', { count: 'exact', head: true })
+        .eq('matched_user_id', userId)
+        .eq('status', 'pending');
+
+      const { count: unreadMessagesCount, error: unreadMessagesError } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', userId)
+        .eq('is_read', false);
+
+      if (activeProjectsError) console.error('Error fetching active projects count:', activeProjectsError.message);
+      if (pendingRequestsError) console.error('Error fetching pending requests count:', pendingRequestsError.message);
+      if (unreadMessagesError) console.error('Error fetching unread messages count:', unreadMessagesError.message);
       
       setStats({
         postCount: postCount || 0,
         matchCount: matchCount || 0,
         messageCount: messageCount || 0,
-        viewCount: 0
+        viewCount: 0,
+        activeProjectsCount: activeProjectsCount || 0,
+        pendingRequestsCount: pendingRequestsCount || 0,
+        unreadMessagesCount: unreadMessagesCount || 0
       });
       
       const { data: matchesData, error: matchesError } = await supabase
@@ -240,7 +284,7 @@ export default function DashboardPage() {
           *,
           matched_profile:profiles!profile_matches_matchee_user_id_fkey (*)
         `)
-        .eq('matcher_user_id', user.id)
+        .eq('matcher_user_id', userId)
         .order('created_at', { ascending: false })
         .limit(3);
       
@@ -308,7 +352,7 @@ export default function DashboardPage() {
 
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
           <ActivityFeed />
-          <CollaborationStatsDisplay />
+          <CollaborationStatsDisplay stats={stats} />
         </div>
         
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
