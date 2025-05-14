@@ -125,50 +125,16 @@ export default function ResearchPostPage() {
       return false;
     }
     setInteractionError(null);
-
-    // Optimistic update
-    const tempId = `temp-${Date.now()}`;
-    const optimisticComment: PostCommentWithAuthor = {
-      id: tempId,
-      post_id: post.id,
-      user_id: user.id,
-      content: content.trim(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      profiles: { // Assuming profiles is always an object, even if details are null/undefined
-        id: user.id,
-        first_name: user.user_metadata?.first_name || 'You',
-        last_name: user.user_metadata?.last_name || '',
-        avatar_url: user.user_metadata?.avatar_url || null,
-      }
-    };
-
-    setComments(prevComments => [optimisticComment, ...prevComments]); // Add to top for visibility
-    const originalCommentCount = engagement?.commentCount || 0;
-    setEngagement(prev => ({...(prev!), commentCount: originalCommentCount + 1 }));
-
     try {
       const newComment = await addPostComment(post.id, user.id, content);
       if (newComment) {
-        // Replace optimistic comment with actual comment from API
-        setComments(prevComments => 
-          prevComments.map(c => c.id === tempId ? newComment : c)
-        );
-        // Ensure engagement count is accurate if it wasn't updated by a trigger/subscription
-        setEngagement(prev => ({...(prev!), commentCount: prev!.commentCount })); 
-        return true; 
-      } else {
-        // API returned no comment, revert optimistic update
-        setComments(prevComments => prevComments.filter(c => c.id !== tempId));
-        setEngagement(prev => ({...(prev!), commentCount: originalCommentCount }));
-        setInteractionError("Failed to add comment: No response from server.");
-        return false;
+        setComments(prevComments => [...prevComments, newComment]);
+        setEngagement(prev => ({...(prev!), commentCount: prev!.commentCount + 1 }));
+        return true; // Indicate success
       }
+      return false;
     } catch (err: any) {
       console.error("Error adding comment:", err);
-      // Revert optimistic update on error
-      setComments(prevComments => prevComments.filter(c => c.id !== tempId));
-      setEngagement(prev => ({...(prev!), commentCount: originalCommentCount }));
       setInteractionError(err.message || "Failed to add comment.");
       return false;
     }
@@ -402,77 +368,3 @@ export default function ResearchPostPage() {
     </div>
     </PageContainer>
   );
-}
-
-// Placeholder for CommentForm component
-const CommentFormComponent = ({ postId, onCommentAdded }: { postId: string, onCommentAdded: (content: string) => Promise<boolean> }) => {
-  const [content, setContent] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const success = await onCommentAdded(content);
-    if (success) {
-      setContent(''); // Clear form on success
-    }
-    setIsSubmitting(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <textarea 
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Write your comment..."
-        rows={3}
-        className="w-full p-3 rounded-md bg-neutral-800 border border-neutral-700 text-neutral-200 focus:ring-2 focus:ring-accent-purple focus:border-accent-purple transition-shadow"
-        disabled={isSubmitting}
-      />
-      <Button type="submit" variant="primary" className="bg-accent-purple hover:bg-accent-purple-hover text-white" disabled={isSubmitting || !content.trim()}>
-        {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiMessageSquare className="mr-2" />} 
-        Post Comment
-      </Button>
-    </form>
-  );
-};
-
-// Placeholder for CommentItem component
-const CommentItemComponent = ({ comment }: { comment: PostCommentWithAuthor }) => {
-  const authorName = comment.profiles ? `${comment.profiles.first_name || ''} ${comment.profiles.last_name || ''}`.trim() : 'Anonymous';
-  const commentDate = comment.created_at && !isNaN(new Date(comment.created_at).getTime()) 
-    ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }) 
-    : 'some time ago';
-
-  const [isExpanded, setIsExpanded] = useState(false);
-  const MAX_LENGTH = 200; // Show more threshold
-  const canTruncate = comment.content.length > MAX_LENGTH;
-  const displayText = isExpanded ? comment.content : `${comment.content.substring(0, MAX_LENGTH)}${canTruncate ? '...' : ''}`;
-
-  return (
-    <div className="p-4 rounded-lg bg-neutral-800/50 border border-neutral-700/50">
-      <div className="flex items-center mb-2">
-        <Avatar 
-          src={comment.profiles?.avatar_url || null} 
-          alt={authorName} 
-          size="sm"
-          fallback={authorName.substring(0,1)}
-          className="mr-3"
-        />
-        <div>
-          <p className="font-semibold text-sm text-neutral-100">{authorName}</p>
-          <p className="text-xs text-neutral-400">{commentDate}</p>
-        </div>
-      </div>
-      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{displayText}</p>
-      {canTruncate && (
-        <button 
-          onClick={() => setIsExpanded(!isExpanded)} 
-          className="text-xs text-accent-purple hover:underline mt-1"
-        >
-          {isExpanded ? 'Show Less' : 'Read More'}
-        </button>
-      )}
-    </div>
-  );
-}; 

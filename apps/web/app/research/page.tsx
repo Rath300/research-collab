@@ -103,9 +103,9 @@ export default function ResearchPage() {
                         <div>
                             <p className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">{authorName}</p>
                             <p className="text-xs text-neutral-500">{post.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
-                        </div>
-                    </div>
-
+          </div>
+        </div>
+        
                     <Link href={`/research/${post.id}`} className="block mb-2">
                       <h2 className="text-xl lg:text-2xl font-heading text-neutral-100 hover:text-accent-purple transition-colors duration-150">
                         {post.title}
@@ -149,9 +149,38 @@ export default function ResearchPage() {
             {/* <Link href="/projects/new" className="mt-4 inline-block px-4 py-2 bg-accent-purple hover:bg-accent-purple-hover text-white font-sans rounded-md transition-colors">
               Create New Post
             </Link> */}
-          </div>
+        </div>
         )}
       </div>
     </PageContainer>
+  );
+} 
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold mb-6">Research Feed</h1>
+      
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">Machine Learning Applications in Climate Science</h2>
+          <p className="text-gray-600 mb-4">
+            Exploring how machine learning algorithms can be applied to climate data to improve predictions and mitigation strategies.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-md">Machine Learning</span>
+            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-md">Climate Science</span>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">Quantum Computing: Recent Advances</h2>
+          <p className="text-gray-600 mb-4">
+            A review of the latest breakthroughs in quantum computing and their implications for computational research.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md">Quantum Computing</span>
+            <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-md">Computer Science</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 } 
