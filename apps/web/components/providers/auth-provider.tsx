@@ -21,41 +21,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // const pathname = usePathname(); // No longer needed
 
   useEffect(() => {
-    console.log('AuthProvider Effect: Setting up listener.');
-    setLoading(true);
+    console.log('[AuthProvider] Effect RUNNING. Initializing onAuthStateChange listener.');
+    setLoading(true); // Set loading true at the start of the effect
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // const currentPath = window.location.pathname; // Not needed for this provider's logic
-        console.log(`AuthProvider: onAuthStateChange event: ${event}, Session: ${!!session}`);
-        const currentUser = session?.user ?? null;
+        console.log('[AuthProvider] onAuthStateChange FIRED.');
+        console.log(`[AuthProvider] Event: ${event}`);
+        console.log(`[AuthProvider] Session available: ${!!session}`);
         
-        // Only update user in store if it has actually changed
+        const currentUser = session?.user ?? null;
+        console.log('[AuthProvider] Current session user (currentUser):', currentUser ? { id: currentUser.id, email: currentUser.email } : null);
+        console.log('[AuthProvider] Zustand store user BEFORE update (storeUser):', storeUser ? { id: storeUser.id, email: storeUser.email } : null);
+
+        // Update user in store only if it has actually changed
+        // Comparing stringified versions is a simple way to check for value changes in the user object
         if (JSON.stringify(currentUser) !== JSON.stringify(storeUser)) {
+          console.log('[AuthProvider] Detected change in user object. Updating Zustand store user.');
           setUser(currentUser);
+        } else {
+          console.log('[AuthProvider] No change detected in user object. Zustand store user not updated.');
         }
 
         if (currentUser) {
-          console.log('AuthProvider: User detected, fetching profile...');
-          // Redirection logic removed - will be handled by middleware
+          console.log(`[AuthProvider] User detected (ID: ${currentUser.id}). Attempting to fetch profile.`);
           try {
             const profileData = await getProfile(currentUser.id);
             setProfile(profileData);
-            console.log('AuthProvider: Profile fetched.');
+            console.log('[AuthProvider] Profile fetched successfully:', profileData ? { id: profileData.id, first_name: profileData.first_name, last_name: profileData.last_name } : null);
           } catch (error) {
-            console.error('AuthProvider: Error fetching profile:', error);
+            console.error('[AuthProvider] Error fetching profile:', error);
             setProfile(null); 
+            console.log('[AuthProvider] Profile set to null due to fetch error.');
           }
         } else {
-          console.log('AuthProvider: No user session.');
+          console.log('[AuthProvider] No user session. Clearing profile in Zustand store.');
           setProfile(null); 
         }
+        console.log('[AuthProvider] Setting loading to false.');
         setLoading(false); 
       }
     );
+    
+    // Initial setLoading(false) was removed here, as onAuthStateChange will fire upon initialization
+    // and set loading state accordingly after the first auth check / profile fetch attempt.
 
     return () => {
-      console.log('AuthProvider Effect: Cleaning up listener.');
+      console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListener.subscription?.unsubscribe();
     };
   }, [supabase, setUser, setProfile, setLoading, storeUser]); // storeUser added as dependency
