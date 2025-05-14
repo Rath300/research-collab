@@ -103,9 +103,9 @@ export default function ResearchPage() {
                         <div>
                             <p className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">{authorName}</p>
                             <p className="text-xs text-neutral-500">{post.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
-          </div>
-        </div>
-        
+                        </div>
+                    </div>
+
                     <Link href={`/research/${post.id}`} className="block mb-2">
                       <h2 className="text-xl lg:text-2xl font-heading text-neutral-100 hover:text-accent-purple transition-colors duration-150">
                         {post.title}
@@ -149,7 +149,7 @@ export default function ResearchPage() {
             {/* <Link href="/projects/new" className="mt-4 inline-block px-4 py-2 bg-accent-purple hover:bg-accent-purple-hover text-white font-sans rounded-md transition-colors">
               Create New Post
             </Link> */}
-        </div>
+          </div>
         )}
       </div>
     </PageContainer>
