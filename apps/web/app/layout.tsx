@@ -2,13 +2,19 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/components/providers/auth-provider'; // Reinstated AuthProvider
+import dynamic from 'next/dynamic'; // Added for dynamic import
 import { GeistSans } from 'geist/font/sans';
 // import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
 // import { Sidebar } from '@/components/layout/Sidebar'; // Sidebar still commented out
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
 import { useEffect } from 'react';
+
+// Dynamically import AuthProvider with SSR turned off
+const AuthProvider = dynamic(
+  () => import('@/components/providers/auth-provider').then(mod => mod.AuthProvider),
+  { ssr: false, loading: () => <div className="min-h-screen flex flex-1 justify-center items-center"><p>Loading authentication...</p></div> }
+);
 
 // export const metadata: Metadata = { // Metadata should be defined in a server component, cannot be in a 'use client' file.
 // title: 'Research Collab',
