@@ -90,8 +90,17 @@ const DashboardCard: React.FC<{ title?: string; titleIcon?: React.ElementType; c
 const MyProfileSnapshot = () => {
   const { profile } = useAuthStore();
   const router = useRouter();
-  const displayName = profile?.full_name || (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || 'User';
-  const displayAvatarUrl = profile?.avatar_url;
+  
+  // Corrected displayName logic
+  const calculatedDisplayName = (profile?.first_name && profile?.last_name 
+    ? `${profile.first_name} ${profile.last_name}` 
+    : profile?.first_name)
+    || 'User';
+  const displayName = calculatedDisplayName.trim() || 'User'; // Ensure it's not empty string, fallback to 'User'
+  
+  // Ensure displayAvatarUrl is null if not a valid URL
+  const isValidAvatarUrl = profile?.avatar_url && (profile.avatar_url.startsWith('http://') || profile.avatar_url.startsWith('https://'));
+  const displayAvatarUrl = isValidAvatarUrl ? profile.avatar_url : null;
 
   return (
     <DashboardCard title="Profile Status" titleIcon={FiUser} className="mb-6 md:mb-8">
