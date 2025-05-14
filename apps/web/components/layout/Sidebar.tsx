@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useUIStore, useAuthStore } from '@/lib/store';
 import { Sidebar as ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { 
@@ -28,12 +28,14 @@ import Image from 'next/image'; // For user avatars
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { sidebarOpen, setSidebarOpen } = useUIStore(state => ({
     sidebarOpen: state.sidebarOpen,
     setSidebarOpen: state.setSidebarOpen,
   }));
-  const { profile } = useAuthStore(state => ({
+  const { profile, signOut } = useAuthStore(state => ({
     profile: state.profile,
+    signOut: state.signOut,
   }));
 
   const currentUserId = profile?.id;
@@ -42,20 +44,25 @@ export function Sidebar() {
 
   const mainNavItems = [
     { label: 'Dashboard', href: '/dashboard', icon: <FiGrid /> },
-    { label: 'Profile', href: currentUserId ? `/profile/${currentUserId}` : '/settings/account', icon: <FiUser /> },
-    { label: 'Matching', href: '/matching', icon: <FiHeart /> },
-    { label: 'Chat', href: '/chats', icon: <FiMessageSquare /> },
-    { label: 'Projects', href: '/projects', icon: <FiBriefcase /> },
+    { label: 'Chats', href: '/chats', icon: <FiMessageSquare /> },
+    { label: 'New Project', href: '/projects/new', icon: <FiPlus /> },
     { label: 'Trending', href: '/trending', icon: <FiTrendingUp /> },
-    { label: 'Collaborators', href: '/collaborators', icon: <FiUsers /> },
   ];
   
   const settingsSubItems = [
     { label: 'Account', href: '/settings/account', icon: <FiUser /> },
-    { label: 'Notifications', href: '/settings/notifications', icon: <FiBell /> },
   ];
 
-  const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) ?? false);
+  const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) && href !== '/') || (href === '/settings' && pathname?.startsWith('/settings'));
+
+  const handleSignOut = async () => {
+    if (signOut) {
+      await signOut();
+    } else {
+      console.warn('Sign out function not available on useAuthStore');
+      alert("Logout functionality to be fully implemented!");
+    }
+  };
 
   return (
     <div className="flex h-screen fixed top-0 left-0 z-30">
@@ -63,17 +70,15 @@ export function Sidebar() {
         collapsed={!sidebarOpen}
         width="270px"
         collapsedWidth="80px"
-        backgroundColor="rgba(25, 25, 35, 0.85)" // Slightly adjusted dark background
+        backgroundColor="rgb(24 24 27)"
         rootStyles={{
           borderRightWidth: '0px',
           color: '#e0e0e0',
-          height: '100vh', // Ensure ProSidebar takes full height
+          height: '100vh',
           '.ps-sidebar-container': {
-            backgroundColor: 'transparent', // Make container transparent to see root background
-            backdropFilter: 'blur(12px)', 
-            WebkitBackdropFilter: 'blur(12px)',
-            display: 'flex', // Needed for flex-col on child
-            flexDirection: 'column', // Needed for flex-col on child
+            backgroundColor: 'transparent',
+            display: 'flex',
+            flexDirection: 'column',
           },
           transition: 'width 0.3s ease-in-out',
         }}
@@ -89,12 +94,12 @@ export function Sidebar() {
                   width={sidebarOpen ? 48 : 40} 
                   height={sidebarOpen ? 48 : 40} 
                   className={`rounded-full ${sidebarOpen ? 'mr-3' : 'mb-2'} cursor-pointer hover:opacity-80 transition-opacity`}
-                  priority // Potentially prioritize loading avatar
+                  priority
                 />
               </Link>
             ) : (
-              <div className={`rounded-full bg-gray-700 flex items-center justify-center ${sidebarOpen ? 'mr-3' : 'mb-2'}`} style={{ width: sidebarOpen ? 48 : 40, height: sidebarOpen ? 48 : 40}}>
-                <FiUser size={sidebarOpen? 24 : 20} className="text-gray-400" />
+              <div className={`rounded-full bg-neutral-700 flex items-center justify-center ${sidebarOpen ? 'mr-3' : 'mb-2'}`} style={{ width: sidebarOpen ? 48 : 40, height: sidebarOpen ? 48 : 40}}>
+                <FiUser size={sidebarOpen? 24 : 20} className="text-neutral-400" />
               </div>
             )}
             {sidebarOpen && (
@@ -110,7 +115,7 @@ export function Sidebar() {
             )}
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)} 
-              className={`p-1 rounded-md hover:bg-white/10 transition-colors ${sidebarOpen ? 'ml-auto self-center' : 'mt-2'}`}
+              className={`p-1 rounded-md hover:bg-neutral-700/50 transition-colors ${sidebarOpen ? 'ml-auto self-center' : 'mt-2'}`}
               aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               {sidebarOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
@@ -122,28 +127,28 @@ export function Sidebar() {
             className="flex-grow overflow-y-auto"
             menuItemStyles={{
               button: ({ level, active }) => ({
-                color: active ? '#F9A826' : '#d0d0d0',
-                backgroundColor: active ? 'rgba(249, 168, 38, 0.1)' : 'transparent',
+                color: active ? '#ffffff' : '#a3a3a3',
+                backgroundColor: active ? 'rgb(63 63 70)' : 'transparent',
                 paddingLeft: sidebarOpen ? (level === 0 ? '20px' : '0') : '0',
                 justifyContent: sidebarOpen ? 'flex-start' : 'center',
                 height: '48px',
                 borderRadius: '8px',
-                margin: '2px 10px', // Slightly reduced margin
+                margin: '2px 10px',
                 alignItems: 'center',
                 transition: 'background-color 0.2s ease, color 0.2s ease',
                 '&:hover': {
-                  backgroundColor: 'rgba(249, 168, 38, 0.2)',
-                  color: '#F9A826',
+                  backgroundColor: 'rgb(82 82 91)',
+                  color: '#ffffff',
                 },
               }),
               icon: ({ active }) => ({
-                 color: active ? '#F9A826' : '#888EA8',
+                 color: active ? '#ffffff' : '#a3a3a3',
                  marginLeft: sidebarOpen ? '0' : 'auto',
                  marginRight: sidebarOpen ? '10px' : 'auto',
                  transition: 'color 0.2s ease',
               }),
               label: () => ({
-                fontSize: '0.875rem', // Adjusted font size
+                fontSize: '0.875rem',
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -152,10 +157,10 @@ export function Sidebar() {
               subMenuContent: () => ({
                 backgroundColor: 'transparent',
                 marginLeft: sidebarOpen ? '10px' : '0',
-              }),
+              })
             }}
           >
-            <div className={`px-5 py-2 text-xs text-gray-500 uppercase ${sidebarOpen ? '' : 'text-center sr-only'}`}>
+            <div className={`px-5 py-2 text-xs text-neutral-500 uppercase ${sidebarOpen ? '' : 'text-center sr-only'}`}>
               {sidebarOpen ? 'Menu' : ''}
             </div>
             {mainNavItems.map((item) => (
@@ -173,8 +178,8 @@ export function Sidebar() {
             <SubMenu
               label={sidebarOpen ? "Settings" : ""}
               icon={<FiSettings />}
-              active={settingsSubItems.some(sub => isActive(sub.href))}
-              defaultOpen={settingsSubItems.some(sub => isActive(sub.href))}
+              active={settingsSubItems.some(sub => isActive(sub.href)) || isActive('/settings')}
+              defaultOpen={settingsSubItems.some(sub => isActive(sub.href)) || isActive('/settings')}
             >
               {sidebarOpen && settingsSubItems.map((subItem) => (
                 <MenuItem
@@ -190,11 +195,7 @@ export function Sidebar() {
             
             <MenuItem 
                 icon={<FiLogOut />}
-                onClick={() => {
-                    // Replace with actual logout logic from useAuthStore
-                    // Example: useAuthStore.getState().signOut(); router.push('/login');
-                    alert("Logout functionality to be implemented!");
-                }}
+                onClick={handleSignOut}
             >
                 {sidebarOpen ? "Logout" : ""}
             </MenuItem>
@@ -203,18 +204,18 @@ export function Sidebar() {
           {/* Bottom CTA */}
           <div className={`mb-4 px-4 ${sidebarOpen ? '' : 'flex justify-center'}`}>
             {sidebarOpen ? (
-              <div className="p-3 rounded-lg bg-white/5 text-center">
+              <div className="p-3 rounded-lg bg-neutral-800/70 text-center">
                 <h6 className="font-semibold text-white text-sm mb-0.5">New Project</h6>
-                <p className="text-xs text-gray-400 mb-2.5">Start collaborating on a new idea.</p>
+                <p className="text-xs text-neutral-400 mb-2.5">Start collaborating on a new idea.</p>
                 <Link href="/projects/new" passHref>
-                  <button className="w-full bg-[#F9A826] text-black py-2 px-3 rounded-md text-xs font-semibold hover:bg-opacity-90 transition-colors flex items-center justify-center">
+                  <button className="w-full bg-neutral-700 text-white py-2 px-3 rounded-md text-xs font-semibold hover:bg-neutral-600 transition-colors flex items-center justify-center">
                     <FiPlus className="inline mr-1.5 -ml-0.5" size={16} /> Add Project
                   </button>
                 </Link>
               </div>
             ) : (
               <Link href="/projects/new" passHref>
-                <button className="bg-[#F9A826] text-black p-2.5 rounded-lg hover:bg-opacity-90 transition-colors" aria-label="Add New Project">
+                <button className="bg-neutral-700 text-white p-2.5 rounded-lg hover:bg-neutral-600 transition-colors" aria-label="Add New Project">
                   <FiPlus size={20} />
                 </button>
               </Link>

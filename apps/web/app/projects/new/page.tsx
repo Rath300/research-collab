@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { FileUpload } from '@/components/research/FileUpload';
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperclip, FiTag } from 'react-icons/fi';
-import { PageContainer } from '@/components/layout/PageContainer';
 
 // Define schema for research post form validation (aligned with research_posts table)
 const researchPostFormSchema = z.object({
@@ -62,7 +62,7 @@ export default function NewProjectPage() {
   };
 
   const handleTagAdd = () => {
-    const trimmedTag = currentTag.trim();
+    const trimmedTag = currentTag.trim().toLowerCase();
     if (trimmedTag && !(formData.tags || []).includes(trimmedTag) && (formData.tags || []).length < 10) {
       setFormData(prev => ({ ...prev, tags: [...(prev.tags || []), trimmedTag] }));
       setCurrentTag('');
@@ -136,7 +136,13 @@ export default function NewProjectPage() {
       // If navigation happens away, form will reset on next visit naturally.
     } catch (err: any) {
       console.error('Submission error:', err);
-      setPageError(err.message || 'Failed to create research post. Please try again.');
+      // Check for Supabase specific error codes for duplicate titles if applicable
+      if (err.code === '23505') { // PostgreSQL unique violation
+        setPageError('A post with this title already exists. Please choose a different title.');
+        setErrors(prev => ({...prev, title: 'This title is already taken.'}));
+      } else {
+        setPageError(err.message || 'Failed to create research post. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -151,50 +157,57 @@ export default function NewProjectPage() {
     router.push(createdResearchPostId ? `/research/${createdResearchPostId}` : '/dashboard');
   };
 
-  const commonLabelClass = "block text-sm font-medium text-gray-200 mb-1.5";
-  const tagItemClass = "flex items-center bg-researchbee-yellow/20 text-researchbee-yellow px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border border-researchbee-yellow/30 shadow-sm transition-all hover:bg-researchbee-yellow/30";
-  const tagRemoveButtonClass = "ml-2 text-researchbee-yellow/70 hover:text-white focus:outline-none transition-colors";
+  // Updated classes for the new design
+  const commonLabelClass = "block text-sm font-medium text-neutral-300 mb-1.5 font-sans";
+  const tagItemClass = "flex items-center bg-neutral-700 text-neutral-200 px-3 py-1.5 rounded-full text-xs font-sans shadow-sm transition-all hover:bg-neutral-600";
+  const tagRemoveButtonClass = "ml-2 text-neutral-400 hover:text-white focus:outline-none transition-colors";
+  const inputBaseClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
+  const textareaBaseClass = inputBaseClass.replace('h-10', 'min-h-[80px]'); // For textarea
 
   if (authLoading) {
     return (
-      <PageContainer title="New Post" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white flex items-center justify-center">
+      <div className="bg-black min-h-screen text-neutral-300 flex items-center justify-center font-sans">
         <div className="flex flex-col items-center">
-          <FiLoader className="animate-spin text-researchbee-yellow text-6xl mb-4" />
-          <p className="text-xl text-gray-300">Loading...</p>
+          <FiLoader className="animate-spin text-neutral-500 text-5xl mb-4" />
+          <p className="text-xl">Loading...</p>
         </div>
-      </PageContainer>
+      </div>
     );
   }
   
   return (
-    <PageContainer title="Create New Research Post" className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen text-white flex flex-col items-center justify-center py-8 px-4">
-      <div className="w-full max-w-3xl">
-        <Card className="glass-card shadow-xl w-full overflow-hidden">
-          <CardHeader className="pt-8 pb-6 text-center border-b border-white/10">
-            <FiPaperclip className="text-5xl text-researchbee-yellow mx-auto mb-4" />
-            <CardTitle className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400">
+    <motion.div 
+      className="bg-black min-h-screen text-neutral-100 flex flex-col items-center justify-start py-12 px-4 sm:px-6 lg:px-8 font-sans"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="w-full max-w-2xl">
+        <Card className="bg-neutral-900 border border-neutral-800 shadow-xl w-full overflow-hidden rounded-lg">
+          <CardHeader className="pt-8 pb-6 text-center border-b border-neutral-800">
+            <FiPaperclip className="text-5xl text-neutral-500 mx-auto mb-4" />
+            <CardTitle className="text-3xl sm:text-4xl font-heading text-neutral-100">
               Create New Research Post
             </CardTitle>
-            <CardDescription className="text-gray-300 mt-2 text-lg px-4">
+            <CardDescription className="text-neutral-400 mt-2 text-base px-4 font-sans">
               Share your research ideas, findings, or collaboration requests.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 sm:p-8 space-y-6">
-            {/* Error and Success Messages Styling */}
             {pageError && (
-              <div className="p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-red-200 text-sm backdrop-blur-sm flex items-start space-x-3">
-                <FiAlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-300" />
+              <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm flex items-start space-x-2.5 font-sans">
+                <FiAlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-400" />
                 <div>
-                    <h5 className="font-semibold mb-0.5">Error</h5>
+                    <h5 className="font-semibold mb-0.5 font-heading">Error</h5>
                     <span>{pageError}</span>
                 </div>
               </div>
             )}
-            {pageSuccess && (
-              <div className="p-4 bg-green-500/20 border border-green-500/40 rounded-lg text-green-200 text-sm backdrop-blur-sm flex items-start space-x-3">
-                <FiCheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-300" />
+            {pageSuccess && !createdResearchPostId && (
+              <div className="p-3 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-start space-x-2.5 font-sans">
+                <FiCheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-400" />
                 <div>
-                    <h5 className="font-semibold mb-0.5">Success!</h5>
+                    <h5 className="font-semibold mb-0.5 font-heading">Success!</h5>
                     <span>{pageSuccess}</span>
                 </div>
               </div>
@@ -204,7 +217,7 @@ export default function NewProjectPage() {
               <form onSubmit={handleSubmitDetails} className="space-y-6">
                 <div>
                   <label htmlFor="title" className={commonLabelClass}>
-                    Title<span className="text-red-400 ml-1">*</span>
+                    Title<span className="text-red-500 ml-1">*</span>
                   </label>
                   <Input
                     id="title"
@@ -212,33 +225,34 @@ export default function NewProjectPage() {
                     value={formData.title}
                     onChange={handleInputChange}
                     placeholder="E.g., AI in Sustainable Agriculture"
-                    error={!!errors.title}
-                    className="bg-white/5 border-white/20 placeholder-gray-400/60 text-white"
+                    className={`${inputBaseClass} ${errors.title ? 'border-red-600 focus-visible:ring-red-500' : ''}`}
+                    aria-invalid={!!errors.title}
+                    aria-describedby={errors.title ? "title-error" : undefined}
                   />
-                  {errors.title && <p className="mt-1 text-sm text-red-300">{errors.title}</p>}
+                  {errors.title && <p id="title-error" className="mt-1 text-sm text-red-400 font-sans">{errors.title}</p>}
                 </div>
                 
                 <div>
                   <label htmlFor="content" className={commonLabelClass}>
-                    Content / Description<span className="text-red-400 ml-1">*</span>
+                    Content / Description<span className="text-red-500 ml-1">*</span>
                   </label>
-                  <Input
+                  <textarea
                     id="content"
                     name="content"
-                    type="textarea"
                     rows={6}
                     value={formData.content}
                     onChange={handleInputChange}
                     placeholder="Describe your project in detail..."
-                    error={!!errors.content}
-                    className="bg-white/5 border-white/20 placeholder-gray-400/60 text-white"
+                    className={`${textareaBaseClass} ${errors.content ? 'border-red-600 focus-visible:ring-red-500' : ''}`}
+                    aria-invalid={!!errors.content}
+                    aria-describedby={errors.content ? "content-error" : undefined}
                   />
-                  {errors.content && <p className="mt-1 text-sm text-red-300">{errors.content}</p>}
+                  {errors.content && <p id="content-error" className="mt-1 text-sm text-red-400 font-sans">{errors.content}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="tags" className={commonLabelClass}>
-                    Tags / Keywords (up to 10)
+                    Tags / Keywords <span className="text-xs text-neutral-500">(up to 10, press Enter or comma to add)</span>
                   </label>
                   <div className="flex items-center gap-2 mb-2">
                     <Input
@@ -247,71 +261,90 @@ export default function NewProjectPage() {
                       value={currentTag}
                       onChange={handleTagInputChange}
                       onKeyDown={handleTagKeyDown}
-                      placeholder="Add relevant tags (e.g., AI, Healthcare)"
-                      className="flex-grow bg-white/5 border-white/20 placeholder-gray-400/60 text-white"
+                      placeholder="Type a tag and press Enter"
+                      className={`${inputBaseClass} flex-grow`}
                     />
-                    <Button type="button" onClick={handleTagAdd} variant="secondary" className="bg-researchbee-yellow/80 hover:bg-researchbee-yellow text-black flex-shrink-0">
-                      <FiTag className="mr-2"/> Add Tag
-                    </Button>
+                    <Button type="button" onClick={handleTagAdd} variant="secondary" className="font-sans">Add Tag</Button>
                   </div>
-                  {errors.tags && <p className="mt-1 text-sm text-red-300">{errors.tags}</p>}
-                  {(formData.tags || []).length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {(formData.tags || []).map(tag => (
-                        <span key={tag} className={tagItemClass}>
-                          {tag}
-                          <button type="button" onClick={() => handleTagRemove(tag)} className={tagRemoveButtonClass}>
+                  {errors.tags && <p className="mt-1 text-sm text-red-400 font-sans">{errors.tags}</p>}
+                  {(formData.tags && formData.tags.length > 0) && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.tags.map((tag) => (
+                        <div key={tag} className={tagItemClass}>
+                          <span>{tag}</span>
+                          <button type="button" onClick={() => handleTagRemove(tag)} className={tagRemoveButtonClass} aria-label={`Remove ${tag}`}>
                             <FiX size={14} />
                           </button>
-                        </span>
+                        </div>
                       ))}
                     </div>
                   )}
                 </div>
-                
+
                 <div>
                   <label htmlFor="visibility" className={commonLabelClass}>
-                    Visibility
+                    Visibility<span className="text-red-500 ml-1">*</span>
                   </label>
-                  <select 
-                    id="visibility" 
-                    name="visibility" 
-                    value={formData.visibility} 
+                  <select
+                    id="visibility"
+                    name="visibility"
+                    value={formData.visibility}
                     onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg bg-white/5 border border-white/20 text-white focus:ring-2 focus:ring-researchbee-yellow focus:border-researchbee-yellow outline-none transition-all duration-150 ease-in-out shadow-sm"
+                    className={`${inputBaseClass} appearance-none`}
                   >
-                    <option value="public" className="bg-gray-800 text-white">Public (Visible to everyone)</option>
-                    <option value="connections" className="bg-gray-800 text-white">Connections Only (Visible to your matches/connections)</option>
-                    <option value="private" className="bg-gray-800 text-white">Private (Only visible to you)</option>
+                    <option value="public">Public</option>
+                    <option value="connections">Connections Only</option>
+                    <option value="private">Private</option>
                   </select>
+                  {errors.visibility && <p className="mt-1 text-sm text-red-400 font-sans">{errors.visibility}</p>}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-researchbee-yellow hover:bg-researchbee-darkyellow text-black py-3 text-base font-semibold tracking-wide flex items-center justify-center"
-                >
-                  {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiSave className="mr-2" />} 
-                  {isSubmitting ? 'Saving Details...' : 'Save Post Details'}
-                </Button>
+                <div className="pt-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full font-sans bg-neutral-100 text-black hover:bg-neutral-300 focus-visible:ring-neutral-400"
+                    isLoading={isSubmitting}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Details & Next'}
+                  </Button>
+                </div>
               </form>
             ) : (
-              <div className="space-y-6 text-center">
-                <h3 className="text-2xl font-semibold text-white">Upload Project Files (Optional)</h3>
-                <p className="text-gray-300">
-                  Your post details have been saved. You can now upload any relevant documents, images, or datasets.
-                </p>
-                <div className="p-4 rounded-lg bg-black/20 border border-white/10 shadow-md">
-                    <FileUpload researchPostId={createdResearchPostId} onUploadComplete={handleFileUploadComplete} />
+              <div className="space-y-6 pt-6 text-center">
+                {pageSuccess && (
+                    <div className="p-3 mb-6 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-start space-x-2.5 font-sans">
+                        <FiCheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-400" />
+                        <div>
+                            <h5 className="font-semibold mb-0.5 font-heading">Details Saved!</h5>
+                            <span>{pageSuccess.includes('File uploaded:') ? pageSuccess : 'You can now upload associated files below.'}</span>
+                        </div>
+                    </div>
+                )}
+                <div>
+                  <h3 className="text-xl font-heading text-neutral-100 mb-2">Upload Project Files (Optional)</h3>
+                  <p className="text-neutral-400 mb-4 font-sans">Upload relevant documents, images, or data for your research post.</p>
+                  <FileUpload 
+                    researchPostId={createdResearchPostId}
+                    onUploadComplete={handleFileUploadComplete}
+                  />
                 </div>
-                <Button onClick={handleFinish} variant="primary" className="w-full max-w-xs mx-auto bg-green-500 hover:bg-green-600 text-white py-3 text-base">
-                  <FiCheckCircle className="mr-2"/> Finish & View Post / Go to Dashboard
-                </Button>
+                <div className="pt-6 border-t border-neutral-800">
+                  <Button 
+                    onClick={handleFinish} 
+                    className="w-full sm:w-auto font-sans bg-green-600 hover:bg-green-500 text-white"
+                  >
+                    <FiCheckCircle className="mr-2" /> Finish & View Post
+                  </Button>
+                  <p className="text-xs text-neutral-500 mt-3 font-sans">
+                    You can also skip file upload and view your post directly.
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </motion.div>
   );
 } 

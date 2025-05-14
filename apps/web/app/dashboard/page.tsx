@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -66,17 +67,22 @@ function titleCase(str: string | null | undefined): string {
 
 const DashboardCard: React.FC<{ title?: string; titleIcon?: React.ElementType; className?: string; children: React.ReactNode }> = 
   ({ title, titleIcon: TitleIconProp, className = '', children }) => (
-  <div className={`bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 ${className}`}> 
+  <motion.div 
+    className={`bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 ${className}`}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  > 
     {(title || TitleIconProp) && (
       <div className="flex items-center mb-4">
         {TitleIconProp && <TitleIconProp className="w-6 h-6 text-neutral-400 mr-3" />}
-        {title && <h3 className="text-xl font-semibold text-neutral-100">{title}</h3>}
+        {title && <h3 className="text-xl font-heading text-neutral-100">{title}</h3>}
       </div>
     )}
-    <div>
+    <div className="font-sans text-neutral-300"> 
       {children}
     </div>
-  </div>
+  </motion.div>
 );
 
 const MyProfileSnapshot = () => {
@@ -90,15 +96,15 @@ const MyProfileSnapshot = () => {
       <div className="flex items-center space-x-4 mb-4">
         <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
         <div>
-          <h4 className="text-lg font-semibold text-neutral-100 truncate max-w-xs">{displayName}</h4>
-          <Link href={profile?.id ? `/profile/${profile.id}` : '/settings/account'} className="text-sm text-blue-400 hover:underline">
+          <h4 className="text-lg font-heading text-neutral-100 truncate max-w-xs">{displayName}</h4>
+          <Link href={profile?.id ? `/profile/${profile.id}` : '/settings/account'} className="text-sm text-neutral-400 hover:text-neutral-100 font-sans hover:underline">
             View Profile
           </Link>
         </div>
       </div>
       <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')}><FiUser className="mr-1"/> View Full</Button>
-        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')}><FiEdit2 className="mr-1"/> Edit Profile</Button>
+        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')} className="font-sans"><FiUser className="mr-1"/> View Full</Button>
+        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')} className="font-sans"><FiEdit2 className="mr-1"/> Edit Profile</Button>
       </div>
     </DashboardCard>
   );
@@ -120,10 +126,10 @@ const QuickActions = () => {
           <button
             key={action.label}
             onClick={() => router.push(action.href)}
-            className="flex flex-col items-center justify-center p-4 bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors aspect-square"
+            className="flex flex-col items-center justify-center p-4 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
           >
-            <action.icon className="w-7 h-7 text-neutral-300 mb-2" />
-            <span className="text-sm text-neutral-200 text-center">{action.label}</span>
+            <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-2 transition-colors" />
+            <span className="text-sm font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
           </button>
         ))}
       </div>
@@ -134,9 +140,9 @@ const QuickActions = () => {
 const ActivityFeed = () => {
   const router = useRouter();
   const activities = [
-    { text: "New Match: Dr. Emily Carter", time: "2h ago" },
-    { text: "New Message: Project Alpha Group", time: "5h ago" },
-    { text: "Collaboration Request: Prof. Davis", time: "1d ago" },
+    { text: "New Match: Dr. Emily Carter", time: "2h ago", type: "match" },
+    { text: "New Message: Project Alpha Group", time: "5h ago", type: "message" },
+    { text: "Collaboration Request: Prof. Davis", time: "1d ago", type: "request" },
   ];
   const hasActualActivity = activities.length > 0;
 
@@ -145,15 +151,15 @@ const ActivityFeed = () => {
       {hasActualActivity ? (
         <ul className="space-y-3">
           {activities.map((activity, index) => (
-            <li key={index} className="text-sm text-neutral-400">
+            <li key={index} className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
               {activity.text} - <span className="text-xs text-neutral-500">{activity.time}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <div className="text-center py-6">
+        <div className="text-center py-6 font-sans">
           <p className="text-neutral-500 mb-3">No recent activity yet.</p>
-          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')}><FiSearch className="mr-1"/> Find Collaborators</Button>
+          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')} className="font-sans"><FiSearch className="mr-1"/> Find Collaborators</Button>
         </div>
       )}
     </DashboardCard>
@@ -169,10 +175,10 @@ const CollaborationStatsDisplay = () => {
 
   return (
     <DashboardCard title="Collaboration Stats" titleIcon={FiTrendingUp} className="mb-6 md:mb-8">
-      <div className="space-y-3 text-neutral-300">
-        <p className="flex justify-between text-md">Active Projects: <span className="font-bold text-neutral-100">{stats.activeProjects}</span></p>
-        <p className="flex justify-between text-md">Pending Requests: <span className="font-bold text-neutral-100">{stats.pendingRequests}</span></p>
-        <p className="flex justify-between text-md">Unread Messages: <span className="font-bold text-neutral-100">{stats.unreadMessages}</span></p>
+      <div className="space-y-3 font-sans text-neutral-300">
+        <p className="flex justify-between text-md">Active Projects: <span className="font-heading text-neutral-100">{stats.activeProjects}</span></p>
+        <p className="flex justify-between text-md">Pending Requests: <span className="font-heading text-neutral-100">{stats.pendingRequests}</span></p>
+        <p className="flex justify-between text-md">Unread Messages: <span className="font-heading text-neutral-100">{stats.unreadMessages}</span></p>
       </div>
     </DashboardCard>
   );
@@ -191,17 +197,17 @@ export default function DashboardPage() {
   const [recentMatches, setRecentMatches] = useState<ProfileMatch[]>([]);
   const [recentPosts, setRecentPosts] = useState<ResearchPostWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasActivity, setHasActivity] = useState(true);
-  const [hasStats, setHasStats] = useState(true);
 
   const supabase = getBrowserClient();
   
   const loadDashboardData = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    
     try {
-      if (!user) return;
-      
-      setIsLoading(true);
-      
       const [
         { count: postCount },
         { count: matchCount },
@@ -248,78 +254,99 @@ export default function DashboardPage() {
         .from('research_posts')
         .select(`
           *,
-          profiles:user_id (*)
+          profiles (*)
         `)
-        .eq('visibility', 'public')
         .order('created_at', { ascending: false })
         .limit(3);
-      
+
       if (postsError) {
-        console.error('Error fetching posts:', postsError);
+        console.error('Error fetching recent posts:', postsError);
       } else {
-        setRecentPosts(postsData as ResearchPostWithProfile[] || []);
+        setRecentPosts(postsData as ResearchPostWithProfile[]);
       }
+
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error("Error loading dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
   }, [user, supabase]);
-  
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    } else {
-      router.push('/login');
-    }
-  }, [user, loadDashboardData, router]);
-  
-  useEffect(() => {
-    if (!isLoading && !user) {
-      console.log('DashboardPage: No user found, redirecting to login.');
-      router.replace('/login');
-    }
-  }, [user, isLoading, router]);
 
   useEffect(() => {
-    if (user !== undefined) {
-      setIsLoading(false);
-    }
-  }, [user]);
-  
+    loadDashboardData();
+  }, [loadDashboardData]);
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
-        <p className="text-neutral-400">Loading Dashboard...</p>
-        </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
-        <p className="text-neutral-400">Redirecting to login...</p>
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <p className="text-neutral-400 font-sans">Loading dashboard...</p>
       </div>
     );
   }
-
-  const welcomeName = profile?.full_name || (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || "Explorer";
 
   return (
-    <div className="space-y-8 p-1">
-      <h1 className="text-3xl font-bold text-neutral-100">Welcome back, {welcomeName}!</h1>
-      
+    <motion.div 
+      className="min-h-screen bg-black text-neutral-100 p-4 md:p-6 lg:p-8 font-sans"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <header className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
+        {profile?.first_name && (
+          <p className="text-lg text-neutral-400 mt-1 font-sans">
+            Welcome back, <span className="font-semibold text-neutral-200">{profile.first_name}</span>!
+          </p>
+        )}
+      </header>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+          <MyProfileSnapshot />
           <QuickActions />
-          <ActivityFeed /> 
         </div>
 
-        <div className="space-y-6 md:space-y-8">
-          <MyProfileSnapshot />
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+          <ActivityFeed />
           <CollaborationStatsDisplay />
         </div>
+        
+        <div className="lg:col-span-1 space-y-6 md:space-y-8">
+          <DashboardCard title="Recent Research Posts" titleIcon={FiList}>
+            {recentPosts.length > 0 ? (
+              <div className="space-y-4">
+                {recentPosts.map(post => (
+                  <ResearchPostCard key={post.id} post={post} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-neutral-500">No recent posts to display.</p>
+            )}
+            <Link href="/research" className="block mt-4 text-sm text-sky-400 hover:text-sky-300 font-sans hover:underline">View All Posts</Link>
+          </DashboardCard>
+
+          <DashboardCard title="Recent Matches" titleIcon={FiUsers}>
+            {recentMatches.length > 0 ? (
+              <ul className="space-y-3">
+                {recentMatches.map(match => (
+                  <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-neutral-800 transition-colors">
+                    <Avatar src={match.matched_profile?.avatar_url} alt={match.matched_profile?.full_name || 'User'} size="sm" fallback={<FiUser size={18}/>} />
+                    <div>
+                      <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-neutral-200 hover:underline">
+                        {match.matched_profile?.full_name || 'Matched User'}
+                      </Link>
+                      <p className="text-xs text-neutral-500 font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-neutral-500">No recent matches yet.</p>
+            )}
+            <Link href="/collaborators" className="block mt-4 text-sm text-sky-400 hover:text-sky-300 font-sans hover:underline">Find New Collaborators</Link>
+          </DashboardCard>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
