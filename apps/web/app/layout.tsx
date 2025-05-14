@@ -2,10 +2,10 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/components/providers/auth-provider';
+// import { AuthProvider } from '@/components/providers/auth-provider'; // Commented out AuthProvider
 import { GeistSans } from 'geist/font/sans';
 // import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
-// import { Sidebar } from '@/components/layout/Sidebar'; // Commented out Sidebar import
+// import { Sidebar } from '@/components/layout/Sidebar'; // Sidebar still commented out
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
 import { useEffect } from 'react';
@@ -28,7 +28,7 @@ export default function RootLayout({
 
   // Optional: Close sidebar on mobile when navigating to a new page if it was forced open
   useEffect(() => {
-    if (window.innerWidth < 768 && sidebarOpen) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
       // setSidebarOpen(false); // Potentially too aggressive, depends on desired UX
     }
   }, [pathname, sidebarOpen, setSidebarOpen]);
@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} font-sans antialiased`}>
       <body className="bg-black text-neutral-100 min-h-screen flex flex-col">
-        <AuthProvider>
+        {/* <AuthProvider> */}
           <div className="flex flex-1"> {/* Flex container for sidebar and main content */}
             {showSidebar && <div>Sidebar Placeholder</div>} {/* Replaced Sidebar component with a placeholder */}
             <main 
@@ -51,7 +51,7 @@ export default function RootLayout({
             </main>
           </div>
           {/* <Toaster /> */}
-        </AuthProvider>
+        {/* </AuthProvider> */}
       </body>
     </html>
   );
