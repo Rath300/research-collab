@@ -17,6 +17,82 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { FiLoader, FiAlertCircle, FiUser, FiFileText, FiDownload, FiTag, FiCalendar, FiEye, FiMessageSquare, FiThumbsUp, FiHeart } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
+// Placeholder Comment Form Component
+interface CommentFormProps {
+  postId: string;
+  onCommentAdded: (content: string) => Promise<boolean>;
+}
+
+const CommentFormComponent: React.FC<CommentFormProps> = ({ postId, onCommentAdded }) => {
+  const [commentText, setCommentText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) {
+      setFormError("Comment cannot be empty.");
+      return;
+    }
+    setIsSubmitting(true);
+    setFormError(null);
+    const success = await onCommentAdded(commentText);
+    if (success) {
+      setCommentText('');
+    } else {
+      setFormError("Failed to post comment. Please try again.");
+    }
+    setIsSubmitting(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <textarea
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        placeholder="Write a comment..."
+        className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded-md text-neutral-200 focus:ring-accent-purple focus:border-accent-purple transition-colors"
+        rows={3}
+        disabled={isSubmitting}
+      />
+      {formError && <p className="text-sm text-red-400">{formError}</p>}
+      <Button type="submit" variant="primary" disabled={isSubmitting} className="bg-accent-purple hover:bg-accent-purple-hover">
+        {isSubmitting ? <FiLoader className="animate-spin mr-2" /> : <FiMessageSquare className="mr-2" />}
+        Post Comment
+      </Button>
+    </form>
+  );
+};
+
+// Placeholder Comment Item Component
+interface CommentItemProps {
+  comment: PostCommentWithAuthor;
+}
+
+const CommentItemComponent: React.FC<CommentItemProps> = ({ comment }) => {
+  const authorName = comment.profiles ? `${comment.profiles.first_name || ''} ${comment.profiles.last_name || ''}`.trim() : 'Anonymous';
+  const commentDate = comment.created_at ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }) : 'some time ago';
+
+  return (
+    <div className="flex items-start space-x-3 p-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg">
+      <Avatar 
+        src={comment.profiles?.avatar_url} 
+        fallback={authorName.substring(0, 2)}
+        alt={authorName} 
+        size="sm"
+        className="mt-1"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-neutral-100">{authorName}</span>
+          <span className="text-xs text-neutral-500">{commentDate}</span>
+        </div>
+        <p className="text-sm text-neutral-300 mt-1">{comment.content}</p>
+      </div>
+    </div>
+  );
+};
+
 export default function ResearchPostPage() {
   const router = useRouter();
   const params = useParams();
@@ -368,3 +444,4 @@ export default function ResearchPostPage() {
     </div>
     </PageContainer>
   );
+}
