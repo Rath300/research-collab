@@ -22,7 +22,7 @@ import {
   FiTarget
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
-import { createBrowserClient } from '@supabase/ssr';
+import { getBrowserClient } from '@/lib/supabaseClient';
 import { Database } from '@/lib/database.types';
 
 type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
@@ -69,10 +69,7 @@ export default function ProfilePage() {
   const userId = params?.id as string;
   const isOwnProfile = user?.id === userId;
 
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getBrowserClient();
   
   const loadProfileData = useCallback(async () => {
     try {
