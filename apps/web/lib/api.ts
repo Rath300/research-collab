@@ -340,12 +340,13 @@ const projectFileSchemaForApi = z.object({
   file_type: z.string(),
   file_size: z.number().int(),
   description: z.string().nullable().optional(),
-  created_at: z.string().datetime().nullable().optional(),
+  created_at: z.coerce.date(),
 });
 
 const researchPostWithDetailsSchema = z.object({
   id: z.string().uuid(),
-  created_at: z.string().datetime().nullable().optional(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
   title: z.string(),
   content: z.string(),
   user_id: z.string().uuid(),
@@ -414,182 +415,6 @@ export const getResearchPostById = async (postId: string): Promise<ResearchPostW
       throw new SupabaseError(`Research post data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
     }
     throw new SupabaseError((error as Error).message || 'Failed to get research post', (error as { status?: number })?.status || 500);
-  }
-};
-
-// Schemas for Post Engagement
-const postCommentSchema = z.object({
-  id: z.string().uuid(),
-  post_id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  content: z.string(),
-  created_at: z.string().datetime().nullable().optional(),
-  updated_at: z.string().datetime().nullable().optional(),
-  profiles: importedProfileSchema.pick({
-    id: true,
-    first_name: true,
-    last_name: true,
-    avatar_url: true,
-  }).nullable(), // Author of the comment
-});
-export type PostCommentWithAuthor = z.infer<typeof postCommentSchema>;
-
-export interface PostEngagementData {
-  likeCount: number;
-  commentCount: number;
-  currentUserHasLiked: boolean;
-}
-
-export const getPostEngagement = async (postId: string, currentUserId?: string): Promise<PostEngagementData> => {
-  const supabase = getBrowserClient();
-  try {
-    const { count: likeCount, error: likeError } = await supabase
-      .from('post_likes')
-      .select('id', { count: 'exact', head: true })
-      .eq('post_id', postId);
-
-    if (likeError) throw new SupabaseError(`Error fetching like count: ${likeError.message}`, 500, likeError.code);
-
-    const { count: commentCount, error: commentError } = await supabase
-      .from('post_comments')
-      .select('id', { count: 'exact', head: true })
-      .eq('post_id', postId);
-
-    if (commentError) throw new SupabaseError(`Error fetching comment count: ${commentError.message}`, 500, commentError.code);
-
-    let currentUserHasLiked = false;
-    if (currentUserId) {
-      const { data: likeData, error: userLikeError } = await supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', currentUserId)
-        .limit(1);
-      if (userLikeError) throw new SupabaseError(`Error checking user like: ${userLikeError.message}`, 500, userLikeError.code);
-      currentUserHasLiked = (likeData && likeData.length > 0) || false;
-    }
-
-    return {
-      likeCount: likeCount ?? 0,
-      commentCount: commentCount ?? 0,
-      currentUserHasLiked,
-    };
-  } catch (error) {
-    console.error(`Error in getPostEngagement for post ${postId}:`, error);
-    if (error instanceof SupabaseError) throw error;
-    throw new SupabaseError((error as Error).message || 'Failed to get post engagement', (error as { status?: number })?.status || 500);
-  }
-};
-
-export const addPostLike = async (postId: string, userId: string): Promise<{ success: boolean }> => {
-  const supabase = getBrowserClient();
-  try {
-    // Check if already liked to prevent duplicates, though DB constraint should handle this
-    const { data: existingLike, error: checkError } = await supabase
-      .from('post_likes')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('user_id', userId)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is good here
-      throw new SupabaseError(`Error checking existing like: ${checkError.message}`, 500, checkError.code);
-    }
-
-    if (existingLike) {
-      return { success: true }; // Already liked
-    }
-
-    const { error } = await supabase
-      .from('post_likes')
-      .insert({ post_id: postId, user_id: userId });
-    if (error) throw new SupabaseError(`Error adding like: ${error.message}`, 500, error.code);
-    return { success: true };
-  } catch (error) {
-    console.error(`Error in addPostLike for post ${postId} by user ${userId}:`, error);
-    if (error instanceof SupabaseError) throw error;
-    throw new SupabaseError((error as Error).message || 'Failed to add like', (error as { status?: number })?.status || 500);
-  }
-};
-
-export const removePostLike = async (postId: string, userId: string): Promise<{ success: boolean }> => {
-  const supabase = getBrowserClient();
-  try {
-    const { error } = await supabase
-      .from('post_likes')
-      .delete()
-      .eq('post_id', postId)
-      .eq('user_id', userId);
-    if (error) throw new SupabaseError(`Error removing like: ${error.message}`, 500, error.code);
-    return { success: true };
-  } catch (error) {
-    console.error(`Error in removePostLike for post ${postId} by user ${userId}:`, error);
-    if (error instanceof SupabaseError) throw error;
-    throw new SupabaseError((error as Error).message || 'Failed to remove like', (error as { status?: number })?.status || 500);
-  }
-};
-
-export const getPostComments = async (postId: string): Promise<PostCommentWithAuthor[]> => {
-  const supabase = getBrowserClient();
-  try {
-    const { data, error } = await supabase
-      .from('post_comments')
-      .select(`
-        *,
-        profiles (
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new SupabaseError(`Error fetching comments: ${error.message}`, 500, error.code);
-    
-    return (data || []).map(comment => postCommentSchema.parse(comment)) as PostCommentWithAuthor[];
-  } catch (error) {
-    console.error(`Error in getPostComments for post ${postId}:`, error);
-    if (error instanceof SupabaseError) throw error;
-    if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Comment data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
-    }
-    throw new SupabaseError((error as Error).message || 'Failed to get comments', (error as { status?: number })?.status || 500);
-  }
-};
-
-export const addPostComment = async (postId: string, userId: string, content: string): Promise<PostCommentWithAuthor | null> => {
-  const supabase = getBrowserClient();
-  if (!content.trim()) {
-    throw new SupabaseError('Comment content cannot be empty.', 400);
-  }
-  try {
-    const { data, error } = await supabase
-      .from('post_comments')
-      .insert({ post_id: postId, user_id: userId, content: content.trim() })
-      .select(`
-        *,
-        profiles (
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
-      .single();
-      
-    if (error) throw new SupabaseError(`Error adding comment: ${error.message}`, 500, error.code);
-    if (!data) return null;
-
-    return postCommentSchema.parse(data) as PostCommentWithAuthor;
-  } catch (error) {
-    console.error(`Error in addPostComment for post ${postId} by user ${userId}:`, error);
-    if (error instanceof SupabaseError) throw error;
-    if (error instanceof z.ZodError) {
-      throw new SupabaseError(`New comment data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
-    }
-    throw new SupabaseError((error as Error).message || 'Failed to add comment', (error as { status?: number })?.status || 500);
   }
 };
 
@@ -728,3 +553,172 @@ export const markMessagesAsRead = async (matchId: string, currentUserId: string)
 // export const posts = { ... };
 
 // No more functions or exports beyond this point to ensure no duplicates. 
+
+// Add new schemas and functions for likes and comments
+
+// Schema for creating a like (user_id will be from auth, post_id from context)
+export const createLikeSchema = z.object({
+  post_id: z.string().uuid(),
+  user_id: z.string().uuid(), // This will be set based on the authenticated user
+});
+export type CreateLikePayload = z.infer<typeof createLikeSchema>;
+
+// Schema for creating a comment
+export const createCommentSchema = z.object({
+  post_id: z.string().uuid(),
+  user_id: z.string().uuid(), // This will be set based on the authenticated user
+  content: z.string().min(1, 'Comment cannot be empty.').max(1000, 'Comment too long.'),
+});
+export type CreateCommentPayload = z.infer<typeof createCommentSchema>;
+
+// Type for a comment with profile details (similar to what's fetched in getResearchPostById)
+export const commentWithProfileSchema = z.object({
+  id: z.string().uuid(),
+  content: z.string(),
+  created_at: z.coerce.date(),
+  user_id: z.string().uuid(),
+  profiles: importedProfileSchema.pick({
+    id: true,
+    first_name: true,
+    last_name: true,
+    avatar_url: true,
+  }).nullable(),
+});
+export type CommentWithProfile = z.infer<typeof commentWithProfileSchema>;
+
+
+export const addLike = async (postId: string): Promise<{ user_id: string; post_id: string } | null> => {
+  const supabase = getBrowserClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new SupabaseError('User not authenticated to like a post.', 401);
+
+  const payload: CreateLikePayload = { post_id: postId, user_id: user.id };
+  // Validate with Zod before inserting
+  createLikeSchema.parse(payload);
+
+  try {
+    const { data, error } = await supabase
+      .from('post_likes')
+      .insert(payload)
+      .select('user_id, post_id') // Select what's useful to confirm
+      .single();
+
+    if (error) {
+      // Handle potential unique constraint violation if user already liked (code 23505)
+      if (error.code === '23505') {
+        // Optionally, just return the existing like or a specific status
+        console.warn('User has already liked this post.');
+        // Attempt to fetch the existing like to return consistent data
+        const existingLike = await supabase
+            .from('post_likes')
+            .select('user_id, post_id')
+            .eq('post_id', postId)
+            .eq('user_id', user.id)
+            .single();
+        if (existingLike.data) return existingLike.data;
+        // if not found after unique violation, something is off, but proceed by not erroring out on "already liked"
+        return { user_id: user.id, post_id: postId }; 
+      }
+      throw new SupabaseError(`Error liking post: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, error.code);
+    }
+    return data;
+  } catch (error) {
+    console.error('Error in addLike:', error);
+    if (error instanceof SupabaseError) throw error;
+    if (error instanceof z.ZodError) {
+      throw new SupabaseError(`Like data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+    }
+    throw new SupabaseError((error as Error).message || 'Failed to like post', (error as { status?: number })?.status || 500);
+  }
+};
+
+export const removeLike = async (postId: string): Promise<void> => {
+  const supabase = getBrowserClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new SupabaseError('User not authenticated to unlike a post.', 401);
+
+  try {
+    const { error } = await supabase
+      .from('post_likes')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      throw new SupabaseError(`Error unliking post: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, error.code);
+    }
+  } catch (error) {
+    console.error('Error in removeLike:', error);
+    if (error instanceof SupabaseError) throw error;
+    throw new SupabaseError((error as Error).message || 'Failed to unlike post', (error as { status?: number })?.status || 500);
+  }
+};
+
+export const addComment = async (postId: string, content: string): Promise<CommentWithProfile | null> => {
+  const supabase = getBrowserClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new SupabaseError('User not authenticated to comment.', 401);
+
+  const payload: CreateCommentPayload = { post_id: postId, user_id: user.id, content };
+  // Validate with Zod before inserting
+  createCommentSchema.parse(payload);
+  
+  try {
+    const { data, error } = await supabase
+      .from('post_comments')
+      .insert(payload)
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles (id, first_name, last_name, avatar_url)
+      `)
+      .single();
+
+    if (error) {
+      throw new SupabaseError(`Error adding comment: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, error.code);
+    }
+    if (!data) return null;
+    
+    // Validate the data returned against the detailed comment schema
+    return commentWithProfileSchema.parse(data) as CommentWithProfile;
+
+  } catch (error) {
+    console.error('Error in addComment:', error);
+    if (error instanceof SupabaseError) throw error;
+    if (error instanceof z.ZodError) {
+      throw new SupabaseError(`Comment data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+    }
+    throw new SupabaseError((error as Error).message || 'Failed to add comment', (error as { status?: number })?.status || 500);
+  }
+};
+
+// Function to fetch comments (if needed separately, though getResearchPostById already includes them)
+// export const getCommentsForPost = async (postId: string): Promise<CommentWithProfile[]> => {
+//   const supabase = getBrowserClient();
+//   try {
+//     const { data, error } = await supabase
+//       .from('post_comments')
+//       .select(\`
+//         id,
+//         content,
+//         created_at,
+//         user_id,
+//         profiles (id, first_name, last_name, avatar_url)
+//       \`)
+//       .eq('post_id', postId)
+//       .order('created_at', { ascending: true });
+//     if (error) {
+//       throw new SupabaseError(\`Error fetching comments: \${error.message}\`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, error.code);
+//     }
+//     return (data || []).map(item => commentWithProfileSchema.parse(item));
+//   } catch (error) {
+//     console.error('Error in getCommentsForPost:', error);
+//     if (error instanceof SupabaseError) throw error;
+//     if (error instanceof z.ZodError) {
+//       throw new SupabaseError(\`Comments data validation failed: \${error.errors.map(e=>e.message).join(', ')}\`, 400);
+//     }
+//     throw new SupabaseError((error as Error).message || 'Failed to get comments', (error as { status?: number })?.status || 500);
+//   }
+// }; 

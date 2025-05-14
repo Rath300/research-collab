@@ -46,7 +46,7 @@ export default function RootLayout({
                   : 'ml-0'
               } w-full`}
             >
-          {children}
+              {children}
             </main>
           </div>
           {/* <Toaster /> */}

@@ -19,16 +19,15 @@ import {
   FiExternalLink,
   FiCheckCircle,
   FiCircle,
-  FiUser,
-  FiAtSign
+  FiUser
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
 type SenderProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'first_name' | 'last_name' | 'avatar_url'>;
 
-// Refined UserNotification type
-type UserNotification = Omit<Database['public']['Tables']['user_notifications']['Row'], 'sender_id'> & {
-  sender?: SenderProfile | null; // Use the specific SenderProfile type or null
+// To satisfy linter for the data assignment, then use type guard for access
+type UserNotification = Database['public']['Tables']['user_notifications']['Row'] & {
+  sender?: any; // Allow 'any' for now to match inferred type from Supabase query result
 };
 
 // Type guard to check if sender is a valid profile
@@ -39,35 +38,15 @@ function isSenderProfile(sender: any): sender is SenderProfile {
 const NotificationIcon = ({ type }: { type: string | null }) => {
   switch (type) {
     case 'new_comment':
-      return <FiMessageSquare className="h-5 w-5 text-sky-400" />;
+      return <FiMessageSquare className="h-5 w-5 text-sky-500" />;
     case 'new_follower':
-      return <FiUsers className="h-5 w-5 text-green-400" />;
+      return <FiUsers className="h-5 w-5 text-green-500" />;
     case 'post_like':
-      return <FiThumbsUp className="h-5 w-5 text-pink-400" />;
+      return <FiThumbsUp className="h-5 w-5 text-pink-500" />;
     case 'project_invite':
-      return <FiBell className="h-5 w-5 text-purple-400" />;
-    case 'mention': // New type
-      return <FiAtSign className="h-5 w-5 text-teal-400" />; // Assuming FiAtSign exists
+      return <FiBell className="h-5 w-5 text-purple-500" />;
     default:
       return <FiBell className="h-5 w-5 text-neutral-500" />;
-  }
-};
-
-// Helper to generate descriptive text
-const getNotificationText = (notification: UserNotification, senderName: string): string => {
-  switch (notification.type) {
-    case 'new_comment':
-      return `${senderName} commented: "${notification.content.substring(0, 50)}${notification.content.length > 50 ? '...' : ''}"`;
-    case 'new_follower':
-      return `${senderName} started following you.`;
-    case 'post_like':
-      return `${senderName} liked your post.`; // Content might be the post title in the future
-    case 'project_invite':
-      return `${senderName} invited you to collaborate on a project.`; // Content could be project name
-    case 'mention':
-      return `${senderName} mentioned you: "${notification.content.substring(0, 50)}${notification.content.length > 50 ? '...' : ''}"`;
-    default:
-      return notification.content; // Fallback to raw content
   }
 };
 
@@ -81,7 +60,7 @@ export default function NotificationsPage() {
   const fetchNotifications = useCallback(async () => {
     if (!user) {
       setLoading(false);
-      // setError("User not authenticated."); // Let AuthProvider handle redirects
+      setError("User not authenticated.");
       return;
     }
 
@@ -91,7 +70,7 @@ export default function NotificationsPage() {
     try {
       const { data, error: fetchError } = await supabase
         .from('user_notifications')
-        .select('*, sender:profiles!user_notifications_sender_id_fkey(id, first_name, last_name, avatar_url)')
+        .select('*, sender:sender_id(id, first_name, last_name, avatar_url)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -102,7 +81,6 @@ export default function NotificationsPage() {
       }
       // The type of `data` here is the problematic one according to the linter.
       // By setting UserNotification.sender to `any`, this assignment should pass.
-      // With UserNotification.sender as SenderProfile | null, this should also work.
       setNotifications(data || []); 
 
     } catch (err) {
@@ -164,7 +142,7 @@ export default function NotificationsPage() {
     <PageContainer title="Notifications" className="bg-black min-h-screen text-neutral-100 font-sans">
       <div className="p-4 sm:p-6 md:p-8"> 
         <motion.div 
-          className="flex justify-between items-center mb-6 md:mb-8 max-w-3xl mx-auto"
+          className="flex justify-between items-center mb-6 md:mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -183,13 +161,13 @@ export default function NotificationsPage() {
         </motion.div>
 
         {loading && (
-          <div className="flex justify-center items-center py-20 max-w-3xl mx-auto">
+          <div className="flex justify-center items-center py-20">
             <FiLoader className="animate-spin text-accent-purple text-5xl" />
           </div>
         )}
 
         {error && (
-          <div className="bg-neutral-900 border border-red-500/30 rounded-xl shadow-lg p-6 text-center font-sans my-6 max-w-3xl mx-auto">
+          <div className="bg-neutral-900 border border-red-500/30 rounded-xl shadow-lg p-6 text-center font-sans my-6">
             <FiAlertCircle className="mx-auto text-red-500 text-4xl mb-3" />
             <h3 className="text-lg font-heading text-neutral-100 mb-1">Error Loading Notifications</h3>
             <p className="text-neutral-400 text-sm mb-3">{error}</p>
@@ -204,7 +182,7 @@ export default function NotificationsPage() {
 
         {!loading && !error && notifications.length === 0 && (
           <motion.div 
-            className="text-center py-20 bg-neutral-900 rounded-lg border border-neutral-800 max-w-3xl mx-auto"
+            className="text-center py-20 bg-neutral-900 rounded-lg border border-neutral-800"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -217,7 +195,7 @@ export default function NotificationsPage() {
 
         {!loading && !error && notifications.length > 0 && (
           <motion.div 
-            className="space-y-3 max-w-3xl mx-auto"
+            className="space-y-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
@@ -225,10 +203,14 @@ export default function NotificationsPage() {
             {notifications.map((notification) => {
               const senderProfile = isSenderProfile(notification.sender) ? notification.sender : null;
               const senderName = senderProfile 
-                ? `${senderProfile.first_name || ''} ${senderProfile.last_name || ''}`.trim() || 'System' // Changed from 'Someone' to 'System' if no sender profile
-                : 'System';
-              
-              const notificationText = getNotificationText(notification, senderName);
+                ? `${senderProfile.first_name || ''} ${senderProfile.last_name || ''}`.trim() || 'Someone'
+                : 'Someone';
+
+              const handleNotificationClick = () => {
+                if (!notification.link_to && !notification.is_read) {
+                  markAsRead(notification.id);
+                }
+              };
 
               return (
                 <motion.div
@@ -236,8 +218,12 @@ export default function NotificationsPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`p-4 rounded-lg flex items-start gap-3 transition-colors duration-150 ease-in-out
-                              §{notification.is_read ? 'bg-neutral-900 border border-neutral-800' : 'bg-neutral-800/70 border border-neutral-700/70 hover:bg-neutral-700/60'}`}
+                  className={`p-4 rounded-lg flex items-start gap-3 transition-colors duration-150 ease-in-out cursor-default
+                              ${notification.is_read 
+                                ? 'bg-neutral-900 border border-neutral-800 hover:bg-neutral-800/60' 
+                                : 'bg-neutral-800/70 border border-neutral-700/70 hover:bg-neutral-700/60'}
+                              ${!notification.link_to && !notification.is_read ? 'cursor-pointer' : ''}`}
+                  onClick={handleNotificationClick}
                 >
                   {!notification.is_read && (
                       <FiCircle className="h-2.5 w-2.5 text-accent-purple flex-shrink-0 mt-1.5 animate-pulse" />
@@ -261,8 +247,9 @@ export default function NotificationsPage() {
                   )}
                   
                   <div className="flex-grow">
-                    <p className={`text-sm mb-0.5 ${notification.is_read ? 'text-neutral-400' : 'text-neutral-100'}`}>
-                      <span className="font-medium text-neutral-100">{senderProfile ? senderName : ''}</span>{senderProfile ? ' ' : ''}{notificationText.replace(senderName, '').trim() || notification.content}
+                    <p className="text-sm text-neutral-200 mb-0.5">
+                      {senderProfile && <span className="font-medium text-neutral-100">{senderName}</span>}{' '}
+                      {notification.content}
                     </p>
                     <span className="text-xs text-neutral-500">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
@@ -272,12 +259,13 @@ export default function NotificationsPage() {
                   {notification.link_to && (
                     <Link 
                       href={notification.link_to}
-                      onClick={() => {
+                      onClick={(e) => {
+                          e.stopPropagation(); 
                           if (!notification.is_read) { 
                               markAsRead(notification.id);
                           }
                       }}
-                      className="ml-auto flex-shrink-0 self-center p-1.5 rounded-md hover:bg-neutral-700 transition-colors"
+                      className="ml-auto flex-shrink-0 self-center p-1.5 rounded-md hover:bg-neutral-700 hover:text-accent-purple transition-colors"
                       aria-label="View details"
                     >
                       <FiExternalLink className="h-4 w-4 text-neutral-400" />
@@ -292,4 +280,3 @@ export default function NotificationsPage() {
     </PageContainer>
   );
 } 
- 
