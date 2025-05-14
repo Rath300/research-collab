@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-// import { AuthProvider } from '@/components/providers/auth-provider'; // Commented out AuthProvider
+import { AuthProvider } from '@/components/providers/auth-provider'; // Reinstated AuthProvider
 import { GeistSans } from 'geist/font/sans';
 // import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
 // import { Sidebar } from '@/components/layout/Sidebar'; // Sidebar still commented out
@@ -21,10 +21,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen, darkMode, setDarkMode } = useUIStore();
 
   const noSidebarPaths = ['/', '/login', '/signup'];
   const showSidebar = !noSidebarPaths.includes(pathname || '/');
+
+  // Effect to set dark mode based on system preference
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setDarkMode(prefersDark);
+
+    const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+    const matcher = window.matchMedia('(prefers-color-scheme: dark)');
+    matcher.addEventListener('change', handleChange);
+    return () => matcher.removeEventListener('change', handleChange);
+  }, [setDarkMode]);
 
   // Optional: Close sidebar on mobile when navigating to a new page if it was forced open
   useEffect(() => {
@@ -34,9 +45,9 @@ export default function RootLayout({
   }, [pathname, sidebarOpen, setSidebarOpen]);
 
   return (
-    <html lang="en" className={`${GeistSans.variable} font-sans antialiased`}>
-      <body className="bg-black text-neutral-100 min-h-screen flex flex-col">
-        {/* <AuthProvider> */}
+    <html lang="en" className={`${GeistSans.variable} font-sans antialiased ${darkMode ? 'dark' : ''}`}>
+      <body className="bg-white dark:bg-black text-neutral-900 dark:text-neutral-100 min-h-screen flex flex-col">
+        <AuthProvider>
           <div className="flex flex-1"> {/* Flex container for sidebar and main content */}
             {showSidebar && <div>Sidebar Placeholder</div>} {/* Replaced Sidebar component with a placeholder */}
             <main 
@@ -51,7 +62,7 @@ export default function RootLayout({
             </main>
           </div>
           {/* <Toaster /> */}
-        {/* </AuthProvider> */}
+        </AuthProvider>
       </body>
     </html>
   );

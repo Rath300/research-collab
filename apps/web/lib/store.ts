@@ -119,9 +119,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
 export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: false,
-  darkMode: typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches 
-    : false,
+  darkMode: false,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
