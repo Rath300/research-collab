@@ -19,13 +19,6 @@ export default function Login() {
   const router = useRouter();
   const supabase = getBrowserClient();
 
-  // If already authenticated, redirect to dashboard
-  useEffect(() => {
-    if (user && !authLoading) {
-      router.replace('/dashboard');
-    }
-  }, [user, authLoading, router]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -63,7 +56,7 @@ export default function Login() {
     }
   };
 
-  if (authLoading || (user && !authLoading)) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-950">
         <span className="text-neutral-400 font-sans animate-pulse">Loading...</span>
