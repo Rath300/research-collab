@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from "@/lib/supabaseClient";
@@ -8,15 +8,23 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/lib/store';
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const { user, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const supabase = getBrowserClient();
+
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.replace('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,21 +45,31 @@ export default function Login() {
         return; // Stop execution here
       }
 
-      // If signInError did not occur, the login was successful.
-      // Immediately redirect to the dashboard.
-      console.log("Login successful via handleLogin, replacing route to /dashboard");
-      router.replace('/dashboard'); 
-      // Note: We might not even need to explicitly set loading to false here,
-      // as the page navigation will unmount this component.
-
+      // Wait for Zustand store to update user (AuthProvider will do this)
+      const waitForUser = async () => {
+        let tries = 0;
+        while (!useAuthStore.getState().user && tries < 20) {
+          await new Promise(res => setTimeout(res, 100));
+          tries++;
+        }
+      };
+      await waitForUser();
+      router.replace('/dashboard');
     } catch (err: any) {
       // Catch any other unexpected errors during the process
       console.error("Generic Login Error:", err);
       setError(err.message || "An unexpected error occurred. Please try again.");
       setIsLoading(false); // Ensure loading is stopped on generic errors
     }
-    // Removed finally block as loading state is handled within try/catch
   };
+
+  if (authLoading || (user && !authLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+        <span className="text-neutral-400 font-sans animate-pulse">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">

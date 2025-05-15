@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabaseClient";
@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/lib/store';
 
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -20,6 +21,13 @@ export default function Signup() {
   
   const router = useRouter();
   const supabase = getBrowserClient();
+  const { user, isLoading: authLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.replace('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +66,14 @@ export default function Signup() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading || (user && !authLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+        <span className="text-neutral-400 font-sans animate-pulse">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
