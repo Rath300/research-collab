@@ -14,6 +14,8 @@ import { getProfile } from '@/lib/api';
 //   return AUTH_PATHS.includes(currentPathname) || currentPathname.startsWith('/auth');
 // };
 
+// Minor change timestamp: 2023-10-27T10:00:00Z
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setUser, setProfile, setLoading } = useAuthStore(); // Remove storeUser from destructuring here
   const supabase = getBrowserClient();
