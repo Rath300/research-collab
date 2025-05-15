@@ -23,7 +23,7 @@ interface PotentialMatch extends Profile {
 
 export default function MatchPage() {
   const supabase = getBrowserClient();
-  const { user } = useAuthStore();
+  const { user, profile: currentUserProfile } = useAuthStore();
   const router = useRouter();
 
   const [potentialMatches, setPotentialMatches] = useState<PotentialMatch[]>([]);
@@ -42,27 +42,38 @@ export default function MatchPage() {
     setError(null);
 
     try {
-      // 1. Get IDs of users the current user has already interacted with (matched or rejected)
       const { data: interactedUsersData, error: interactedUsersError } = await supabase
         .from('profile_matches')
         .select('matchee_user_id')
         .eq('matcher_user_id', user.id)
-        .in('status', ['matched', 'rejected']);
+        .in('status', ['liked', 'rejected', 'matched']);
 
       if (interactedUsersError) throw interactedUsersError;
       const interactedUserIds = interactedUsersData.map(item => item.matchee_user_id);
       
-      // 2. Fetch all profiles excluding the current user and interacted users
       let queryBuilder = supabase
         .from('profiles')
         .select('*')
-        .neq('id', user.id); // Exclude self
+        .neq('id', user.id);
 
       if (interactedUserIds.length > 0) {
         queryBuilder = queryBuilder.not('id', 'in', `(${interactedUserIds.join(',')})`);
       }
+      
+      const { data: usersWhoLikedCurrentUserAndWereRejected, error: rejectedLikesError } = await supabase
+        .from('profile_matches')
+        .select('matcher_user_id')
+        .eq('matchee_user_id', user.id)
+        .eq('status', 'rejected');
 
-      const { data: profilesData, error: profilesError } = await queryBuilder;
+      if (rejectedLikesError) {
+        console.warn('Could not fetch users who liked current user and were rejected:', rejectedLikesError.message);
+      } else if (usersWhoLikedCurrentUserAndWereRejected && usersWhoLikedCurrentUserAndWereRejected.length > 0) {
+        const rejectedLikerIds = usersWhoLikedCurrentUserAndWereRejected.map(r => r.matcher_user_id);
+        queryBuilder = queryBuilder.not('id', 'in', `(${rejectedLikerIds.join(',')})`);
+      }
+
+      const { data: profilesData, error: profilesError } = await queryBuilder.limit(20);
 
       if (profilesError) {
         console.error("Supabase profiles fetch error:", profilesError);
@@ -97,33 +108,57 @@ export default function MatchPage() {
     [potentialMatches.length]
   );
 
-  const swiped = async (direction: 'left' | 'right', swipedUserId: string, index: number) => {
+  const swiped = async (direction: 'left' | 'right', swipedProfile: PotentialMatch, index: number) => {
     setLastDirection(direction);
     setCurrentIndex(index - 1);
-    console.log(`Swiped ${direction} on user ${swipedUserId} at index ${index}`);
+    console.log(`Swiped ${direction} on user ${swipedProfile.id} at index ${index}`);
 
-    if (!user) {
-      console.error("User not logged in, cannot record swipe.");
+    if (!user || !currentUserProfile) {
+      console.error("User or current user profile not available, cannot record swipe.");
       return;
     }
 
-    const newStatus: ProfileMatchStatus = direction === 'right' ? 'matched' : 'rejected';
+    const newStatus: ProfileMatchStatus = direction === 'right' ? 'liked' : 'rejected';
 
     try {
-      const { error: insertError } = await supabase
+      const { data: matchInsertData, error: insertError } = await supabase
         .from('profile_matches')
         .insert({
           matcher_user_id: user.id,
-          matchee_user_id: swipedUserId,
+          matchee_user_id: swipedProfile.id,
           status: newStatus,
-        });
+        })
+        .select()
+        .single();
+
       if (insertError) {
-        console.error('Error inserting match:', insertError);
+        console.error('Error inserting profile_match:', insertError);
       } else {
-        console.log(`Match (${newStatus}) between ${user.id} and ${swipedUserId} recorded.`);
+        console.log(`Profile_match (${newStatus}) between ${user.id} and ${swipedProfile.id} recorded.`);
+        
+        if (newStatus === 'liked') {
+          const senderName = `${currentUserProfile.first_name || 'Someone'} ${currentUserProfile.last_name || ''}`.trim();
+          const notificationContent = `${senderName} is interested in matching with you!`;
+          
+          const { error: notificationError } = await supabase
+            .from('user_notifications')
+            .insert({
+              user_id: swipedProfile.id,
+              sender_id: user.id,
+              content: notificationContent,
+              type: 'new_like',
+              link_to: `/match?action=review_like&liker_id=${user.id}`
+            });
+
+          if (notificationError) {
+            console.error('Error creating like notification:', notificationError);
+          } else {
+            console.log(`Notification created for user ${swipedProfile.id} about like from ${user.id}`);
+          }
+        }
       }
     } catch (e) {
-      console.error("Supabase error:", e);
+      console.error("Supabase error during swipe processing:", e);
     }
   };
 
@@ -132,21 +167,15 @@ export default function MatchPage() {
   };
 
   const goBack = async () => {
-    // This is a simplified goBack, true undo would require more state management
-    // and potentially reverting the database action or having a 'pending_undo' status.
-    // For now, it just visually brings the card back if one is available.
     if (currentIndex < potentialMatches.length - 1) {
-       console.log('Trying to go back');
-       // This part is tricky with react-tinder-card's imperative API
-       // It's usually easier to manage the deck from the parent and re-render
-       // For now, we'll just log it. A full undo is a more advanced feature.
+       console.log('Trying to go back - feature not fully implemented for db rollback.');
     } else {
       console.log('No more cards to go back to or already at the start.');
     }
   };
   
-  const swipe = async (dir: 'left' | 'right' | 'up' | 'down') => {
-    if (currentIndex >= 0 && childRefs[currentIndex]) {
+  const swipeButtonAction = async (dir: 'left' | 'right') => {
+    if (currentIndex >= 0 && currentIndex < potentialMatches.length && childRefs[currentIndex]) {
       await childRefs[currentIndex].current?.swipe(dir);
     }
   };
@@ -173,21 +202,21 @@ export default function MatchPage() {
   }
 
   return (
-    <PageContainer title="Discover Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans overflow-hidden">
-      <div className="absolute top-4 left-4 z-20">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700 p-2">
+    <PageContainer title="Discover Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans overflow-hidden pt-16 sm:pt-8">
+      <div className="absolute top-6 left-4 z-20">
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-800 hover:text-white p-2 rounded-full">
               <FiArrowLeft size={24} />
           </Button>
       </div>
-      <div className="absolute top-4 right-4 z-20">
+      <div className="absolute top-6 right-4 z-20">
           <Link href="/matches">
-              <Button variant="secondary" className="font-sans text-sm">
-                  View My Matches
+              <Button variant="secondary" className="font-sans text-sm bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white">
+                  My Matches
               </Button>
           </Link>
       </div>
       
-      <div className='relative w-[90vw] max-w-[380px] h-[70vh] max-h-[600px] flex items-center justify-center'>
+      <div className='relative w-[90vw] max-w-[380px] h-[calc(70vh-40px)] max-h-[550px] flex items-center justify-center'>
         {potentialMatches.length > 0 ? potentialMatches.map((character, index) => (
           <TinderCard
             ref={childRefs[index]}
@@ -195,11 +224,11 @@ export default function MatchPage() {
             key={character.id}
             onSwipe={(dir) => {
               if (dir === 'left' || dir === 'right') {
-                swiped(dir, character.id, index);
+                swiped(dir, character, index);
               }
             }}
             onCardLeftScreen={() => outOfFrame(character.first_name, index)}
-            preventSwipe={['up', 'down']} // Allow only left/right swipes
+            preventSwipe={['up', 'down']}
           >
             <motion.div
               className='relative w-full h-full rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-700 overflow-hidden p-6 flex flex-col justify-end'
@@ -211,18 +240,18 @@ export default function MatchPage() {
                 className="absolute inset-0 bg-cover bg-center z-0" 
                 style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
               </div>
               
               <div className="relative z-20 text-white">
-                <h3 className='text-3xl font-heading mb-1'>
-                  {character.first_name || 'Anonymous'} {character.last_name || ''}
+                <h3 className='text-3xl font-heading mb-1 truncate'>
+                  {character.first_name || 'User'} {character.last_name?.[0] ? `${character.last_name[0]}.` : ''}
                 </h3>
                 <p className='text-sm text-neutral-300 line-clamp-2'>{character.bio || 'No bio yet.'}</p>
-                {character.interests && character.interests.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                {character.interests && Array.isArray(character.interests) && character.interests.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
                     {character.interests.slice(0, 3).map(interest => (
-                      <span key={interest} className="px-2 py-0.5 bg-accent-purple/20 text-accent-purple text-xs rounded-full font-sans">
+                      <span key={interest} className="px-2.5 py-1 bg-accent-purple/20 text-accent-purple text-xs rounded-full font-sans">
                         {interest}
                       </span>
                     ))}
@@ -236,55 +265,41 @@ export default function MatchPage() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-8 bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl"
+              className="text-center p-8 bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl flex flex-col items-center"
             >
-              <FiUser size={64} className="mx-auto text-neutral-600 mb-4" />
-              <h2 className="text-2xl font-heading text-neutral-200 mb-2">No More Profiles</h2>
-              <p className="text-neutral-400 mb-4 text-sm">You've seen everyone for now. Check back later!</p>
+              <FiUser size={56} className="text-neutral-600 mb-4" />
+              <h2 className="text-xl font-heading text-neutral-200 mb-2">No More Profiles</h2>
+              <p className="text-neutral-400 mb-5 text-sm">You've swiped on everyone for now. Check back later for new users!</p>
+              <Link href="/dashboard">
+                  <Button variant="primary" size="sm">Back to Dashboard</Button>
+              </Link>
             </motion.div>
           )
         )}
       </div>
 
-      {potentialMatches.length > 0 && currentIndex >= 0 && (
-        <div className='flex items-center justify-center gap-6 mt-8 z-20'>
-          <Button
-            onClick={() => swipe('left')}
+      {potentialMatches.length > 0 && currentIndex >= 0 && currentIndex < potentialMatches.length && (
+        <div className='flex items-center justify-center gap-4 sm:gap-6 mt-6 sm:mt-8 z-20'>
+          <Button 
+            onClick={() => swipeButtonAction('left')} 
             variant="outline"
             size="lg"
-            className="rounded-full !p-5 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+            className="rounded-full p-4 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-800 border-neutral-700 hover:bg-red-500/20 hover:border-red-500 text-red-500"
             aria-label="Reject"
           >
-            <FiX size={28} />
+            <FiX className="w-6 h-6 sm:w-8 sm:h-8" />
           </Button>
-          {/* <Button
-            onClick={goBack}
-            variant="outline"
-            sizeLg
-            className="rounded-full !p-4 border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
-            aria-label="Undo"
-          >
-            <FiRewind size={20} />
-          </Button> */}
-          <Button
-            onClick={() => swipe('right')}
+          <Button 
+            onClick={() => swipeButtonAction('right')} 
             variant="outline"
             size="lg"
-            className="rounded-full !p-5 border-green-500/50 text-green-500 hover:bg-green-500/10 hover:text-green-400"
+            className="rounded-full p-4 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-800 border-neutral-700 hover:bg-green-500/20 hover:border-green-500 text-green-500"
             aria-label="Like"
           >
-            <FiHeart size={28} />
+            <FiHeart className="w-6 h-6 sm:w-8 sm:h-8" />
           </Button>
         </div>
       )}
-      <style jsx global>{`
-        .swipe-card {
-          width: 90vw;
-          max-width: 380px;
-          height: 70vh;
-          max-height: 600px;
-        }
-      `}</style>
     </PageContainer>
   );
 } 
