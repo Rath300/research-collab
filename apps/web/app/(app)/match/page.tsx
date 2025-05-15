@@ -59,8 +59,6 @@ export default function MatchPage() {
         .neq('id', user.id); // Exclude self
 
       if (interactedUserIds.length > 0) {
-        // Ensure the list of IDs is correctly formatted for the 'in' clause
-        // e.g., "(id1,id2,id3)"
         queryBuilder = queryBuilder.not('id', 'in', `(${interactedUserIds.map(id => `'${id}'`).join(',')})`);
       }
 

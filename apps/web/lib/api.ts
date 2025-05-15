@@ -345,7 +345,14 @@ const projectFileSchemaForApi = z.object({
 
 const researchPostWithDetailsSchema = z.object({
   id: z.string().uuid(),
-  created_at: z.string().datetime(),
+  created_at: z.date({
+    errorMap: (issue, ctx) => {
+      if (issue.code === z.ZodIssueCode.invalid_type && issue.expected === 'date') {
+        return { message: 'created_at was expected to be a Date object, but received something else.' };
+      }
+      return { message: ctx.defaultError };
+    }
+  }),
   title: z.string(),
   content: z.string(),
   user_id: z.string().uuid(),
@@ -399,10 +406,46 @@ export const getResearchPostById = async (postId: string): Promise<ResearchPostW
       console.error(`Error fetching files for post ${postId}:`, filesError);
     }
     
-    const combinedData = {
+    const combinedData: any = { // Use 'any' temporarily to allow modification
       ...postData,
       project_files: filesData || [],
     };
+
+    // Manual conversion for created_at
+    if (combinedData.created_at && typeof combinedData.created_at === 'string') {
+      const parts = combinedData.created_at.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}), (\d{1,2}):(\d{2}):(\d{2}) (AM|PM)/i);
+      if (parts) {
+        const [, month, day, year, hour, minute, second, ampm] = parts;
+        let numericHour = parseInt(hour, 10);
+        if (ampm.toUpperCase() === 'PM' && numericHour < 12) numericHour += 12;
+        if (ampm.toUpperCase() === 'AM' && numericHour === 12) numericHour = 0;
+        combinedData.created_at = new Date(
+          parseInt(year, 10),
+          parseInt(month, 10) - 1,
+          parseInt(day, 10),
+          numericHour,
+          parseInt(minute, 10),
+          parseInt(second, 10)
+        );
+      } else {
+        // If it's not the custom format, try to parse it as a standard ISO string (or other Date.parse compatible format)
+        const parsedDate = new Date(combinedData.created_at);
+        // Check if parsing was successful, otherwise Zod will catch it as not a Date object
+        if (!isNaN(parsedDate.getTime())) {
+            combinedData.created_at = parsedDate;
+        } else {
+            // If parsing fails, set to something that will make Zod fail cleanly or handle error
+            // Forcing Zod to fail is better:
+            combinedData.created_at = null; // Or undefined, so Zod catches invalid_type
+            console.warn(`Could not parse created_at string: ${combinedData.created_at} for post ${postId}`);
+        }
+      }
+    } else if (combinedData.created_at && !(combinedData.created_at instanceof Date)) {
+      // If it's not a string and not a Date, Zod will catch it.
+      // Or we can force it to null to make the error more predictable.
+      console.warn(`created_at for post ${postId} is neither a string nor a Date:`, combinedData.created_at);
+      combinedData.created_at = null; 
+    }
     
     // Validate the combined data against the Zod schema
     return researchPostWithDetailsSchema.parse(combinedData) as ResearchPostWithDetails;

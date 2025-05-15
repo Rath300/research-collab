@@ -43,6 +43,7 @@ export default function ChatsPage() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitializingSession, setIsInitializingSession] = useState(false);
   const [showSidebarOnMobile, setShowSidebarOnMobile] = useState(true);
 
   useEffect(() => {
@@ -53,6 +54,8 @@ export default function ChatsPage() {
 
   const getOrCreateMatch = useCallback(async (partnerId: string): Promise<string | null> => {
     if (!user) return null;
+    setIsInitializingSession(true);
+    setError(null);
 
     // Ensure consistent ordering of user IDs for querying/creating matches
     const [user1, user2] = [user.id, partnerId].sort();
@@ -66,11 +69,13 @@ export default function ChatsPage() {
 
     if (fetchError) {
       console.error("Error fetching match:", fetchError);
-      setError("Failed to initialize chat session.");
+      setError(`Chat Error: Failed to check existing session (F1). ${fetchError.message}`);
+      setIsInitializingSession(false);
       return null;
     }
 
     if (existingMatches && existingMatches.length > 0) {
+      setIsInitializingSession(false);
       return existingMatches[0].id;
     }
 
@@ -87,9 +92,11 @@ export default function ChatsPage() {
 
     if (insertError) {
       console.error("Error creating match:", insertError);
-      setError("Failed to create chat session.");
+      setError(`Chat Error: Failed to create new session (I1). ${insertError.message}`);
+      setIsInitializingSession(false);
       return null;
     }
+    setIsInitializingSession(false);
     return newMatch?.id || null;
   }, [user, supabase]);
 
@@ -207,6 +214,8 @@ export default function ChatsPage() {
   const handleSelectConversation = useCallback(async (matchIdToSelect: string, partnerIdToSelect?: string) => {
     let targetPartnerId = partnerIdToSelect;
     let targetMatchId = matchIdToSelect;
+    setIsInitializingSession(true);
+    setError(null);
 
     const conversation = conversations.find(c => c.id === matchIdToSelect);
 
@@ -217,7 +226,9 @@ export default function ChatsPage() {
         // We need to ensure a match_id exists or is created.
         const newMatchId = await getOrCreateMatch(partnerIdToSelect);
         if (!newMatchId) {
-            setError("Could not initiate chat session.");
+            // setError already set by getOrCreateMatch if it fails
+            // setError("Could not initiate chat session (S1)."); 
+            setIsInitializingSession(false);
             return;
         }
         targetMatchId = newMatchId;
@@ -225,12 +236,14 @@ export default function ChatsPage() {
         // For now, we proceed with the potentially new matchId.
     } else {
         console.warn("handleSelectConversation called without sufficient info");
+        setIsInitializingSession(false);
         return;
     }
 
     if (!targetPartnerId) {
         console.error("Partner ID could not be determined for selection.");
-        setError("Could not select conversation.");
+        setError("Chat Error: Partner ID missing (S2).");
+        setIsInitializingSession(false);
         return;
     }
 
@@ -239,7 +252,8 @@ export default function ChatsPage() {
         : await supabase.from('profiles').select('id, first_name, last_name, avatar_url').eq('id', targetPartnerId).single().then(res => res.data ? {id: res.data.id, name: `${res.data.first_name} ${res.data.last_name}`, avatarUrl: res.data.avatar_url} : null);
 
     if (!partnerProfile) {
-        setError("Could not load partner details for chat.");
+        setError("Chat Error: Could not load partner details (S3).");
+        setIsInitializingSession(false);
         return;
     }
 
@@ -247,6 +261,7 @@ export default function ChatsPage() {
     setCurrentMatchId(targetMatchId);
     fetchMessages(targetMatchId);
     setShowSidebarOnMobile(false);
+    setIsInitializingSession(false);
 
     if (searchParams?.get('userId') !== targetPartnerId) {
       router.push(`/chats?userId=${targetPartnerId}`, { scroll: false });
@@ -364,15 +379,24 @@ export default function ChatsPage() {
 
   const currentUserId = useMemo(() => user?.id || '', [user]);
 
-  if (authLoading || (!user && !authLoading)) {
+  if (authLoading || (!user && !error)) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-neutral-100 font-sans p-4">
-        <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
-        <p className="text-lg">Loading your session...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neutral-400 p-4">
+        <FiLoader className="animate-spin text-4xl text-accent-purple mb-4" />
+        <p>Loading authentication...</p>
       </div>
     );
   }
   
+  if (isInitializingSession) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neutral-400 p-4">
+        <FiLoader className="animate-spin text-4xl text-accent-purple mb-4" />
+        <p>Initializing chat session...</p>
+      </div>
+    );
+  }
+
   if (isLoadingConversations && conversations.length === 0 && !selectedConversationPartner) {
      return (
       <div className="h-screen flex flex-col items-center justify-center bg-black text-neutral-100 font-sans p-4">
@@ -382,7 +406,7 @@ export default function ChatsPage() {
     );
   }
 
-  if (error && !isLoadingConversations && conversations.length === 0 && !selectedConversationPartner) {
+  if (error && !isInitializingSession) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-black text-neutral-100 font-sans p-6">
         <FiAlertCircle className="text-red-500 text-6xl mb-4" />
