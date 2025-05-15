@@ -78,17 +78,36 @@ export const getProfile = async (id: string): Promise<DbProfile | null> => {
       .single();
       
     if (error) {
-      if (error.code === 'PGRST116') return null; // Not found
-      throw new SupabaseError(`Error fetching profile: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
+      // Handle specific Supabase error for "no rows found"
+      if (error.code === 'PGRST116') {
+        return null; // Profile not found
+      }
+      // For other errors, throw a custom SupabaseError
+      throw new SupabaseError(
+        `Error fetching profile: ${error.message}`,
+        (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500,
+        (error as PostgrestError).code
+      );
     }
+
+    // If data is null (e.g., profile not found, though PGRST116 should catch this),
+    // or if data is present but doesn't match schema, Zod will handle it.
+    // Explicitly return null if data is null before parsing to prevent Zod error on null input.
+    if (data === null) {
+      return null; // Profile genuinely not found or unexpected null response
+    }
+
     // Validate data against Zod schema before returning
-    return importedProfileSchema.parse(data) as DbProfile | null; 
+    // The `parse` method will throw if data doesn't match the schema.
+    return importedProfileSchema.parse(data) as DbProfile;
   } catch (error) {
     console.error('Error in getProfile:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+      // This will catch validation errors if `data` is not null but malformed
+      throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
+    // For any other unexpected errors
     throw new SupabaseError((error as Error).message || 'Failed to get profile', (error as { status?: number })?.status || 500);
   }
 };
