@@ -20,7 +20,8 @@ import {
   FiPlus,
   FiLoader,
   FiAlertTriangle,
-  FiEdit
+  FiEdit,
+  FiMessageSquare
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { getBrowserClient } from '@/lib/supabaseClient';
@@ -79,50 +80,87 @@ export default function ProfilePage() {
   
   const loadProfileData = useCallback(async () => {
     if (!actualUserId) {
-      setError('User ID not available.');
+      setError('User ID not available for profile lookup.');
       setIsLoading(false);
       return;
     }
+
+    console.log(`[ProfilePage] Loading data for actualUserId: ${actualUserId}`);
+    setIsLoading(true);
+    setError('');
+    setProfile(null);
+    setPosts([]);
+
     try {
-      setIsLoading(true);
-      setError('');
+      const profileQuery = supabase.from('profiles').select('*').eq('id', actualUserId).single();
+      const postsQuery = supabase.from('research_posts').select('*, profiles:user_id(*)').eq('user_id', actualUserId).order('created_at', { ascending: false });
       
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', actualUserId)
-        .single();
+      // Explicitly define the type for the array elements if needed, or let map infer.
+      const queries: any[] = [profileQuery, postsQuery];
+      let fetchMatchStatus = false;
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
-      
-      const { data: userPosts, error: postsError } = await supabase
-        .from('research_posts')
-        .select('*, profiles:user_id(*)')
-        .eq('user_id', actualUserId)
-        .order('created_at', { ascending: false });
-
-      if (postsError) throw postsError;
-      setPosts(userPosts as ResearchPostWithProfile[] || []);
-      
-      if (user && !isOwnProfile && actualUserId) {
-        setIsMatchLoading(true);
-        const { data: matchData, error: matchError } = await supabase
-          .from('profile_matches')
-          .select('*')
-          .eq('matcher_user_id', user.id)
-          .eq('matchee_user_id', actualUserId)
-          .maybeSingle();
-
-        if (matchError && matchError.code !== 'PGRST116') {
-          console.error('Match check error:', matchError);
-        }
-        setIsMatched(!!matchData);
-        setIsMatchLoading(false);
+      if (user && !isOwnProfile) {
+        queries.push(supabase.from('profile_matches').select('*').eq('matcher_user_id', user.id).eq('matchee_user_id', actualUserId).maybeSingle());
+        fetchMatchStatus = true;
       }
+
+      // Ensure all elements are treated as Promises by TypeScript for Promise.allSettled
+      // Each query builder from Supabase is a "thenable", which Promise.allSettled can handle.
+      const results = await Promise.allSettled(queries);
+
+      let fetchedProfile: Profile | null = null;
+      let fetchedPosts: ResearchPostWithProfile[] = [];
+      let combinedErrorMessages = [];
+
+      const profileResult = results[0];
+      if (profileResult.status === 'fulfilled' && profileResult.value && !profileResult.value.error) {
+        fetchedProfile = profileResult.value.data as Profile;
+      } else {
+        const errorMsg = profileResult.status === 'rejected' 
+          ? profileResult.reason?.message 
+          : profileResult.value?.error?.message;
+        combinedErrorMessages.push(`Profile: ${errorMsg || 'Failed to load'}`);
+        console.error('Error fetching profile:', profileResult.status === 'rejected' ? profileResult.reason : profileResult.value?.error);
+      }
+
+      const postsResult = results[1];
+      if (postsResult.status === 'fulfilled' && postsResult.value && !postsResult.value.error) {
+        fetchedPosts = (postsResult.value.data as ResearchPostWithProfile[]) || [];
+      } else {
+        const errorMsg = postsResult.status === 'rejected' 
+          ? postsResult.reason?.message 
+          : postsResult.value?.error?.message;
+        combinedErrorMessages.push(`Posts: ${errorMsg || 'Failed to load'}`);
+        console.error('Error fetching posts:', postsResult.status === 'rejected' ? postsResult.reason : postsResult.value?.error);
+      }
+
+      if (fetchMatchStatus && results[2]) {
+        const matchResult = results[2];
+        if (matchResult.status === 'fulfilled' && matchResult.value) {
+            if (!matchResult.value.error) {
+                setIsMatched(!!matchResult.value.data);
+            } else if (matchResult.value.error && matchResult.value.error.code !== 'PGRST116') { 
+                const errorMsg = matchResult.value.error?.message;
+                combinedErrorMessages.push(`Match status: ${errorMsg || 'Failed to load'}`);
+                console.error('Error checking match status:', matchResult.value.error);
+            }
+        } else if (matchResult.status === 'rejected'){
+            const errorMsg = matchResult.reason?.message;
+            combinedErrorMessages.push(`Match status (rejected): ${errorMsg || 'Failed to load'}`);
+            console.error('Error checking match status (rejected promise):', matchResult.reason);
+        }
+      }
+      
+      setProfile(fetchedProfile);
+      setPosts(fetchedPosts);
+
+      if (combinedErrorMessages.length > 0) {
+        setError(combinedErrorMessages.join('; '));
+      }
+
     } catch (err: any) {
-      console.error('Error loading profile:', err);
-      setError(err.message || 'Failed to load profile data.');
+      console.error('Critical error in loadProfileData:', err);
+      setError(err.message || 'An unexpected error occurred while loading profile data.');
       setProfile(null);
       setPosts([]);
     } finally {
@@ -131,12 +169,18 @@ export default function ProfilePage() {
   }, [actualUserId, supabase, user, isOwnProfile]);
   
   useEffect(() => {
-    if (userId === 'me' && !user?.id) {
-      if (!isLoading && !error) setIsLoading(true);
-      return;
+    if (actualUserId) {
+        console.log(`[ProfilePage] useEffect triggered for loadProfileData. actualUserId: ${actualUserId}`);
+        loadProfileData();
+    } else if (userId === 'me' && !user && !useAuthStore.getState().isLoading) {
+        console.warn('[ProfilePage] Waiting for user session for /profile/me');
+        setError('Authenticating user session...');
+        setIsLoading(true);
+    } else if (!actualUserId && !useAuthStore.getState().isLoading) {
+      setError('User profile cannot be determined.');
+      setIsLoading(false);
     }
-    loadProfileData();
-  }, [userId, user?.id, loadProfileData, isLoading, error]);
+  }, [actualUserId, loadProfileData, userId, user]);
   
   const handleConnect = async () => {
     if (!user || isOwnProfile || !actualUserId) return;
@@ -161,7 +205,7 @@ export default function ProfilePage() {
     }
   };
   
-  if (isLoading || (userId === 'me' && !user)) {
+  if (isLoading || (userId === 'me' && !user && !error)) {
     return (
       <div className="min-h-[calc(100vh-150px)] flex flex-col items-center justify-center text-neutral-100 p-6">
         <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
@@ -170,14 +214,34 @@ export default function ProfilePage() {
     );
   }
   
-  if (error || !profile) {
+  if (!profile && error) { // Show error page if there's an error AND profile is not loaded
     return (
       <div className="min-h-[calc(100vh-150px)] flex flex-col items-center justify-center text-neutral-100 p-6 text-center">
         <FiAlertTriangle size={48} className="text-red-500 mb-4" />
-        <h1 className="text-2xl font-heading text-neutral-100 mb-2">Profile Not Found</h1>
-        <p className="text-neutral-400 mb-6">{error || 'The requested profile could not be found or loaded.'}</p>
+        <h1 className="text-2xl font-heading text-neutral-100 mb-2">Profile Error</h1>
+        <p className="text-neutral-400 mb-6">{error || 'The requested profile could not be found or an error occurred.'}</p>
         <Button variant="secondary" onClick={() => router.push('/discover')}>Back to Discover</Button>
       </div>
+    );
+  }
+
+  if (!profile && !isLoading) { // If not loading, and no specific error message, but profile is null
+    return (
+      <div className="min-h-[calc(100vh-150px)] flex flex-col items-center justify-center text-neutral-100 p-6 text-center">
+        <FiAlertTriangle size={48} className="text-yellow-500 mb-4" />
+        <h1 className="text-2xl font-heading text-neutral-100 mb-2">Profile Unavailable</h1>
+        <p className="text-neutral-400 mb-6">This profile could not be loaded. It may not exist or there was a temporary issue.</p>
+        <Button variant="secondary" onClick={() => router.push('/discover')}>Back to Discover</Button>
+      </div>
+    );
+  }
+ 
+  if (!profile) { // Final fallback if profile is still null after loading and error checks
+    return (
+        <div className="min-h-[calc(100vh-150px)] flex flex-col items-center justify-center text-neutral-100 p-6">
+            <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
+            <p className="text-neutral-400">Preparing profile data...</p>
+        </div>
     );
   }
 
@@ -190,9 +254,8 @@ export default function ProfilePage() {
           <div className="relative flex flex-col sm:flex-row sm:items-end sm:space-x-5 -mt-16 sm:-mt-20">
             <Avatar 
               src={profile.avatar_url} 
-              alt={`${profile.first_name} ${profile.last_name}`}
+              alt={`${profile.first_name || ''} ${profile.last_name || ''}`.trim()}
               className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-neutral-900 bg-neutral-700 text-4xl flex-shrink-0 text-neutral-400"
-              fallback={`${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`.toUpperCase() || <FiUser size={60}/>}
             />
             <div className="mt-4 sm:mt-0 flex-grow min-w-0 pt-10 sm:pt-0">
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
@@ -204,7 +267,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-4 flex-shrink-0 flex space-x-2">
                   {isOwnProfile ? (
-                    <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')} className="font-sans">
+                    <Button variant="outline" size="sm" onClick={() => router.push('/settings')} className="font-sans">
                       <FiEdit className="mr-2 h-4 w-4" /> Edit Profile
                     </Button>
                   ) : (
@@ -225,6 +288,11 @@ export default function ProfilePage() {
                         )}
                         {isMatchLoading ? 'Connecting...' : isMatched ? 'Connected' : 'Connect'}
                       </Button>
+                      {isMatched && (
+                        <Button variant="primary" size="sm" onClick={() => router.push(`/chats?userId=${actualUserId}`)} className="font-sans">
+                            <FiMessageSquare className="mr-2 h-4 w-4" /> Message
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -254,122 +322,60 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 {posts.length > 0 ? (
                   posts.map((post) => (
-                    <ResearchPostCard
-                      key={post.id}
-                      post={post}
-                    />
+                    <ResearchPostCard key={post.id} post={post} />
                   ))
                 ) : (
-                  <Card className="bg-neutral-800/50 border border-neutral-700 text-center py-12 shadow-md rounded-lg">
-                    <CardContent className="flex flex-col items-center">
-                      <FiBookmark size={32} className="text-neutral-500 mb-3" />
-                      <h3 className="text-lg font-semibold text-neutral-100 mb-1">No Research Posts Yet</h3>
-                      <p className="text-sm text-neutral-400 mb-4">This user hasn't shared any research posts.</p>
-                      {isOwnProfile && (
-                        <Button variant="primary" size="sm" onClick={() => router.push('/projects/new')} className="font-sans">
-                          <FiPlus className="mr-2 h-4 w-4" /> Create First Post
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <div className="text-center py-12">
+                    <FiBookmark className="mx-auto text-4xl text-neutral-500 mb-3" />
+                    <p className="text-neutral-400">This user hasn't posted any research yet.</p>
+                  </div>
                 )}
               </div>
             )}
-            
             {activeTab === 'about' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                  <CardHeader>
-                    <CardTitle className="text-lg font-heading text-neutral-100 flex items-center">
-                      <FiBookmark className="mr-2 text-accent-purple"/>Research Interests
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {profile.interests && profile.interests.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {profile.interests.map((interest) => (
-                          <span
-                            key={interest}
-                            className="bg-accent-purple/20 text-accent-purple px-3 py-1.5 rounded-full text-xs font-sans shadow-sm"
-                          >
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-neutral-400">No research interests specified.</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                  <CardHeader>
-                    <CardTitle className="text-lg font-heading text-neutral-100 flex items-center">
-                      <FiUser className="mr-2 text-accent-purple"/>Bio
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-neutral-300 leading-relaxed">
-                      {profile.bio || 'No bio provided.'}
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="prose prose-invert prose-sm sm:prose-base max-w-none text-neutral-300 space-y-4 font-sans">
+                {profile.bio && <p>{profile.bio}</p>}
+                {!profile.bio && <p>No bio available.</p>}
                 
-                <Card className="bg-neutral-800/50 border border-neutral-700 rounded-lg md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-lg font-heading text-neutral-100 flex items-center">
-                      <FiLink className="mr-2 text-accent-purple"/>Contact & Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {profile.email && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiMail className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <a href={`mailto:${profile.email}`} className="hover:text-accent-purple transition-colors break-all">
-                          {profile.email}
-                        </a>
-                      </div>
-                    )}
-                    {profile.website && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiLink className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-accent-purple transition-colors break-all">
-                          {profile.website}
-                        </a>
-                      </div>
-                    )}
-                     {profile.location && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiMapPin className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <span>{profile.location}</span>
-                      </div>
-                    )}
-                    {profile.institution && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiGlobe className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <span>{profile.institution}</span>
-                      </div>
-                    )}
-                    {profile.availability_hours !== null && profile.availability_hours !== undefined && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiClock className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <span>Available {profile.availability_hours} hours/week</span>
-                      </div>
-                    )}
-                    {profile.project_preference && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiTarget className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <span className="capitalize">{profile.project_preference} projects</span>
-                      </div>
-                    )}
-                    {profile.created_at && (
-                      <div className="flex items-center text-neutral-300">
-                        <FiCalendar className="text-neutral-500 mr-3 flex-shrink-0" size={16} />
-                        <span>Joined on {new Date(profile.created_at).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
+                  {profile.email && (
+                    <div className="flex items-center">
+                      <FiMail className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <span>{profile.email}</span>
+                    </div>
+                  )}
+                  {profile.location && (
+                    <div className="flex items-center">
+                      <FiMapPin className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <span>{profile.location}</span>
+                    </div>
+                  )}
+                  {profile.website && (
+                    <div className="flex items-center">
+                      <FiLink className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-accent-purple break-all">{profile.website}</a>
+                    </div>
+                  )}
+                  {profile.created_at && (
+                    <div className="flex items-center">
+                      <FiCalendar className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <span>Joined on {new Date(profile.created_at).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                {profile.interests && profile.interests.length > 0 && (
+                  <div className="pt-4">
+                    <h3 className="text-lg font-semibold text-neutral-200 mb-2 font-heading">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.interests.map((interest) => (
+                        <span key={interest} className="px-3 py-1 bg-neutral-700 text-neutral-300 text-xs rounded-full font-sans">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

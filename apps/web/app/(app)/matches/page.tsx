@@ -225,7 +225,7 @@ export default function MatchesPage() {
                 </div>
                 <div className="border-t border-neutral-800 p-3 flex gap-2">
                     <Link href={profile.id ? `/profile/${profile.id}` : '#'} className="flex-1">
-                        <Button variant="outline" size="sm" className="w-full font-sans"><FiEye className="mr-1.5"/> View Profile</Button>
+                        <Button variant="outline" size="sm" className="w-full font-sans"><FiEye className="mr-1.5"/> View</Button>
                     </Link>
                     <Link href={profile.id ? `/chats?userId=${profile.id}` : '#'} className="flex-1">
                          <Button variant="primary" size="sm" className="w-full font-sans"><FiMessageSquare className="mr-1.5"/> Message</Button>

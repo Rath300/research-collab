@@ -27,10 +27,33 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
   const supabase = getBrowserClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // Clear Zustand store? Ensure AuthProvider handles this or add clear logic here.
-    // useAuthStore.setState({ user: null, profile: null }); // Example of clearing store
-    router.push('/login');
+    try {
+      console.log('[DashboardHeader] Attempting to sign out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[DashboardHeader] Error during Supabase sign out:', error.message);
+        // Even if Supabase signOut has an error, we must clear client state and redirect.
+      }
+    } catch (e: any) {
+      console.error('[DashboardHeader] Exception during Supabase sign out attempt:', e.message);
+      // Catch any unexpected errors during the signOut call itself.
+    } finally {
+      console.log('[DashboardHeader] Entering finally block for logout.');
+      // Explicitly clear Zustand store as a primary measure here.
+      // AuthProvider will also react to onAuthStateChange, but this ensures immediate client state reset.
+      useAuthStore.setState({ user: null, profile: null, isLoading: false });
+      console.log('[DashboardHeader] Zustand store explicitly cleared.');
+      
+      // Force redirect to login using window.location for robustness.
+      if (typeof window !== 'undefined') {
+        console.log('[DashboardHeader] Redirecting to /login via window.location.href.');
+        window.location.href = '/login';
+      } else {
+        // Fallback if window is not defined (e.g., during SSR pre-rendering, though unlikely for an onClick handler)
+        console.log('[DashboardHeader] window undefined, attempting redirect to /login via router.push.');
+        router.push('/login'); 
+      }
+    }
   };
 
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
