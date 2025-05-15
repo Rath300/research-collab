@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { FiSearch, FiUsers, FiMessageSquare, FiTarget } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { AuthRedirectLink } from '@/components/ui/AuthRedirectLink';
 import React, { useState, useEffect } from 'react';
 
 // Helper component for Feature Cards (Modern/Sleek)
@@ -65,12 +64,20 @@ export default function LandingPage() {
         <Link href="/" className="font-heading text-3xl font-semibold text-neutral-100 tracking-tight hover:text-white transition-colors">
           RESEARCH-BEE
         </Link>
-        <AuthRedirectLink 
-                href="/login" 
-          className="font-sans text-neutral-300 hover:text-white transition-colors"
-              >
-                Log in
-        </AuthRedirectLink>
+        <div className="hidden md:flex items-center space-x-2">
+          <Link
+            href="/login"
+            className="px-4 py-2 text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="px-4 py-2 text-sm font-medium text-white bg-accent-purple hover:bg-accent-purple-hover rounded-md transition-colors"
+          >
+            Get Started
+          </Link>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -129,12 +136,12 @@ export default function LandingPage() {
                 visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
               }}
             >
-              <AuthRedirectLink 
-                href="/signup" 
-                className="inline-block bg-white text-neutral-900 hover:bg-neutral-200 font-sans font-medium py-3 px-8 rounded-md text-base sm:text-lg transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-black"
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-accent-purple hover:bg-accent-purple-hover border border-transparent rounded-md shadow-sm md:text-lg"
               >
-                Get Started
-              </AuthRedirectLink>
+                Get Started Free
+              </Link>
             </motion.div>
           </div>
         </motion.section>
