@@ -1,19 +1,16 @@
 import { create } from 'zustand';
 import { ResearchPost, Match, type Profile as DbProfile } from '@research-collab/db';
-import type { User } from '@supabase/supabase-js';
 
 // Define Profile type based on the database schema
 // type ProfileFromDb = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthState {
-  user: User | null;
+  user: any | null;
   profile: DbProfile | null;
   isLoading: boolean;
-  authError: string | null;
-  setUser: (user: User | null) => void;
+  setUser: (user: any | null) => void;
   setProfile: (profile: DbProfile | null) => void;
   setLoading: (isLoading: boolean) => void;
-  setAuthError: (error: string | null) => void;
   signOut: () => void;
   clearAuth: () => void;
 }
@@ -60,24 +57,15 @@ interface ResearchState {
   resetPosts: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profile: null,
   isLoading: true,
-  authError: null,
-  setUser: (newUser) => {
-    const currentUser = get().user;
-    if (currentUser?.id !== newUser?.id || 
-        (currentUser === null && newUser !== null) || 
-        (currentUser !== null && newUser === null)) {
-      set({ user: newUser });
-    }
-  },
-  setProfile: (newProfile) => set({ profile: newProfile }),
+  setUser: (user) => set({ user }),
+  setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
-  setAuthError: (authError) => set({ authError }),
-  signOut: () => set({ user: null, profile: null, isLoading: false, authError: null }),
-  clearAuth: () => set({ user: null, profile: null, isLoading: false, authError: null }),
+  signOut: () => set({ user: null, profile: null, isLoading: false }),
+  clearAuth: () => set({ user: null, profile: null, isLoading: false }),
 }));
 
 export const useSwipeStore = create<SwipeState>((set) => ({
@@ -151,18 +139,4 @@ export const useResearchStore = create<ResearchState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setHasMore: (hasMore) => set({ hasMore }),
   resetPosts: () => set({ posts: [], isLoading: false, hasMore: true }),
-}));
-
-// Example selector (optional, but can be useful)
-export const selectIsAuthenticated = (state: AuthState) => !!state.user;
-export const selectUserProfile = (state: AuthState) => state.profile;
-export const selectAuthLoading = (state: AuthState) => state.isLoading;
-export const selectAuthError = (state: AuthState) => state.authError;
-
-// Re-export User and DbProfile types if they are frequently used with the store context
-export type { User as SupabaseUser, DbProfile as UserProfile };
-
-// Note: If using `persist` middleware, ensure it's configured correctly.
-// For sensitive auth data, consider if localStorage is appropriate or if session storage / in-memory is better.
-// The current setup without `persist` means the store is in-memory and resets on full page reload,
-// relying on AuthProvider to re-initialize from Supabase session. 
+})); 

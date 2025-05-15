@@ -25,7 +25,6 @@ import {
   FiTrendingUp, // For Trending Page
 } from 'react-icons/fi';
 import Image from 'next/image'; // For user avatars
-import { createBrowserClient } from '@supabase/ssr';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -34,16 +33,10 @@ export function Sidebar() {
     sidebarOpen: state.sidebarOpen,
     setSidebarOpen: state.setSidebarOpen,
   }));
-  const { profile, signOut, clearAuth } = useAuthStore(state => ({
+  const { profile, signOut } = useAuthStore(state => ({
     profile: state.profile,
     signOut: state.signOut,
-    clearAuth: state.clearAuth,
   }));
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   const currentUserId = profile?.id;
   const currentUserName = (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || 'User';
@@ -65,14 +58,12 @@ export function Sidebar() {
   const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) && href !== '/') || (href === '/settings' && pathname?.startsWith('/settings'));
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (clearAuth) {
-      clearAuth();
+    if (signOut) {
+      await signOut();
+    } else {
+      console.warn('Sign out function not available on useAuthStore');
+      alert("Logout functionality to be fully implemented!");
     }
-    if (error) {
-      console.error("Error logging out:", error.message);
-    }
-    router.push('/login');
   };
 
   return (

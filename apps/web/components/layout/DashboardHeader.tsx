@@ -25,19 +25,12 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: DashboardHeaderProps) {
   const router = useRouter();
   const supabase = getBrowserClient();
-  const { clearAuth } = useAuthStore(); // Get clearAuth from the store
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      clearAuth(); // Clear Zustand store immediately
-      router.push('/login'); // Redirect to login
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Even if signOut fails, attempt to clear local state and redirect
-      clearAuth();
-      router.push('/login?error=logout_failed');
-    }
+    await supabase.auth.signOut();
+    // Clear Zustand store? Ensure AuthProvider handles this or add clear logic here.
+    // useAuthStore.setState({ user: null, profile: null }); // Example of clearing store
+    router.push('/login');
   };
 
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
