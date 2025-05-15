@@ -36,9 +36,9 @@ export default function SettingsPage() {
             const processedProfile: ProfileType = {
               ...fetchedProfileData,
               updated_at: fetchedProfileData.updated_at ? new Date(fetchedProfileData.updated_at) : null,
-              // Ensure other date fields are also processed if they exist and are used by ProfileForm
-              created_at: fetchedProfileData.created_at ? new Date(fetchedProfileData.created_at) : new Date(), 
-              joining_date: fetchedProfileData.joining_date ? new Date(fetchedProfileData.joining_date) : new Date(), 
+              // created_at and joining_date are not in ProfileType from @research-collab/db
+              // created_at: fetchedProfileData.created_at ? new Date(fetchedProfileData.created_at) : new Date(), 
+              // joining_date: fetchedProfileData.joining_date ? new Date(fetchedProfileData.joining_date) : new Date(), 
             };
             setProfile(processedProfile);
           } else {
