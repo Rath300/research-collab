@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { titleCase } from '@/lib/utils';
 import { Database } from '@/lib/database.types';
 import { cn } from '@/lib/utils';
+import { getBrowserClient } from '@/lib/supabaseClient';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -87,12 +88,36 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
   const pathname = usePathname();
   const router = useRouter();
   const { unreadMessages } = useChatStore();
+  const supabase = getBrowserClient();
 
   const displayName = profile?.first_name 
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
     : 'User';
   const displayRole = 'Researcher'; 
   const displayAvatarUrl = profile?.avatar_url;
+
+  const handleLogout = async () => {
+    console.log('[DashboardSidebar] handleLogout CALLED.');
+    try {
+      console.log('[DashboardSidebar] Attempting Supabase signOut...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[DashboardSidebar] Supabase signOut error:', error.message);
+      } else {
+        console.log('[DashboardSidebar] Supabase signOut successful.');
+      }
+    } catch (e: any) {
+      console.error('[DashboardSidebar] Exception during Supabase signOut attempt:', e.message);
+    }
+    console.log('[DashboardSidebar] Attempting redirect to /login via window.location.replace().');
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    } else {
+      console.warn('[DashboardSidebar] window object not available. This redirect might not work as expected.');
+      router.push('/login');
+    }
+    console.log('[DashboardSidebar] Redirect attempt made. End of handleLogout.');
+  };
 
   const mainNavItems = [
     { name: 'Dashboard', href: '/dashboard', icon: FiGrid }, 
@@ -102,7 +127,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
 
   const settingsNavItems = [
     { name: 'Account', href: '/settings/account', icon: FiUser },
-    { name: 'Settings', href: '/settings', icon: FiSettings },
+    { name: 'Settings', href: '/settings/account', icon: FiSettings },
   ];
 
   const recentChats = [
@@ -343,7 +368,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
           )}
         </nav>
         
-        <div className="mt-auto p-2 border-t border-neutral-800">
+        <div className="mt-auto p-2 border-t border-neutral-800 space-y-2">
            {isCollapsed && (
              <Button 
                variant="ghost" 
@@ -351,6 +376,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                onClick={toggleSidebar} 
                className="w-full h-10 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700" 
                aria-label="Expand sidebar"
+               title="Expand sidebar"
               >
                <FiChevronsRight className="h-5 w-5" />
              </Button>
@@ -377,6 +403,33 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                 </Transition>
              </Button>
            )}
+
+           <Button 
+             variant="ghost"
+             size={isCollapsed ? "sm" : "md"}
+             onClick={handleLogout}
+             className={cn(
+               'w-full flex items-center text-neutral-400 hover:text-red-500 hover:bg-red-900/30 transition-colors',
+               isCollapsed ? 'justify-center h-10' : 'justify-start h-10 px-3'
+             )}
+             title="Logout"
+           >
+             <FiLogOut className={cn('h-5 w-5', !isCollapsed && 'mr-3')} />
+             {!isCollapsed && (
+                <Transition
+                    as={Fragment}
+                    show={!isCollapsed}
+                    enter="transition-opacity duration-150 ease-out"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="transition-opacity duration-150 ease-in"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <span>Logout</span>
+                </Transition>
+             )}
+           </Button>
         </div>
       </div>
     </aside>

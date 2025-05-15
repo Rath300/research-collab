@@ -44,14 +44,13 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
 
     // Regardless of signOut outcome, attempt to redirect to login.
     // AuthProvider is responsible for clearing user state in Zustand store via onAuthStateChange.
-    console.log('[DashboardHeader] Attempting redirect to landing page via window.location.replace().');
+    console.log('[DashboardHeader] Attempting redirect to /login via window.location.replace().');
     if (typeof window !== 'undefined') {
-      window.location.replace('https://research-collab-qvp1t6z64-shreyanshrath4-gmailcoms-projects.vercel.app/');
+      window.location.replace('/login');
     } else {
       // Fallback for non-browser environments (less likely for this component but good for robustness)
-      console.warn('[DashboardHeader] window object not available. This redirect might not work as expected for an external URL.');
-      // router.push for an external URL is not standard, so this fallback is less effective here.
-      // Consider logging or alternative handling if window is truly not available in this context.
+      console.warn('[DashboardHeader] window object not available. This redirect might not work as expected.');
+      router.push('/login');
     }
     // It's possible that code execution stops at window.location.replace, so further logs might not run.
     console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
@@ -115,7 +114,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
               <FiUser className="mr-2 h-4 w-4" />
               <span>My Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="focus:bg-neutral-700 focus:text-neutral-100 cursor-pointer" onClick={() => router.push('/settings')}>
+            <DropdownMenuItem className="focus:bg-neutral-700 focus:text-neutral-100 cursor-pointer" onClick={() => router.push('/settings/account')}>
               <FiSettings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
