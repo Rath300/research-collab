@@ -52,7 +52,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
         // Using assign() for a clear navigation act, href should also work.
         window.location.assign('/login'); 
       } else {
-        console.warn('[DashboardHeader] window object not available. Attempting Next.js router.push('/login').');
+        console.warn('[DashboardHeader] window object not available. Attempting Next.js router.push(\'/login\').');
         router.push('/login');
       }
       console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
