@@ -316,7 +316,7 @@ export default function DashboardPage() {
           .from('research_posts')
           .select('*, profiles (*)')
           .order('created_at', { ascending: false })
-          .limit(3),
+          .limit(1),
         supabase
           .from('user_notifications')
           .select('*')
