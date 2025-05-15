@@ -86,7 +86,7 @@ export default function ChatsPage() {
       .insert({
         user_id_1: user1,
         user_id_2: user2,
-        status: 'active', // Or 'direct_chat' or similar
+        status: 'matched', // Changed from 'active' to 'matched'
       })
       .select('id')
       .single();
