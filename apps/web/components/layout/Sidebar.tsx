@@ -39,12 +39,14 @@ export function Sidebar() {
   }));
 
   const currentUserId = profile?.id;
-  const currentUserName = profile?.full_name || (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || 'User';
+  const currentUserName = (profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.first_name) || 'User';
   const currentUserAvatarUrl = profile?.avatar_url || '/images/default-avatar.png';
 
   const mainNavItems = [
     { label: 'Dashboard', href: '/dashboard', icon: <FiGrid /> },
     { label: 'Chats', href: '/chats', icon: <FiMessageSquare /> },
+    { label: 'Discover Matches', href: '/match', icon: <FiHeart /> },
+    { label: 'My Matches', href: '/matches', icon: <FiHeart /> },
     { label: 'New Project', href: '/projects/new', icon: <FiPlus /> },
     { label: 'Trending', href: '/trending', icon: <FiTrendingUp /> },
   ];

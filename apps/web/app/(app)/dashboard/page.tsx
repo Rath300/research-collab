@@ -124,10 +124,10 @@ const MyProfileSnapshot = () => {
 const QuickActions = () => {
   const router = useRouter();
   const actions = [
-    { label: "Find Collaborators", href: "/collaborators", icon: FiSearch },
-    { label: "New Project", href: "/projects/new", icon: FiFilePlus },
-    { label: "Messages", href: "/chats", icon: FiMessageSquare },
-    { label: "Update Profile", href: "/settings/account", icon: FiCheckSquare }
+    { label: "Find Collaborators", href: "/collaborators" },
+    { label: "New Project", href: "/projects/new" },
+    { label: "Messages", href: "/chats" },
+    { label: "Update Profile", href: "/settings/account" }
   ];
 
   return (
@@ -139,8 +139,8 @@ const QuickActions = () => {
             onClick={() => router.push(action.href)}
             className="flex flex-col items-center justify-center p-3 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
           >
-            <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-1 transition-colors" />
-            <span className="text-[11px] leading-tight font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
+            {/* <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-1 transition-colors" /> */}
+            <span className="text-[10px] leading-tight font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
           </button>
         ))}
       </div>

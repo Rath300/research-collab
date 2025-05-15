@@ -10,13 +10,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
 import { getBrowserClient } from '@/lib/supabaseClient';
-import { Database } from '@/lib/database.types';
+// import { Database } from '@/lib/database.types'; // Comment out or remove local Database type import
+import { type Profile as DbProfile } from '@research-collab/db'; // Ensure DbProfile is imported
 import { titleCase } from '@/lib/utils';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+// type Profile = Database['public']['Tables']['profiles']['Row']; // Use DbProfile instead
 
 interface DashboardHeaderProps {
-  profile: Profile | null;
+  profile: DbProfile | null; // Changed to use DbProfile
   toggleSidebar: () => void;
   isSidebarCollapsed: boolean;
 }
