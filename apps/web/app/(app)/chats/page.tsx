@@ -46,6 +46,7 @@ export default function ChatsPage() {
   const [isInitializingSession, setIsInitializingSession] = useState(false);
   const [showSidebarOnMobile, setShowSidebarOnMobile] = useState(true);
 
+  // Minor comment to signify recent review: 2023-10-27
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/login');
