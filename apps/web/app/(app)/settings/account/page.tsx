@@ -124,7 +124,6 @@ export default function AccountSettingsPage() {
         last_name: lastName,
         bio: bio,
         avatar_url: newAvatarPath,
-        updated_at: new Date().toISOString(),
       };
 
       const { error: updateError } = await supabase

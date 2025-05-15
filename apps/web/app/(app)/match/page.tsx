@@ -211,7 +211,7 @@ export default function MatchPage() {
                 className="absolute inset-0 bg-cover bg-center z-0" 
                 style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
               </div>
               
               <div className="relative z-20 text-white">
