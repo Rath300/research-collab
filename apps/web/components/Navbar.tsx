@@ -15,10 +15,13 @@ export default function Navbar({ user }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const supabase = getBrowserClient();
-  const { profile } = useAuthStore();
+  const { profile, clearAuth } = useAuthStore();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    if (clearAuth) {
+      clearAuth();
+    }
     router.push("/login");
   };
 

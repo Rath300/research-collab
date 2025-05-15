@@ -6,9 +6,12 @@ import { useState, useEffect } from 'react';
 import { FiMenu, FiUser, FiBell, FiMoon, FiSun, FiLogOut } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
 import { Avatar } from '@/components/ui/Avatar';
+import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
 
 export function Navbar() {
-  const { user, profile, signOut } = useAuthStore();
+  const { user, profile, signOut, clearAuth } = useAuthStore();
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -23,9 +26,21 @@ export function Navbar() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleSignOut = () => {
-    signOut();
-    window.location.href = '/login';
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (clearAuth) {
+      clearAuth(); // Clear client-side auth state
+    }
+    if (error) {
+      console.error("Error logging out:", error.message);
+      // Optionally, show an error to the user
+    }
+    router.push('/login'); // Redirect to login page
   };
 
   return (

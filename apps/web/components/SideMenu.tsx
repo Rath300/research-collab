@@ -14,6 +14,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { getConversations, type ConversationListItem } from '@/lib/api';
 import { Input } from '@/components/ui/Input';
 import { getBrowserClient } from '@/lib/supabaseClient';
+import { createBrowserClient } from '@supabase/ssr';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SideMenu() {
@@ -21,7 +22,7 @@ export default function SideMenu() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { user, profile, signOut, isLoading: authLoading } = useAuthStore();
+  const { user, profile, signOut, clearAuth, isLoading: authLoading } = useAuthStore();
   const { totalUnreadMessages, setTotalUnreadMessages } = useChatStore();
   
   const [showConversations, setShowConversations] = useState(false);
@@ -29,6 +30,11 @@ export default function SideMenu() {
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const navigationItems: NavigationItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: FiHome, type: 'link' },
@@ -118,13 +124,16 @@ export default function SideMenu() {
   }, [user, fetchConversations]);
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/login');
-      setIsMobileOpen(false);
-    } catch (error) {
-      console.error('Error signing out:', error);
+    const { error } = await supabase.auth.signOut();
+    if (clearAuth) {
+      clearAuth();
     }
+    if (error) {
+      console.error('Error signing out:', error);
+      // Optionally handle error UI
+    }
+    router.push('/login');
+    setIsMobileOpen(false); // If this is for mobile view
   };
 
   const commonLinkClass = "flex items-center w-full px-3 py-2.5 rounded-lg transition-all duration-200 ease-in-out group";
