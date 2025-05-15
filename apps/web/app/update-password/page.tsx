@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { FiLock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { getBrowserClient } from '@/lib/supabaseClient';
+import { motion } from 'framer-motion';
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -91,81 +92,130 @@ export default function UpdatePasswordPage() {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
-                <span className="text-lg font-bold text-white">#</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">ResearchCollab</span>
-            </div>
-          </Link>
-        </div>
+    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
+        <Link href="/" className="font-heading text-2xl font-bold text-neutral-200 hover:text-neutral-100 transition-colors">
+          RESEARCH-BEE
+        </Link>
+      </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Update your password</CardTitle>
-            <CardDescription>
-              Create a new password for your account
-            </CardDescription>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-sm"
+      >
+        <Card className="w-full bg-neutral-950 border-none shadow-none p-6 sm:p-8">
+          <CardHeader className="text-center mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <CardTitle className="font-heading text-3xl sm:text-4xl font-semibold text-neutral-100">
+                Update your password
+              </CardTitle>
+              <CardDescription className="mt-2 text-sm text-neutral-400 font-sans">
+                Create a new, strong password for your account.
+              </CardDescription>
+            </motion.div>
           </CardHeader>
           
           {isSuccess ? (
             <CardContent className="pt-4 pb-6">
-              <div className="bg-green-50 text-green-600 p-4 rounded-md flex items-center space-x-3 text-sm dark:bg-green-900/20 dark:text-green-400">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="p-4 mb-4 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-center space-x-3"
+              >
                 <FiCheckCircle className="h-5 w-5 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Password updated successfully!</p>
-                  <p className="mt-1">You&apos;ll be redirected to the login page shortly.</p>
+                  <p className="mt-1 text-xs">You&apos;ll be redirected to login shortly.</p>
                 </div>
-              </div>
+              </motion.div>
             </CardContent>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
+            <motion.form
+              onSubmit={handleSubmit}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <CardContent className="space-y-5">
                 {error && (
-                  <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
+                  <div className="p-3 mb-4 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm flex items-center space-x-2">
                     <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
                     <span>{error}</span>
                   </div>
                 )}
                 
-                <Input
-                  label="New Password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  leftIcon={<FiLock />}
-                  required
-                />
+                <div>
+                  <label htmlFor="password" className="sr-only">New Password</label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="New password (min. 8 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
+                  />
+                </div>
                 
-                <Input
-                  label="Confirm Password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  leftIcon={<FiLock />}
-                  required
-                />
+                <div>
+                  <label htmlFor="confirmPassword" className="sr-only">Confirm New Password</label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
+                  />
+                </div>
               </CardContent>
               
-              <CardFooter className="flex flex-col space-y-4">
+              <CardFooter className="pt-2">
                 <Button
                   type="submit"
                   isLoading={isLoading}
                   isFullWidth
+                  className="w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors"
+                  size="lg"
                 >
                   Update Password
                 </Button>
               </CardFooter>
-            </form>
+            </motion.form>
           )}
+           <motion.div
+              className="text-center mt-6"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Link 
+                href="/login"
+                className="inline-flex items-center text-sm font-sans text-neutral-400 hover:text-neutral-200 transition-colors"
+              >
+                Return to Login
+              </Link>
+            </motion.div>
         </Card>
-      </div>
+      </motion.div>
+      <motion.footer
+        className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
+      </motion.footer>
     </div>
   );
 } 
