@@ -125,27 +125,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // New Effect to handle critical authError by signing out
   useEffect(() => {
-    console.log('[AuthProvider] AuthError check effect. Current error:', storeAuthError, '. Current user in store:', storeUser?.id);
-    if (storeAuthError === 'Failed to load your profile. Please try refreshing the page.' && storeUser) {
-      console.warn('[AuthProvider] Critical auth error detected (profile fetch failed for existing session). Forcing logout.');
-      
-      supabase.auth.signOut().then(() => {
-        console.log('[AuthProvider] Supabase signOut completed due to critical auth error.');
-        // onAuthStateChange will handle clearing user/profile via setUser(null) and subsequent fetchAndSetProfile(null)
-        // We ensure redirection happens after state is likely cleared.
-        // Using a small timeout to allow state updates from onAuthStateChange to propagate before redirect
-        setTimeout(() => {
-            router.push('/login?error=session_issue');
-        }, 50); 
-      }).catch(err => {
-        console.error('[AuthProvider] Error during forced signOut from authError effect:', err);
-        clearAuth(); // Fallback: ensure client state is cleared
-        setTimeout(() => {
-             router.push('/login?error=session_issue_signout_failed');
-        }, 50);
-      });
+    // It's important to get the fresh isLoading state inside the effect if it's not a dependency
+    const currentLoadingState = useAuthStore.getState().isLoading;
+
+    console.log(
+      '[AuthProvider] AuthState Integrity Check Triggered. User:', storeUser?.id,
+      'Profile:', storeProfile?.id, 
+      'Error:', storeAuthError,
+      'Loading:', currentLoadingState
+    );
+
+    if (storeUser && !currentLoadingState) { 
+      // Only evaluate if a user session exists and we are not actively in a loading phase.
+      if (!storeProfile || storeAuthError) {
+        // If profile is missing OR there's an auth error, the session is deemed incomplete or problematic.
+        console.warn(
+          `[AuthProvider] Problematic session state detected. User: ${storeUser.id}, Profile Missing: ${!storeProfile}, AuthError: ${JSON.stringify(storeAuthError)}. Forcing logout.`
+        );
+        
+        supabase.auth.signOut().then(() => {
+          console.log('[AuthProvider] Supabase signOut completed due to problematic session state.');
+          // onAuthStateChange will typically handle clearing storeUser/storeProfile.
+          // We ensure redirection happens after state updates are likely processed.
+          setTimeout(() => {
+            // The clearAuth() call here is belt-and-suspenders, as onAuthStateChange should do it.
+            // However, calling it ensures client state is cleared before redirect if onAuthStateChange is slow or fails.
+            if (useAuthStore.getState().clearAuth) {
+              useAuthStore.getState().clearAuth();
+            }
+            router.push('/login?error=session_integrity_issue');
+          }, 50); 
+        }).catch(err => {
+          console.error('[AuthProvider] Error during forced signOut from integrity check:', err);
+          if (useAuthStore.getState().clearAuth) {
+             useAuthStore.getState().clearAuth(); // Fallback: ensure client state is cleared
+          }
+          setTimeout(() => {
+             router.push('/login?error=session_integrity_signout_failed');
+          }, 50);
+        });
+      }
     }
-  }, [storeAuthError, storeUser, supabase, router, clearAuth]); // Added clearAuth
+  }, [storeUser, storeProfile, storeAuthError, supabase, router]); // Removed clearAuth from deps as it's called via getState()
 
   return <>{children}</>;
 } 
