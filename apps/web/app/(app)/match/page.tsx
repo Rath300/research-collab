@@ -1,305 +1,399 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import TinderCard from 'react-tinder-card';
 import { motion } from 'framer-motion';
-import { getBrowserClient } from '@/lib/supabaseClient';
-import { type Database } from '@/lib/database.types';
-import { useAuthStore } from '@/lib/store';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Avatar } from '@/components/ui/Avatar';
+import { useAuthStore } from '@/stores/auth-store';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import type { Database } from '@/lib/database.types';
+import { PageContainerLayout } from '@/components/layout/page-container-layout';
 import { Button } from '@/components/ui/Button';
-import { FiUser, FiLoader, FiAlertCircle, FiHeart, FiX, FiRewind, FiArrowLeft } from 'react-icons/fi';
+import { Avatar } from '@/components/ui/Avatar';
+import { Heart, X, Loader2, AlertTriangle, Info, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { Image } from '@/components/ui/image';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfileMatchStatus = Database['public']['Tables']['profile_matches']['Row']['status'];
+type DbProfile = Database['public']['Tables']['profiles']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
+type ProfileMatch = Database['public']['Tables']['profile_matches']['Row'];
 
-interface PotentialMatch extends Profile {
-  // Any additional properties needed for the card
+interface ProfileWithProjects extends DbProfile {
+  projects?: Project[];
+  headline: string | null;
+  skills: string[] | null;
+  interests: string[] | null;
 }
 
 export default function MatchPage() {
-  const supabase = getBrowserClient();
-  const { user, profile: currentUserProfile } = useAuthStore();
+  const { profile: currentUser, isLoading: isAuthLoading } = useAuthStore();
+  const supabase = useSupabaseClient<Database>();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [potentialMatches, setPotentialMatches] = useState<PotentialMatch[]>([]);
+  const [potentialMatches, setPotentialMatches] = useState<ProfileWithProjects[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastDirection, setLastDirection] = useState<string | null>(null);
 
-  const fetchPotentialMatches = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      setError("User not authenticated.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data: interactedUsersData, error: interactedUsersError } = await supabase
-        .from('profile_matches')
-        .select('matchee_user_id')
-        .eq('matcher_user_id', user.id)
-        .in('status', ['liked', 'rejected', 'matched']);
-
-      if (interactedUsersError) throw interactedUsersError;
-      const interactedUserIds = interactedUsersData.map(item => item.matchee_user_id);
-      
-      let queryBuilder = supabase
-        .from('profiles')
-        .select('*')
-        .neq('id', user.id);
-
-      if (interactedUserIds.length > 0) {
-        queryBuilder = queryBuilder.not('id', 'in', `(${interactedUserIds.join(',')})`);
-      }
-      
-      const { data: usersWhoLikedCurrentUserAndWereRejected, error: rejectedLikesError } = await supabase
-        .from('profile_matches')
-        .select('matcher_user_id')
-        .eq('matchee_user_id', user.id)
-        .eq('status', 'rejected');
-
-      if (rejectedLikesError) {
-        console.warn('Could not fetch users who liked current user and were rejected:', rejectedLikesError.message);
-      } else if (usersWhoLikedCurrentUserAndWereRejected && usersWhoLikedCurrentUserAndWereRejected.length > 0) {
-        const rejectedLikerIds = usersWhoLikedCurrentUserAndWereRejected.map(r => r.matcher_user_id);
-        queryBuilder = queryBuilder.not('id', 'in', `(${rejectedLikerIds.join(',')})`);
-      }
-
-      const { data: profilesData, error: profilesError } = await queryBuilder.limit(20);
-
-      if (profilesError) {
-        console.error("Supabase profiles fetch error:", profilesError);
-        throw profilesError;
-      }
-      
-      setPotentialMatches(profilesData || []);
-      setCurrentIndex((profilesData?.length || 0) - 1);
-
-    } catch (err) {
-      console.error("Error fetching potential matches:", err);
-      const defaultMessage = 'Failed to load potential matches.';
-      if (err && typeof err === 'object' && 'message' in err) {
-        setError(String((err as Error).message) || defaultMessage);
-      } else {
-        setError(defaultMessage);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase, user]);
-
-  useEffect(() => {
-    fetchPotentialMatches();
-  }, [fetchPotentialMatches]);
+  const [isReviewMode, setIsReviewMode] = useState<boolean>(false);
+  const [reviewLikerProfile, setReviewLikerProfile] = useState<ProfileWithProjects | null>(null);
+  const [originalLikerId, setOriginalLikerId] = useState<string | null>(null);
   
   const childRefs = useMemo(
     () =>
       Array(potentialMatches.length)
         .fill(0)
-        .map((i) => React.createRef<any>()),
+        .map(() => React.createRef<any>()),
     [potentialMatches.length]
   );
 
-  const swiped = async (direction: 'left' | 'right', swipedProfile: PotentialMatch, index: number) => {
-    setLastDirection(direction);
-    setCurrentIndex(index - 1);
-    console.log(`Swiped ${direction} on user ${swipedProfile.id} at index ${index}`);
+  useEffect(() => {
+    if (!searchParams) return;
+    const action = searchParams.get('action');
+    const likerId = searchParams.get('liker_id');
 
-    if (!user || !currentUserProfile) {
-      console.error("User or current user profile not available, cannot record swipe.");
-      return;
+    if (action === 'review_like' && likerId && currentUser && currentUser.id !== likerId) {
+      setIsReviewMode(true);
+      setOriginalLikerId(likerId);
+      setPotentialMatches([]); 
+
+      const fetchLikerProfile = async () => {
+        setLoading(true);
+        setError(null);
+        const { data, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*, projects(*)') 
+          .eq('id', likerId)
+          .single();
+
+        if (fetchError) {
+          toast.error(`Failed to load profile: ${fetchError.message}`);
+          setError(`Failed to load profile: ${fetchError.message}`);
+          setIsReviewMode(false);
+          setOriginalLikerId(null);
+          router.replace('/match', undefined);
+        } else if (data) {
+          setReviewLikerProfile(data as ProfileWithProjects);
+          setPotentialMatches([data as ProfileWithProjects]); 
+          setCurrentIndex(0); 
+        }
+        setLoading(false);
+      };
+      fetchLikerProfile();
+    } else {
+      if (likerId && currentUser && currentUser.id === likerId) {
+        router.replace('/match', undefined);
+      }
+      setIsReviewMode(false);
+      setOriginalLikerId(null);
+      setReviewLikerProfile(null);
     }
+  }, [searchParams, currentUser, supabase, router]);
 
-    const newStatus: ProfileMatchStatus = direction === 'right' ? 'liked' : 'rejected';
+  const fetchPotentialMatches = useCallback(async () => {
+    if (!currentUser || isReviewMode || loading) return;
 
+    setLoading(true);
+    setError(null);
     try {
-      const { data: matchInsertData, error: insertError } = await supabase
+      const { data: interactedUsersData, error: interactedUsersError } = await supabase
         .from('profile_matches')
-        .insert({
-          matcher_user_id: user.id,
-          matchee_user_id: swipedProfile.id,
-          status: newStatus,
-        })
-        .select()
-        .single();
+        .select('matched_user_id')
+        .eq('user_id', currentUser.id);
 
-      if (insertError) {
-        console.error('Error inserting profile_match:', insertError);
+      if (interactedUsersError) throw interactedUsersError;
+      const interactedUserIds = interactedUsersData.map((match: Pick<ProfileMatch, 'matched_user_id'>) => match.matched_user_id);
+      
+      const excludeIds = [...new Set([...interactedUserIds, currentUser.id])];
+
+      let queryBuilder = supabase
+        .from('profiles')
+        .select('*, projects(*)')
+        .neq('id', currentUser.id)
+        .limit(10);
+
+      if (excludeIds.length > 0) {
+        queryBuilder = queryBuilder.not('id', 'in', `(${excludeIds.join(',')})`);
+      }
+      
+      const { data: profilesData, error: profilesError } = await queryBuilder;
+
+      if (profilesError) {
+        if (profilesError.message.includes("syntax error at or near )") && excludeIds.length === 0) {
+          const { data: retryData, error: retryError } = await supabase
+            .from('profiles')
+            .select('*, projects(*)')
+            .neq('id', currentUser.id)
+            .limit(10);
+          if (retryError) throw retryError;
+          setPotentialMatches((retryData || []) as ProfileWithProjects[]);
+        } else {
+          throw profilesError;
+        }
       } else {
-        console.log(`Profile_match (${newStatus}) between ${user.id} and ${swipedProfile.id} recorded.`);
-        
-        if (newStatus === 'liked') {
-          const senderName = `${currentUserProfile.first_name || 'Someone'} ${currentUserProfile.last_name || ''}`.trim();
-          const notificationContent = `${senderName} is interested in matching with you!`;
-          
-          const { error: notificationError } = await supabase
-            .from('user_notifications')
-            .insert({
-              user_id: swipedProfile.id,
-              sender_id: user.id,
-              content: notificationContent,
-              type: 'new_like',
-              link_to: `/match?action=review_like&liker_id=${user.id}`
-            });
+        setPotentialMatches((profilesData || []) as ProfileWithProjects[]);
+      }
+    } catch (e: any) {
+      console.error('Error fetching potential matches:', e);
+      setError(`Failed to fetch matches: ${e.message}`);
+      toast.error(`Failed to fetch matches: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser, supabase, isReviewMode, loading]);
 
-          if (notificationError) {
-            console.error('Error creating like notification:', notificationError);
-          } else {
-            console.log(`Notification created for user ${swipedProfile.id} about like from ${user.id}`);
-          }
+  useEffect(() => {
+    if (!searchParams) return;
+    if (currentUser && !isReviewMode && potentialMatches.length === 0 && !loading && !searchParams.get('action')) {
+      fetchPotentialMatches();
+    }
+  }, [currentUser, isReviewMode, potentialMatches.length, loading, fetchPotentialMatches, searchParams]);
+
+  const onCardLeftScreenHandler = (profileSwiped: ProfileWithProjects, direction: string) => {
+    if (!currentUser) return;
+    
+    setPotentialMatches((prevMatches) => prevMatches.filter(p => p.id !== profileSwiped.id));
+
+    handleSwipeAction(direction, profileSwiped.id, profileSwiped);
+  };
+
+  const handleSwipeAction = async (direction: string, profileIdSwiped: string, swipedProfile: ProfileWithProjects) => {
+    if (!currentUser) return;
+
+    if (isReviewMode && originalLikerId && reviewLikerProfile && profileIdSwiped === originalLikerId) {
+      if (direction === 'right') {
+        try {
+          const { data: userBLikeData, error: userBLikeError } = await supabase
+            .from('profile_matches')
+            .insert({ user_id: currentUser.id, matched_user_id: originalLikerId, status: 'liked' })
+            .select('id')
+            .single();
+          if (userBLikeError) throw userBLikeError;
+          if (!userBLikeData) throw new Error('Failed to record your like.');
+
+          await supabase
+            .from('profile_matches')
+            .update({ status: 'matched' })
+            .match({ user_id: originalLikerId, matched_user_id: currentUser.id, status: 'liked' });
+          await supabase
+            .from('profile_matches')
+            .update({ status: 'matched' })
+            .eq('id', userBLikeData.id);
+
+          await supabase.from('user_notifications').insert({
+            user_id: originalLikerId,
+            type: 'new_match',
+            message: `${currentUser.display_name || 'Someone'} matched you back! Ready to chat?`,
+            link_to: `/chats?userId=${currentUser.id}`,
+            actor_id: currentUser.id,
+          });
+          toast.success(`It's a match with ${swipedProfile.display_name || 'them'}!`);
+          router.push(`/chats?userId=${originalLikerId}`);
+        } catch (error: any) {
+          toast.error(`Failed to match: ${error.message}`);
+          router.replace('/match', undefined);
+        } finally {
+          setIsReviewMode(false);
+          setOriginalLikerId(null);
+          setReviewLikerProfile(null);
+        }
+      } else {
+        try {
+          await supabase.from('profile_matches').insert({
+            user_id: currentUser.id,
+            matched_user_id: originalLikerId,
+            status: 'rejected',
+          });
+          toast.info(`You passed on ${swipedProfile.display_name || 'them'}.`);
+        } catch (error: any) {
+          toast.error(`Failed to record rejection: ${error.message}`);
+        } finally {
+          setIsReviewMode(false);
+          setOriginalLikerId(null);
+          setReviewLikerProfile(null);
+          router.replace('/match', undefined);
         }
       }
-    } catch (e) {
-      console.error("Supabase error during swipe processing:", e);
-    }
-  };
-
-  const outOfFrame = (name: string | null, idx: number) => {
-    console.log(`${name || 'User'} left the screen at index ${idx}!`);
-  };
-
-  const goBack = async () => {
-    if (currentIndex < potentialMatches.length - 1) {
-       console.log('Trying to go back - feature not fully implemented for db rollback.');
     } else {
-      console.log('No more cards to go back to or already at the start.');
-    }
-  };
-  
-  const swipeButtonAction = async (dir: 'left' | 'right') => {
-    if (currentIndex >= 0 && currentIndex < potentialMatches.length && childRefs[currentIndex]) {
-      await childRefs[currentIndex].current?.swipe(dir);
+      const status = direction === 'right' ? 'liked' : 'rejected';
+      try {
+        const { error: insertError } = await supabase.from('profile_matches').insert({
+          user_id: currentUser.id,
+          matched_user_id: profileIdSwiped,
+          status: status,
+        });
+        if (insertError) throw insertError;
+
+        if (status === 'liked') {
+          await supabase.from('user_notifications').insert({
+            user_id: profileIdSwiped,
+            type: 'new_like',
+            message: `${currentUser.display_name || 'Someone'} is interested in you!`,
+            link_to: `/match?action=review_like&liker_id=${currentUser.id}`,
+            actor_id: currentUser.id,
+          });
+          toast.success(`You liked ${swipedProfile.display_name || 'them'}!`);
+        } else {
+          toast.info(`You passed on ${swipedProfile.display_name || 'them'}.`);
+        }
+      } catch (error: any) {
+        console.error('Error recording swipe:', error);
+        toast.error(`Oops! Something went wrong processing your swipe.`);
+      }
     }
   };
 
+  const swipeButtonAction = (direction: 'left' | 'right') => {
+    if (potentialMatches.length > 0 && childRefs[potentialMatches.length -1]) {
+      childRefs[potentialMatches.length -1].current?.swipe(direction);
+    }
+  };
 
-  if (loading) {
+  if (isAuthLoading) {
     return (
-      <PageContainer title="Find Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans">
-        <FiLoader className="animate-spin text-accent-purple text-6xl" />
-        <p className="mt-4 text-neutral-400">Loading potential matches...</p>
-      </PageContainer>
+      <PageContainerLayout title="Loading..." description="Please wait.">
+        <div className="flex flex-col items-center justify-center h-full">
+          <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
+        </div>
+      </PageContainerLayout>
+    );
+  }
+
+  if (loading && potentialMatches.length === 0 && !error) {
+    return (
+      <PageContainerLayout
+        title="Finding Matches"
+        description="Please wait while we find potential collaborators."
+      >
+        <div className="flex flex-col items-center justify-center h-full">
+          <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
+          <p className="mt-4 text-lg text-gray-400">Looking for profiles...</p>
+        </div>
+      </PageContainerLayout>
     );
   }
 
   if (error) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans p-6">
-        <FiAlertCircle className="text-red-500 text-6xl mb-4" />
-        <h2 className="text-2xl font-heading mb-2">Oops! Something went wrong.</h2>
-        <p className="text-neutral-400 text-center mb-6">{error}</p>
-        <Button onClick={fetchPotentialMatches} variant="secondary">Try Again</Button>
-      </PageContainer>
+      <PageContainerLayout
+        title="Error"
+        description="Something went wrong."
+      >
+        <div className="flex flex-col items-center justify-center h-full text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500" />
+          <p className="mt-4 text-lg text-red-400">Could not load matches.</p>
+          <p className="text-sm text-neutral-500">{error}</p>
+          <Button onClick={() => { setError(null); fetchPotentialMatches(); }} className="mt-6">Try Again</Button>
+        </div>
+      </PageContainerLayout>
+    );
+  }
+  
+  if (!loading && potentialMatches.length === 0 && !isReviewMode) { 
+    return (
+      <PageContainerLayout
+        title="No More Matches For Now"
+        description="You've seen all available profiles. Check back later!"
+      >
+        <div className="flex flex-col items-center justify-center h-full text-center">
+          <Users className="h-16 w-16 text-purple-500" />
+          <p className="mt-4 text-xl font-semibold text-neutral-300">All Caught Up!</p>
+          <p className="text-neutral-400">There are no new profiles matching your criteria at the moment.</p>
+          <Button onClick={fetchPotentialMatches} className="mt-6 bg-purple-600 hover:bg-purple-700">
+            Refresh Matches
+          </Button>
+        </div>
+      </PageContainerLayout>
     );
   }
 
   return (
-    <PageContainer title="Discover Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans overflow-hidden pt-16 sm:pt-8">
+    <PageContainerLayout
+      title={isReviewMode && reviewLikerProfile ? `Reviewing ${reviewLikerProfile.display_name || 'Profile'}` : "Discover Collaborators"}
+      description={isReviewMode ? "Decide if you'd like to match with this user." : "Swipe right to like, left to pass."}
+    >
       <div className="absolute top-6 left-4 z-20">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-800 hover:text-white p-2 rounded-full">
-              <FiArrowLeft size={24} />
+         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700/50 hover:text-white p-2 rounded-full">
+            <ArrowLeft size={24} />
           </Button>
       </div>
-      <div className="absolute top-6 right-4 z-20">
-          <Link href="/matches">
-              <Button variant="secondary" className="font-sans text-sm bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white">
-                  My Matches
-              </Button>
-          </Link>
-      </div>
-      
-      <div className='relative w-[90vw] max-w-[380px] h-[calc(70vh-40px)] max-h-[550px] flex items-center justify-center'>
-        {potentialMatches.length > 0 ? potentialMatches.map((character, index) => (
-          <TinderCard
-            ref={childRefs[index]}
-            className='absolute swipe-card'
-            key={character.id}
-            onSwipe={(dir) => {
-              if (dir === 'left' || dir === 'right') {
-                swiped(dir, character, index);
-              }
-            }}
-            onCardLeftScreen={() => outOfFrame(character.first_name, index)}
-            preventSwipe={['up', 'down']}
-          >
-            <motion.div
-              className='relative w-full h-full rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-700 overflow-hidden p-6 flex flex-col justify-end'
-              initial={{ scale: 0.95, opacity: 0.8 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3 }}
+      <div className="relative flex flex-col items-center justify-center w-full h-[calc(100vh-200px)] overflow-hidden">
+        {potentialMatches.length > 0 ? (
+          potentialMatches.map((profile, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              key={profile.id}
+              onCardLeftScreen={(direction) => onCardLeftScreenHandler(profile, direction)}
+              preventSwipe={['up', 'down']}
+              className="absolute cursor-grab" 
             >
-              <div 
-                className="absolute inset-0 bg-cover bg-center z-0" 
-                style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
+              <div className="relative w-[300px] h-[450px] sm:w-[350px] sm:h-[525px] md:w-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl bg-neutral-800 border border-neutral-700">
+                <Image
+                  src={profile.avatar_url || '/images/default-avatar.png'}
+                  alt={profile.display_name || 'Profile avatar'}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 300px, (max-width: 768px) 350px, 400px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <h3 className="text-3xl font-bold text-white drop-shadow-md geist-sans">
+                    {profile.display_name || 'Anonymous User'}
+                  </h3>
+                  {profile.headline && (
+                    <p className="text-sm text-neutral-200 mt-1 drop-shadow-sm truncate">
+                      {profile.headline}
+                    </p>
+                  )}
+                   {profile.skills && Array.isArray(profile.skills) && profile.skills.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {profile.skills.slice(0, 3).map((skill, i) => (
+                        <span key={i} className="bg-purple-500/40 text-purple-200 text-xs px-2 py-0.5 rounded-full border border-purple-500/60">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="relative z-20 text-white">
-                <h3 className='text-3xl font-heading mb-1 truncate'>
-                  {character.first_name || 'User'} {character.last_name?.[0] ? `${character.last_name[0]}.` : ''}
-                </h3>
-                <p className='text-sm text-neutral-300 line-clamp-2'>{character.bio || 'No bio yet.'}</p>
-                {character.interests && Array.isArray(character.interests) && character.interests.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {character.interests.slice(0, 3).map(interest => (
-                      <span key={interest} className="px-2.5 py-1 bg-accent-purple/20 text-accent-purple text-xs rounded-full font-sans">
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </TinderCard>
-        )) : (
-          !loading && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-8 bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl flex flex-col items-center"
-            >
-              <FiUser size={56} className="text-neutral-600 mb-4" />
-              <h2 className="text-xl font-heading text-neutral-200 mb-2">No More Profiles</h2>
-              <p className="text-neutral-400 mb-5 text-sm">You've swiped on everyone for now. Check back later for new users!</p>
-              <Link href="/dashboard">
-                  <Button variant="primary" size="sm">Back to Dashboard</Button>
-              </Link>
-            </motion.div>
-          )
+            </TinderCard>
+          ))
+        ) : (
+          <div className="text-center text-neutral-400">
+            <p>No profiles to show at the moment.</p>
+            {isReviewMode && <p>Could not load the profile for review.</p>}
+             {!loading && !isReviewMode && (
+                <Button onClick={fetchPotentialMatches} className="mt-4 bg-purple-600 hover:bg-purple-700">
+                    Check for New Profiles
+                </Button>
+            )}
+          </div>
+        )}
+        {potentialMatches.length > 0 && !loading && (
+            <div className="absolute bottom-[-60px] sm:bottom-[-70px] flex justify-center items-center gap-6 z-10">
+                 <Button
+                    onClick={() => swipeButtonAction('left')}
+                    className="p-4 bg-neutral-700 rounded-full shadow-xl hover:bg-red-600/90 transition-colors transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                    aria-label="Pass"
+                    variant="icon"
+                    size="iconLg"
+                >
+                    <X size={32} className="text-red-400 group-hover:text-white" />
+                </Button>
+                <Button
+                    onClick={() => swipeButtonAction('right')}
+                    className="p-4 bg-neutral-700 rounded-full shadow-xl hover:bg-green-600/90 transition-colors transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                    aria-label="Like"
+                    variant="icon"
+                    size="iconLg"
+                >
+                    <Heart size={32} className="text-green-400 group-hover:text-white" />
+                </Button>
+            </div>
         )}
       </div>
-
-      {potentialMatches.length > 0 && currentIndex >= 0 && currentIndex < potentialMatches.length && (
-        <div className='flex items-center justify-center gap-4 sm:gap-6 mt-6 sm:mt-8 z-20'>
-          <Button 
-            onClick={() => swipeButtonAction('left')} 
-            variant="outline"
-            size="lg"
-            className="rounded-full p-4 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-800 border-neutral-700 hover:bg-red-500/20 hover:border-red-500 text-red-500"
-            aria-label="Reject"
-          >
-            <FiX className="w-6 h-6 sm:w-8 sm:h-8" />
-          </Button>
-          <Button 
-            onClick={() => swipeButtonAction('right')} 
-            variant="outline"
-            size="lg"
-            className="rounded-full p-4 w-16 h-16 sm:w-20 sm:h-20 bg-neutral-800 border-neutral-700 hover:bg-green-500/20 hover:border-green-500 text-green-500"
-            aria-label="Like"
-          >
-            <FiHeart className="w-6 h-6 sm:w-8 sm:h-8" />
-          </Button>
-        </div>
-      )}
-    </PageContainer>
+    </PageContainerLayout>
   );
 } 
