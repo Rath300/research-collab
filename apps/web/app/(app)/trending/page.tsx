@@ -22,6 +22,11 @@ interface HotTopic {
   count: number;
 }
 
+const postCardItemVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } }
+};
+
 const PostCard = ({ post }: { post: TrendingPost }) => {
   const calculatedAuthorName = (post.profiles?.first_name && post.profiles?.last_name 
     ? `${post.profiles.first_name} ${post.profiles.last_name}` 
@@ -37,9 +42,7 @@ const PostCard = ({ post }: { post: TrendingPost }) => {
   return (
     <motion.div 
       className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-neutral-700/80"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      variants={postCardItemVariants}
     >
       <div className="p-5">
         <div className="flex items-center mb-3">
@@ -98,6 +101,14 @@ export default function TrendingPage() {
   const [hotTopics, setHotTopics] = useState<HotTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.07, delayChildren: 0.1 }
+    }
+  };
 
   const loadTrendingData = useCallback(async () => {
     setLoading(true);
@@ -203,11 +214,16 @@ export default function TrendingPage() {
           )}
 
           {!loading && !error && posts.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {posts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
-            </div>
+            </motion.div>
           )}
 
           {!loading && !error && posts.length === 0 && (

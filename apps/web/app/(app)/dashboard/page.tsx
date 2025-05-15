@@ -28,7 +28,8 @@ import {
   FiLink2,
   FiEdit2,
   FiFilePlus,
-  FiCheckSquare
+  FiCheckSquare,
+  FiLoader
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -114,8 +115,8 @@ const MyProfileSnapshot = () => {
         </div>
       </div>
       <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')} className="font-sans"><FiUser className="mr-1"/> View Full</Button>
-        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')} className="font-sans"><FiEdit2 className="mr-1"/> Edit Profile</Button>
+        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')} className="font-sans bg-neutral-800 hover:bg-neutral-700 text-neutral-100"><FiUser className="mr-1"/> View Full</Button>
+        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')} className="font-sans border-neutral-700 hover:border-neutral-600 text-neutral-300 hover:text-neutral-100"><FiEdit2 className="mr-1"/> Edit Profile</Button>
       </div>
     </DashboardCard>
   );
@@ -170,9 +171,21 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
   return (
     <DashboardCard title="Recent Activity" titleIcon={FiActivity} className="min-h-[200px] mb-6 md:mb-8">
       {hasActualActivity ? (
-        <ul className="space-y-3">
+        <motion.ul
+          variants={{ 
+            visible: { transition: { staggerChildren: 0.1 } },
+            hidden: {}
+          }}
+          initial="hidden"
+          animate="visible"
+          className="space-y-3"
+        >
           {notifications.map((activity) => (
-            <li key={activity.id} className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+            <motion.li
+              key={activity.id} 
+              className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+            >
               {activity.link_to ? (
                 <Link href={activity.link_to} className="hover:underline">
                   {activity.content}
@@ -182,9 +195,9 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
               )}
               {' - '}
               <span className="text-xs text-neutral-500">{formatTimeAgo(activity.created_at)}</span>
-            </li>
+            </motion.li>
           ))}
-        </ul>
+        </motion.ul>
       ) : (
         <div className="text-center py-6 font-sans">
           <p className="text-neutral-500 mb-3">No recent activity yet.</p>

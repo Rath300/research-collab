@@ -109,6 +109,19 @@ export default function MatchesPage() {
     fetchMatchedProfiles();
   }, [fetchMatchedProfiles]);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.07, delayChildren: 0.1 }
+    }
+  };
+
+  const cardItemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } }
+  };
+
   if (loading) {
     return (
       <PageContainer title="My Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans">
@@ -173,16 +186,14 @@ export default function MatchesPage() {
         {matchedProfiles.length > 0 && (
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.05 }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
             {matchedProfiles.map((profile) => (
               <motion.div
                 key={profile.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                variants={cardItemVariants}
                 className="bg-neutral-900 rounded-xl border border-neutral-800 shadow-lg overflow-hidden flex flex-col"
               >
                 <div className="p-5 flex-grow">
