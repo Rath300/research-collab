@@ -33,14 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`[AuthProvider] Explicit getSession complete. Session available: ${!!session}`);
         if (sessionError) {
           console.error('[AuthProvider] Error fetching initial session:', sessionError);
-          setUser(null);
-          setProfile(null);
-          // setLoading(false) here might be premature if listener is about to run
-          return; // Return early if session fetch fails critically
+          useAuthStore.getState().clearAuth(); // Use clearAuth
+          setLoading(false); // Okay to set loading false here as it's an error state
+          return;
         }
 
         const initialUser = session?.user ?? null;
-        // Update store only if different from current state to avoid unnecessary re-renders
         const currentStoreUserForInit = useAuthStore.getState().user;
         if (JSON.stringify(initialUser) !== JSON.stringify(currentStoreUserForInit)) {
           console.log('[AuthProvider] initializeAuth: Updating user in store.');
@@ -51,7 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log(`[AuthProvider] initializeAuth: Initial user (ID: ${initialUser.id}). Attempting to fetch profile.`);
           try {
             const profileData = await getProfile(initialUser.id);
-            // Update store only if different from current state
             const currentStoreProfileForInit = useAuthStore.getState().profile;
             if (JSON.stringify(profileData) !== JSON.stringify(currentStoreProfileForInit)) {
               console.log('[AuthProvider] initializeAuth: Updating profile in store.');
@@ -60,28 +57,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('[AuthProvider] initializeAuth: Initial profile fetched successfully.');
           } catch (error) {
             console.error('[AuthProvider] initializeAuth: Error fetching initial profile:', error);
-            setProfile(null); // Clear profile on error
+            setProfile(null);
+          } finally {
+            setLoading(false); // Set loading false after profile attempt
           }
         } else {
+          useAuthStore.getState().clearAuth(); // Use clearAuth
           const currentStoreProfileForInit = useAuthStore.getState().profile;
           if (currentStoreProfileForInit !== null) {
             console.log('[AuthProvider] initializeAuth: No initial user. Clearing profile in store.');
             setProfile(null); // Clear profile if no user
           }
+          setLoading(false); // Set loading false if no user
         }
       } catch (e) {
         console.error('[AuthProvider] initializeAuth: Critical error during initial auth setup:', e);
+        useAuthStore.getState().clearAuth(); // Use clearAuth
         setUser(null);
         setProfile(null);
+        setLoading(false);
       }
-      // setLoading will be managed by the listener, which will run after this anyway.
+      // setLoading(true) was called at the start, now handled within branches
     };
 
-    setLoading(true); // Set loading true once at the start of the effect
-    initializeAuth(); // Call the explicit initialization
+    // setLoading(true); // Moved to be set once at the start, or managed within initializeAuth
+    initializeAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setLoading(true); // Set loading true at the start of listener
         console.log('[AuthProvider] onAuthStateChange FIRED.');
         console.log(`[AuthProvider] Event: ${event}, Session available: ${!!session}`);
         
@@ -113,17 +117,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (error) {
             console.error('[AuthProvider] Listener: Error fetching profile:', error);
             setProfile(null); 
-            console.log('[AuthProvider] Listener: Profile set to null due to fetch error.');
+          } finally {
+            setLoading(false); // Set loading false after profile attempt
           }
         } else {
-          const currentStoreProfile = useAuthStore.getState().profile;
-          if (currentStoreProfile !== null || event === 'SIGNED_OUT') { // Ensure profile clears on SIGNED_OUT even if already null
-             console.log('[AuthProvider] Listener: No user session or SIGNED_OUT. Clearing profile in Zustand store.');
-             setProfile(null); 
-          }
+          useAuthStore.getState().clearAuth(); // Use clearAuth
+          console.log('[AuthProvider] Listener: No user session or SIGNED_OUT. Cleared auth. Setting loading to false.');
+          setLoading(false); // Set loading false if no user or signed out
         }
-        console.log('[AuthProvider] Listener: Setting loading to false.');
-        setLoading(false); 
+        // setLoading(false); // Moved into branches
       }
     );
     

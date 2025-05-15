@@ -25,6 +25,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: DashboardHeaderProps) {
   const router = useRouter();
   const supabase = getBrowserClient();
+  const { clearAuth } = useAuthStore(); // Get clearAuth from the store
 
   const handleLogout = async () => {
     console.log('[DashboardHeader] handleLogout CALLED.');
@@ -33,26 +34,21 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('[DashboardHeader] Supabase signOut error:', error.message);
-        // Optionally, display a user-facing error message here
       } else {
         console.log('[DashboardHeader] Supabase signOut successful.');
       }
     } catch (e: any) {
-      // This catch block is for unexpected errors during the signOut call itself.
       console.error('[DashboardHeader] Exception during Supabase signOut attempt:', e.message);
     }
+    
+    clearAuth(); // Explicitly clear Zustand auth state
 
-    // Regardless of signOut outcome, attempt to redirect to login.
-    // AuthProvider is responsible for clearing user state in Zustand store via onAuthStateChange.
-    console.log('[DashboardHeader] Attempting redirect to /login via window.location.replace().');
+    console.log('[DashboardHeader] Attempting redirect to /login via window.location.assign().');
     if (typeof window !== 'undefined') {
-      window.location.replace('/login');
+      window.location.assign('/login'); // Force full page reload and redirect
     } else {
-      // Fallback for non-browser environments (less likely for this component but good for robustness)
-      console.warn('[DashboardHeader] window object not available. This redirect might not work as expected.');
       router.push('/login');
     }
-    // It's possible that code execution stops at window.location.replace, so further logs might not run.
     console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
   };
 
