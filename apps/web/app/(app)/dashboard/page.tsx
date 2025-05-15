@@ -125,10 +125,10 @@ const MyProfileSnapshot = () => {
 const QuickActions = () => {
   const router = useRouter();
   const actions = [
-    { label: "Find Collaborators", href: "/collaborators" },
+    { label: "Match", href: "/match" },
     { label: "New Project", href: "/projects/new" },
     { label: "Messages", href: "/chats" },
-    { label: "Update Profile", href: "/settings/account" }
+    { label: "Profile", href: "/settings/account" }
   ];
 
   return (

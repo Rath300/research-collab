@@ -33,30 +33,28 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('[DashboardHeader] Supabase signOut error:', error.message);
+        // Optionally, display a user-facing error message here
       } else {
-        console.log('[DashboardHeader] Supabase signOut successful (or no error thrown).');
+        console.log('[DashboardHeader] Supabase signOut successful.');
       }
     } catch (e: any) {
-      console.error('[DashboardHeader] Exception during Supabase signOut:', e.message);
-    } finally {
-      console.log('[DashboardHeader] Entering finally block of signOut attempt.');
-      // AuthProvider is expected to clear the store on `onAuthStateChange` (SIGNED_OUT event).
-      // Explicitly clearing here can be a backup but might cause race conditions if AuthProvider also reacts.
-      // Let's rely on AuthProvider for store clearing first.
-      // useAuthStore.setState({ user: null, profile: null, isLoading: false }); 
-      // console.log('[DashboardHeader] Zustand store explicitly attempted to clear (commented out).');
-      
-      // Attempt redirect
-      if (typeof window !== 'undefined') {
-        console.log('[DashboardHeader] Attempting redirect to /login via window.location.assign().');
-        // Using assign() for a clear navigation act, href should also work.
-        window.location.assign('/login'); 
-      } else {
-        console.warn('[DashboardHeader] window object not available. Attempting Next.js router.push(\'/login\').');
-        router.push('/login');
-      }
-      console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
+      // This catch block is for unexpected errors during the signOut call itself.
+      console.error('[DashboardHeader] Exception during Supabase signOut attempt:', e.message);
     }
+
+    // Regardless of signOut outcome, attempt to redirect to login.
+    // AuthProvider is responsible for clearing user state in Zustand store via onAuthStateChange.
+    console.log('[DashboardHeader] Attempting redirect to landing page via window.location.replace().');
+    if (typeof window !== 'undefined') {
+      window.location.replace('https://research-collab-qvp1t6z64-shreyanshrath4-gmailcoms-projects.vercel.app/');
+    } else {
+      // Fallback for non-browser environments (less likely for this component but good for robustness)
+      console.warn('[DashboardHeader] window object not available. This redirect might not work as expected for an external URL.');
+      // router.push for an external URL is not standard, so this fallback is less effective here.
+      // Consider logging or alternative handling if window is truly not available in this context.
+    }
+    // It's possible that code execution stops at window.location.replace, so further logs might not run.
+    console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
   };
 
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {

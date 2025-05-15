@@ -29,11 +29,12 @@ export function Avatar({
 
   const { dimension, textClass, iconSize } = sizeMap[size];
 
-  // Determine the fallback content: provided fallback, then initials, then default FiUser icon
+  // Determine the fallback content
   let fallbackContent = fallback;
   if (!fallbackContent) {
-    const initials = alt?.trim().split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
-    fallbackContent = initials.length > 0 && initials !== 'U' ? initials : <FiUser size={iconSize} />;
+    // If no explicit fallback prop is given, default to FiUser icon.
+    // Initials generation is removed as per user request to prefer icon.
+    fallbackContent = <FiUser size={iconSize} />;
   }
   
   // If src is explicitly null or undefined, or an empty string, use fallback.
