@@ -27,32 +27,35 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
   const supabase = getBrowserClient();
 
   const handleLogout = async () => {
+    console.log('[DashboardHeader] handleLogout CALLED.');
     try {
-      console.log('[DashboardHeader] Attempting to sign out...');
+      console.log('[DashboardHeader] Attempting Supabase signOut...');
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('[DashboardHeader] Error during Supabase sign out:', error.message);
-        // Even if Supabase signOut has an error, we must clear client state and redirect.
+        console.error('[DashboardHeader] Supabase signOut error:', error.message);
+      } else {
+        console.log('[DashboardHeader] Supabase signOut successful (or no error thrown).');
       }
     } catch (e: any) {
-      console.error('[DashboardHeader] Exception during Supabase sign out attempt:', e.message);
-      // Catch any unexpected errors during the signOut call itself.
+      console.error('[DashboardHeader] Exception during Supabase signOut:', e.message);
     } finally {
-      console.log('[DashboardHeader] Entering finally block for logout.');
-      // Explicitly clear Zustand store as a primary measure here.
-      // AuthProvider will also react to onAuthStateChange, but this ensures immediate client state reset.
-      useAuthStore.setState({ user: null, profile: null, isLoading: false });
-      console.log('[DashboardHeader] Zustand store explicitly cleared.');
+      console.log('[DashboardHeader] Entering finally block of signOut attempt.');
+      // AuthProvider is expected to clear the store on `onAuthStateChange` (SIGNED_OUT event).
+      // Explicitly clearing here can be a backup but might cause race conditions if AuthProvider also reacts.
+      // Let's rely on AuthProvider for store clearing first.
+      // useAuthStore.setState({ user: null, profile: null, isLoading: false }); 
+      // console.log('[DashboardHeader] Zustand store explicitly attempted to clear (commented out).');
       
-      // Force redirect to login using window.location for robustness.
+      // Attempt redirect
       if (typeof window !== 'undefined') {
-        console.log('[DashboardHeader] Redirecting to /login via window.location.href.');
-        window.location.href = '/login';
+        console.log('[DashboardHeader] Attempting redirect to /login via window.location.assign().');
+        // Using assign() for a clear navigation act, href should also work.
+        window.location.assign('/login'); 
       } else {
-        // Fallback if window is not defined (e.g., during SSR pre-rendering, though unlikely for an onClick handler)
-        console.log('[DashboardHeader] window undefined, attempting redirect to /login via router.push.');
-        router.push('/login'); 
+        console.warn('[DashboardHeader] window object not available. Attempting Next.js router.push('/login').');
+        router.push('/login');
       }
+      console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
     }
   };
 
