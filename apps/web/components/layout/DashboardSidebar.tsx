@@ -94,7 +94,8 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
     : 'User';
   const displayRole = 'Researcher'; 
-  const displayAvatarUrl = profile?.avatar_url;
+  const isValidAvatarUrl = profile?.avatar_url && (profile.avatar_url.startsWith('http://') || profile.avatar_url.startsWith('https://'));
+  const displayAvatarUrl = isValidAvatarUrl ? profile.avatar_url : null;
 
   const handleLogout = async () => {
     console.log('[DashboardSidebar] handleLogout CALLED.');
@@ -121,7 +122,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
 
   const mainNavItems = [
     { name: 'Dashboard', href: '/dashboard', icon: FiGrid }, 
-    { name: 'Discover', href: '/discover', icon: FiSearch },
+    { name: 'Discover Projects', href: '/discover', icon: FiSearch },
     { name: 'Chats', href: '/chats', icon: FiMessageSquare },
   ];
 
