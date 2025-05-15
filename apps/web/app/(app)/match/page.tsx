@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import TinderCard from 'react-tinder-card';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/stores/auth-store';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/lib/database.types';
 import { PageContainerLayout } from '@/components/layout/page-container-layout';
 import { Button } from '@/components/ui/Button';
