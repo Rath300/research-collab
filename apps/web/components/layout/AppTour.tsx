@@ -54,7 +54,7 @@ export function AppTour() {
   const tourSteps: Step[] = [
     {
       target: 'body',
-      content: 'Welcome to ItsMightHappenApp! We are excited to show you around. Let\'s get started!',
+      content: 'Welcome to Research Bee! We are excited to show you around. Let\'s get started!',
       placement: 'center',
       title: 'Welcome Aboard!',
       styles: {
