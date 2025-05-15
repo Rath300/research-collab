@@ -59,7 +59,7 @@ export default function MatchPage() {
         .neq('id', user.id); // Exclude self
 
       if (interactedUserIds.length > 0) {
-        queryBuilder = queryBuilder.not('id', 'in', `(${interactedUserIds.map(id => `'${id}'`).join(',')})`);
+        queryBuilder = queryBuilder.not('id', 'in', `(${interactedUserIds.join(',')})`);
       }
 
       const { data: profilesData, error: profilesError } = await queryBuilder;
