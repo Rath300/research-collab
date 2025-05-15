@@ -7,7 +7,7 @@ import { getBrowserClient } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
-import { FiLoader, FiAlertCircle, FiUser, FiTag, FiThumbsUp, FiMessageSquare, FiBookmark, FiBarChart2, FiZap } from 'react-icons/fi';
+import { FiLoader, FiAlertCircle, FiUser, FiTag, FiThumbsUp, FiMessageSquare, FiBookmark, FiBarChart2, FiZap, FiHome } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
 type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
@@ -95,6 +95,12 @@ const PostCard = ({ post }: { post: TrendingPost }) => {
   );
 };
 
+const HomeButton = () => (
+  <Link href="/dashboard" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-sans text-sm mb-4">
+    <FiHome className="h-5 w-5" /> Home
+  </Link>
+);
+
 export default function TrendingPage() {
   const supabase = getBrowserClient();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
@@ -152,6 +158,7 @@ export default function TrendingPage() {
   return (
     <PageContainer title="Trending" className="bg-black min-h-screen text-neutral-100 font-sans">
       <div className="p-4 sm:p-6 md:p-8">
+        <HomeButton />
         <motion.h1 
             className="text-3xl md:text-4xl font-heading text-neutral-100 mb-6 md:mb-8 text-center"
             initial={{ opacity: 0, y: -20 }}

@@ -29,7 +29,8 @@ import {
   FiEdit2,
   FiFilePlus,
   FiCheckSquare,
-  FiLoader
+  FiLoader,
+  FiHome
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { Database } from '@/lib/database.types';
@@ -201,7 +202,7 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
       ) : (
         <div className="text-center py-6 font-sans">
           <p className="text-neutral-500 mb-3">No recent activity yet.</p>
-          <Button variant="secondary" size="sm" onClick={() => router.push('/discover')} className="font-sans">
+          <Button variant="secondary" size="sm" onClick={() => router.push('/trending')} className="font-sans">
             <FiSearch className="mr-1"/> Explore Platform
           </Button>
         </div>
@@ -240,6 +241,13 @@ const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
     </DashboardCard>
   );
 };
+
+// HomeButton component
+const HomeButton = () => (
+  <Link href="/dashboard" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-sans text-sm mb-4">
+    <FiHome className="h-5 w-5" /> Home
+  </Link>
+);
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -418,6 +426,7 @@ export default function DashboardPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+      <HomeButton />
       <header className="mb-8">
         <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
         {profile?.first_name && (
@@ -441,7 +450,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
           <DashboardCard title="Recent Research Posts" titleIcon={FiList}>
             {recentPosts.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6 max-w-xl mx-auto">
                 {recentPosts.map(post => (
                   <ResearchPostCard key={post.id} post={post} />
                 ))}
@@ -470,7 +479,7 @@ export default function DashboardPage() {
             ) : (
               <p className="text-neutral-500">No recent matches yet.</p>
             )}
-            <Link href="/collaborators" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">Find New Collaborators</Link>
+            <Link href="/match" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">Find New Collaborators</Link>
           </DashboardCard>
         </div>
       </div>
