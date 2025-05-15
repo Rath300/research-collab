@@ -96,6 +96,12 @@ export default function AccountSettingsPage() {
       return;
     }
 
+    // Debugging logs for RLS issue
+    console.log('[ProfileUpdate] Attempting update. User object from auth store:', user);
+    if (user) {
+      console.log('[ProfileUpdate] User ID being used for update (user.id from store):', user.id);
+    }
+
     setSaving(true);
     setError(null);
     setSuccessMessage(null);
