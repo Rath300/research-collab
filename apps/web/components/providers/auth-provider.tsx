@@ -37,29 +37,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       const profileData = await getProfile(currentUser.id);
-      if (profileData) {
-        setProfile(profileData);
-        // Clear authError only if it was specifically about profile loading and now it's resolved.
-        if (useAuthStore.getState().authError === 'Failed to load your profile. Please try refreshing the page.' || 
-            useAuthStore.getState().authError === 'Profile not found for current user.') {
-            setAuthError(null); 
-        }
-        console.log('[AuthProvider] Profile fetched successfully in fetchAndSetProfile:', { id: profileData.id, first_name: profileData.first_name });
-      } else {
-        // Profile data is null, meaning the profile was not found for the given user ID.
-        console.warn(`[AuthProvider] Profile not found for user ID: ${currentUser.id}. Setting profile to null.`);
-        setProfile(null);
-        setAuthError('Profile not found for current user.'); // Specific error for not found
+      setProfile(profileData);
+      // Only clear authError if it matches the specific error we are trying to recover from.
+      // This prevents clearing other potential auth errors prematurely.
+      if (useAuthStore.getState().authError === 'Failed to load your profile. Please try refreshing the page.') {
+          setAuthError(null); 
       }
+      console.log('[AuthProvider] Profile fetched successfully in fetchAndSetProfile:', profileData ? { id: profileData.id, first_name: profileData.first_name } : null);
     } catch (error) {
       console.error('[AuthProvider] Error fetching profile in fetchAndSetProfile:', error);
       setProfile(null);
-      setAuthError('Failed to load your profile. Please try refreshing the page.'); // General fetch error
+      setAuthError('Failed to load your profile. Please try refreshing the page.');
       console.log('[AuthProvider] Profile set to null due to fetch error in fetchAndSetProfile.');
     } finally {
       setLoading(false); 
     }
-  }, [setProfile, setLoading, setAuthError]);
+  }, [setProfile, setLoading, setAuthError]); // setUser is not needed here as currentUser is passed in
 
   // Effect for onAuthStateChange
   useEffect(() => {
@@ -132,48 +125,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // New Effect to handle critical authError by signing out
   useEffect(() => {
-    // It's important to get the fresh isLoading state inside the effect if it's not a dependency
-    const currentLoadingState = useAuthStore.getState().isLoading;
-
-    console.log(
-      '[AuthProvider] AuthState Integrity Check Triggered. User:', storeUser?.id,
-      'Profile:', storeProfile?.id, 
-      'Error:', storeAuthError,
-      'Loading:', currentLoadingState
-    );
-
-    if (storeUser && !currentLoadingState) { 
-      // Only evaluate if a user session exists and we are not actively in a loading phase.
-      if (!storeProfile || storeAuthError) {
-        // If profile is missing OR there's an auth error, the session is deemed incomplete or problematic.
-        console.warn(
-          `[AuthProvider] Problematic session state detected. User: ${storeUser.id}, Profile Missing: ${!storeProfile}, AuthError: ${JSON.stringify(storeAuthError)}. Forcing logout.`
-        );
-        
-        supabase.auth.signOut().then(() => {
-          console.log('[AuthProvider] Supabase signOut completed due to problematic session state.');
-          // onAuthStateChange will typically handle clearing storeUser/storeProfile.
-          // We ensure redirection happens after state updates are likely processed.
-          setTimeout(() => {
-            // The clearAuth() call here is belt-and-suspenders, as onAuthStateChange should do it.
-            // However, calling it ensures client state is cleared before redirect if onAuthStateChange is slow or fails.
-            if (useAuthStore.getState().clearAuth) {
-              useAuthStore.getState().clearAuth();
-            }
-            router.push('/login?error=session_integrity_issue');
-          }, 50); 
-        }).catch(err => {
-          console.error('[AuthProvider] Error during forced signOut from integrity check:', err);
-          if (useAuthStore.getState().clearAuth) {
-             useAuthStore.getState().clearAuth(); // Fallback: ensure client state is cleared
-          }
-          setTimeout(() => {
-             router.push('/login?error=session_integrity_signout_failed');
-          }, 50);
-        });
-      }
+    console.log('[AuthProvider] AuthError check effect. Current error:', storeAuthError, '. Current user in store:', storeUser?.id);
+    if (storeAuthError === 'Failed to load your profile. Please try refreshing the page.' && storeUser) {
+      console.warn('[AuthProvider] Critical auth error detected (profile fetch failed for existing session). Forcing logout.');
+      
+      supabase.auth.signOut().then(() => {
+        console.log('[AuthProvider] Supabase signOut completed due to critical auth error.');
+        // onAuthStateChange will handle clearing user/profile via setUser(null) and subsequent fetchAndSetProfile(null)
+        // We ensure redirection happens after state is likely cleared.
+        // Using a small timeout to allow state updates from onAuthStateChange to propagate before redirect
+        setTimeout(() => {
+            router.push('/login?error=session_issue');
+        }, 50); 
+      }).catch(err => {
+        console.error('[AuthProvider] Error during forced signOut from authError effect:', err);
+        clearAuth(); // Fallback: ensure client state is cleared
+        setTimeout(() => {
+             router.push('/login?error=session_issue_signout_failed');
+        }, 50);
+      });
     }
-  }, [storeUser, storeProfile, storeAuthError, supabase, router]); // Removed clearAuth from deps as it's called via getState()
+  }, [storeAuthError, storeUser, supabase, router, clearAuth]); // Added clearAuth
 
   return <>{children}</>;
 } 

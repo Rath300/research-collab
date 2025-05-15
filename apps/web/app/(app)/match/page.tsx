@@ -48,7 +48,7 @@ export default function MatchPage() {
     }
     setLoading(true);
     setError(null);
-    // setPotentialMatches([]); // Cleared when entering review mode or on successful fetch
+    setPotentialMatches([]);
 
     try {
       const { data: interactedUsersData, error: interactedUsersError } = await supabase
@@ -86,17 +86,10 @@ export default function MatchPage() {
         queryBuilder = queryBuilder.not('id', 'in', `(${uniqueInteractedIds.join(',')})`);
       }
 
-      console.log("[MatchPage] Attempting to fetch profiles for potential matches. Current query filters:", queryBuilder.toString());
       const { data: profilesData, error: profilesError } = await queryBuilder.limit(20);
 
       if (profilesError) {
-        console.error("[MatchPage] Supabase profiles fetch error in fetchPotentialMatches. Full error object:", JSON.stringify(profilesError, null, 2));
-        // PGRST116 is Supabase's error code for "Not Acceptable" (406) or related issues like RLS / resource not found
-        if (profilesError.code === 'PGRST116' || (profilesError as any).status === 406) { 
-             console.error("***************************************************************************");
-             console.error("*** Specific 406/PGRST116 error suspected fetching profiles for matching ***");
-             console.error("***************************************************************************");
-        }
+        console.error("Supabase profiles fetch error:", profilesError);
         throw profilesError;
       }
       
@@ -117,25 +110,17 @@ export default function MatchPage() {
   }, [supabase, user]);
 
   useEffect(() => {
-    // Initial checks for dependencies being available
-    if (!searchParams) return; // router.isReady might be more robust if using older Next.js, but useSearchParams should be fine
-    
-    if (!user) { // If no user, ensure loading states are false and exit
-      if (loading) setLoading(false); 
-      if (isReviewLoading) setIsReviewLoading(false);
-      return;
-    }
+    if (!searchParams) return;
 
     const action = searchParams.get('action');
     const likerId = searchParams.get('liker_id');
 
-    if (action === 'review_like' && likerId) {
-      if (!reviewModeActive) setReviewModeActive(true); // Set only if not already active to avoid extra renders
-      if (!isReviewLoading) setIsReviewLoading(true);
-      if (loading) setLoading(false); // Stop main loading when in review mode
-      if (error) setError(null);
-      if (reviewError) setReviewError(null);
-      if (potentialMatches.length > 0) setPotentialMatches([]); // Clear potential matches when entering review mode
+    if (action === 'review_like' && likerId && user?.id) {
+      setReviewModeActive(true);
+      setIsReviewLoading(true);
+      setLoading(false);
+      setError(null);
+      setReviewError(null);
       
       const fetchLikerProfile = async () => {
         try {
@@ -158,30 +143,23 @@ export default function MatchPage() {
         }
       };
       fetchLikerProfile();
-    } else if (!reviewModeActive) { 
-      // This is the consolidated logic for fetching potential matches
-      // It runs if user is present, not in review mode, and matches are needed.
+    } else if (user?.id && !reviewModeActive) {
+      setReviewModeActive(false);
       if (potentialMatches.length === 0 && !loading && !error) {
-         console.log('[MatchPage] useEffect: Conditions met to call fetchPotentialMatches.');
-         fetchPotentialMatches(); // This callback already has `user` and `supabase` in its deps
-      } else {
-         console.log('[MatchPage] useEffect: Conditions NOT met to call fetchPotentialMatches.', 
-                      { isEmpty: potentialMatches.length === 0, isLoading: loading, hasError: !!error });
+         fetchPotentialMatches();
       }
-    } 
-    // This effect should run when user, searchParams, or reviewModeActive change, 
-    // or when loading/error/potentialMatches.length change in a way that might trigger a new fetch.
-  }, [
-    user, 
-    searchParams, 
-    reviewModeActive, 
-    fetchPotentialMatches, // useCallback ensures stable identity if its own deps (user, supabase) don't change
-    potentialMatches.length, 
-    loading, 
-    error
-    // State setters like setLoading, setError, etc., are guaranteed to be stable and typically don't need to be in deps.
-  ]);
+    } else if (!user?.id) {
+      setLoading(false);
+      setIsReviewLoading(false);
+    }
+  }, [searchParams, user, supabase, fetchPotentialMatches, potentialMatches.length, loading, error]);
 
+  useEffect(() => {
+    if (user && !reviewModeActive && potentialMatches.length === 0 && !loading && !error) {
+        fetchPotentialMatches();
+    }
+  }, [user, reviewModeActive, potentialMatches.length, loading, error, fetchPotentialMatches]);
+  
   const childRefs = useMemo(
     () =>
       Array(potentialMatches.length)
