@@ -26,6 +26,15 @@ interface ProfileWithProjects extends DbProfile {
   interests: string[] | null;
 }
 
+// Helper function moved to component scope
+const getDisplayName = (profile: ProfileWithProjects | DbProfile | null | undefined): string => {
+  if (!profile) return 'Someone';
+  // Ensure first_name and last_name are accessed safely if they might be null
+  const firstName = profile.first_name || '';
+  const lastName = profile.last_name || '';
+  return profile.full_name || `${firstName} ${lastName}`.trim() || 'Anonymous User';
+};
+
 export default function MatchPage() {
   const { profile: currentUser, isLoading: isAuthLoading } = useAuthStore();
   const supabase = useSupabaseClient<Database>();
@@ -98,13 +107,23 @@ export default function MatchPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data: interactedUsersData, error: interactedUsersError } = await supabase
+      const { data: interactedMatchesData, error: interactedMatchesError } = await supabase
         .from('profile_matches')
-        .select('matched_user_id')
-        .eq('user_id', currentUser.id);
+        .select('matcher_user_id, matchee_user_id')
+        .or(`matcher_user_id.eq.${currentUser.id},matchee_user_id.eq.${currentUser.id}`);
 
-      if (interactedUsersError) throw interactedUsersError;
-      const interactedUserIds = interactedUsersData.map((match: Pick<ProfileMatch, 'matched_user_id'>) => match.matched_user_id);
+      if (interactedMatchesError) throw interactedMatchesError;
+
+      const interactedUserIds = interactedMatchesData
+        ? interactedMatchesData.reduce((acc: string[], match: { matcher_user_id: string; matchee_user_id: string; }) => {
+            if (match.matcher_user_id === currentUser.id && match.matchee_user_id) {
+              acc.push(match.matchee_user_id);
+            } else if (match.matchee_user_id === currentUser.id && match.matcher_user_id) {
+              acc.push(match.matcher_user_id);
+            }
+            return acc;
+          }, [])
+        : [];
       
       const excludeIds = [...new Set([...interactedUserIds, currentUser.id])];
 
@@ -162,86 +181,30 @@ export default function MatchPage() {
   const handleSwipeAction = async (direction: string, profileIdSwiped: string, swipedProfile: ProfileWithProjects) => {
     if (!currentUser) return;
 
-    if (isReviewMode && originalLikerId && reviewLikerProfile && profileIdSwiped === originalLikerId) {
-      if (direction === 'right') {
-        try {
-          const { data: userBLikeData, error: userBLikeError } = await supabase
-            .from('profile_matches')
-            .insert({ user_id: currentUser.id, matched_user_id: originalLikerId, status: 'liked' })
-            .select('id')
-            .single();
-          if (userBLikeError) throw userBLikeError;
-          if (!userBLikeData) throw new Error('Failed to record your like.');
+    const status = direction === 'right' ? 'liked' : 'rejected';
+    try {
+      const { error: insertError } = await supabase.from('profile_matches').insert({
+        matcher_user_id: currentUser.id,
+        matchee_user_id: profileIdSwiped,
+        status: status,
+      });
+      if (insertError) throw insertError;
 
-          await supabase
-            .from('profile_matches')
-            .update({ status: 'matched' })
-            .match({ user_id: originalLikerId, matched_user_id: currentUser.id, status: 'liked' });
-          await supabase
-            .from('profile_matches')
-            .update({ status: 'matched' })
-            .eq('id', userBLikeData.id);
-
-          await supabase.from('user_notifications').insert({
-            user_id: originalLikerId,
-            type: 'new_match',
-            message: `${currentUser.display_name || 'Someone'} matched you back! Ready to chat?`,
-            link_to: `/chats?userId=${currentUser.id}`,
-            actor_id: currentUser.id,
-          });
-          toast.success(`It's a match with ${swipedProfile.display_name || 'them'}!`);
-          router.push(`/chats?userId=${originalLikerId}`);
-        } catch (error: any) {
-          toast.error(`Failed to match: ${error.message}`);
-          router.replace('/match', undefined);
-        } finally {
-          setIsReviewMode(false);
-          setOriginalLikerId(null);
-          setReviewLikerProfile(null);
-        }
-      } else {
-        try {
-          await supabase.from('profile_matches').insert({
-            user_id: currentUser.id,
-            matched_user_id: originalLikerId,
-            status: 'rejected',
-          });
-          toast.info(`You passed on ${swipedProfile.display_name || 'them'}.`);
-        } catch (error: any) {
-          toast.error(`Failed to record rejection: ${error.message}`);
-        } finally {
-          setIsReviewMode(false);
-          setOriginalLikerId(null);
-          setReviewLikerProfile(null);
-          router.replace('/match', undefined);
-        }
-      }
-    } else {
-      const status = direction === 'right' ? 'liked' : 'rejected';
-      try {
-        const { error: insertError } = await supabase.from('profile_matches').insert({
-          user_id: currentUser.id,
-          matched_user_id: profileIdSwiped,
-          status: status,
+      if (status === 'liked') {
+        await supabase.from('user_notifications').insert({
+          user_id: profileIdSwiped,
+          type: 'new_like',
+          message: `${getDisplayName(currentUser)} is interested in you!`,
+          link_to: `/match?action=review_like&liker_id=${currentUser.id}`,
+          actor_id: currentUser.id,
         });
-        if (insertError) throw insertError;
-
-        if (status === 'liked') {
-          await supabase.from('user_notifications').insert({
-            user_id: profileIdSwiped,
-            type: 'new_like',
-            message: `${currentUser.display_name || 'Someone'} is interested in you!`,
-            link_to: `/match?action=review_like&liker_id=${currentUser.id}`,
-            actor_id: currentUser.id,
-          });
-          toast.success(`You liked ${swipedProfile.display_name || 'them'}!`);
-        } else {
-          toast.info(`You passed on ${swipedProfile.display_name || 'them'}.`);
-        }
-      } catch (error: any) {
-        console.error('Error recording swipe:', error);
-        toast.error(`Oops! Something went wrong processing your swipe.`);
+        toast.success(`You liked ${getDisplayName(swipedProfile)}!`);
+      } else {
+        toast.info(`You passed on ${getDisplayName(swipedProfile)}.`);
       }
+    } catch (error: any) {
+      console.error('Error recording swipe:', error);
+      toast.error(`Oops! Something went wrong processing your swipe.`);
     }
   };
 
@@ -311,11 +274,11 @@ export default function MatchPage() {
 
   return (
     <PageContainerLayout
-      title={isReviewMode && reviewLikerProfile ? `Reviewing ${reviewLikerProfile.display_name || 'Profile'}` : "Discover Collaborators"}
+      title={isReviewMode && reviewLikerProfile ? `Reviewing ${getDisplayName(reviewLikerProfile)}` : "Discover Collaborators"}
       description={isReviewMode ? "Decide if you'd like to match with this user." : "Swipe right to like, left to pass."}
     >
       <div className="absolute top-6 left-4 z-20">
-         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700/50 hover:text-white p-2 rounded-full">
+         <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700/50 hover:text-white p-2 rounded-full">
             <ArrowLeft size={24} />
           </Button>
       </div>
@@ -332,7 +295,7 @@ export default function MatchPage() {
               <div className="relative w-[300px] h-[450px] sm:w-[350px] sm:h-[525px] md:w-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl bg-neutral-800 border border-neutral-700">
                 <Image
                   src={profile.avatar_url || '/images/default-avatar.png'}
-                  alt={profile.display_name || 'Profile avatar'}
+                  alt={`${getDisplayName(profile)}'s profile avatar`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 300px, (max-width: 768px) 350px, 400px"
@@ -340,7 +303,7 @@ export default function MatchPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <h3 className="text-3xl font-bold text-white drop-shadow-md geist-sans">
-                    {profile.display_name || 'Anonymous User'}
+                    {getDisplayName(profile)}
                   </h3>
                   {profile.headline && (
                     <p className="text-sm text-neutral-200 mt-1 drop-shadow-sm truncate">
@@ -377,8 +340,7 @@ export default function MatchPage() {
                     onClick={() => swipeButtonAction('left')}
                     className="p-4 bg-neutral-700 rounded-full shadow-xl hover:bg-red-600/90 transition-colors transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                     aria-label="Pass"
-                    variant="icon"
-                    size="iconLg"
+                    size="lg"
                 >
                     <X size={32} className="text-red-400 group-hover:text-white" />
                 </Button>
@@ -386,8 +348,7 @@ export default function MatchPage() {
                     onClick={() => swipeButtonAction('right')}
                     className="p-4 bg-neutral-700 rounded-full shadow-xl hover:bg-green-600/90 transition-colors transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                     aria-label="Like"
-                    variant="icon"
-                    size="iconLg"
+                    size="lg"
                 >
                     <Heart size={32} className="text-green-400 group-hover:text-white" />
                 </Button>
