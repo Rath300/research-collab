@@ -167,6 +167,36 @@ export const updateProfile = async (userId: string, updateData: Partial<DbProfil
   }
 };
 
+export const setProfileTourCompleted = async (userId: string): Promise<DbProfile | null> => {
+  const supabase = getBrowserClient();
+  const updatePayload = {
+    has_completed_tour: true,
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updatePayload)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw new SupabaseError(`Error updating profile tour status: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
+    }
+    if (!data) throw new SupabaseError('No data returned after updating profile tour status', 500);
+    // Force cast through unknown, relying on Zod to ensure runtime correctness.
+    return importedProfileSchema.parse(data as any) as unknown as DbProfile;
+  } catch (error) {
+    console.error('Error in setProfileTourCompleted:', error);
+    if (error instanceof SupabaseError) throw error;
+    if (error instanceof z.ZodError) {
+      throw new SupabaseError(`Profile data validation failed for tour status update: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+    }
+    throw new SupabaseError((error as Error).message || 'Failed to update profile tour status', (error as { status?: number })?.status || 500);
+  }
+};
 
 export const profiles = {
   getById: getProfile,

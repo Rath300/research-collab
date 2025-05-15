@@ -436,29 +436,33 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <MyProfileSnapshot />
-          <QuickActions />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <div className="space-y-6 md:space-y-8">
+            <MyProfileSnapshot />
+            <QuickActions />
+          </div>
 
-        <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <ActivityFeed notifications={recentNotifications} />
-          <CollaborationStatsDisplay stats={stats} />
+          <div className="space-y-6 md:space-y-8">
+            <ActivityFeed notifications={recentNotifications} />
+            <CollaborationStatsDisplay stats={stats} />
+          </div>
         </div>
         
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <DashboardCard title="Recent Research Posts" titleIcon={FiList}>
+          <DashboardCard title="Recent Research Posts" titleIcon={FiList} className="min-h-[600px] flex flex-col">
             {recentPosts.length > 0 ? (
-              <div className="space-y-6 max-w-xl mx-auto">
+              <div className="space-y-6 flex-grow overflow-y-auto">
                 {recentPosts.map(post => (
                   <ResearchPostCard key={post.id} post={post} />
                 ))}
               </div>
             ) : (
-              <p className="text-neutral-500">No recent posts to display.</p>
+              <div className="flex-grow flex items-center justify-center">
+                <p className="text-neutral-500">No recent posts to display.</p>
+              </div>
             )}
-            <Link href="/research" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">View All Posts</Link>
+            <Link href="/research" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline flex-shrink-0">View All Posts</Link>
           </DashboardCard>
 
           <DashboardCard title="Recent Matches" titleIcon={FiUsers}>

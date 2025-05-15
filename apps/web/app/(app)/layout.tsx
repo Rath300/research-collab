@@ -4,25 +4,40 @@ import { Sidebar as AppSidebar } from '@/components/layout/Sidebar'; // Renamed 
 import { DashboardHeader as AppHeader } from '@/components/layout/DashboardHeader'; // Renamed import alias
 import React, { useEffect } from 'react';
 import { useUIStore, useAuthStore } from '@/lib/store';
-import { useRouter } from 'next/navigation'; // Added useRouter
+import { useRouter, usePathname } from 'next/navigation'; // Added usePathname
 import { FiLoader } from 'react-icons/fi'; // Added FiLoader
+import { AppTour } from '@/components/layout/AppTour'; // Import AppTour
 
 export default function AppLayout({ children }: { children: React.ReactNode }) { // Renamed component
   const { sidebarOpen, setSidebarOpen } = useUIStore();
-  const { user, profile, isLoading: authIsLoading } = useAuthStore(); // Added user and authIsLoading
-  const router = useRouter(); // Initialize router
+  const { user, profile, isLoading: authIsLoading, hasAttemptedProfileFetch } = useAuthStore(); // Added hasAttemptedProfileFetch
+  const router = useRouter();
+  const pathname = usePathname(); // Initialize pathname
 
   useEffect(() => {
-    if (!authIsLoading && !user) {
-      console.log('[AppLayout] Auth check: No user and not loading. Redirecting to /login.');
-      router.replace('/login');
+    if (!authIsLoading) {
+      if (!user) {
+        console.log('[AppLayout] Auth check: No user. Redirecting to /login.');
+        router.replace('/login');
+      } else if (user && hasAttemptedProfileFetch && (!profile || !profile.first_name) && pathname !== '/profile-setup') {
+        console.log('[AppLayout] User exists, profile incomplete. Redirecting to /profile-setup.');
+        router.replace('/profile-setup');
+      }
     }
-  }, [user, authIsLoading, router]);
+  }, [user, profile, authIsLoading, router, pathname, hasAttemptedProfileFetch]); // Added dependencies
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const isSidebarCollapsed = !sidebarOpen;
 
-  if (authIsLoading) {
+  // Combined loading condition:
+  // 1. Auth is still loading.
+  // 2. Auth is NOT loading, but there's NO user (useEffect is handling /login redirect, show loader).
+  // 3. Auth is NOT loading, USER exists, profile fetch ATTEMPTED, profile INCOMPLETE, 
+  //    and we are NOT on /profile-setup (useEffect is handling /profile-setup redirect, show loader).
+  if (authIsLoading || 
+      (!authIsLoading && !user) ||
+      (!authIsLoading && user && hasAttemptedProfileFetch && (!profile || !profile.first_name) && pathname !== '/profile-setup')
+     ) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-black">
         <FiLoader className="animate-spin text-accent-purple text-4xl" />
@@ -30,17 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If not loading and still no user (e.g., redirect hasn't happened yet or failed),
-  // prevent rendering children that might rely on auth.
-  // This is a safeguard; the useEffect should handle the redirect.
-  if (!user) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-black">
-        <p className="text-neutral-500">Redirecting to login...</p>
-      </div>
-    );
-  }
-
+  // If all checks pass, render the layout
   return (
     <div className="flex h-screen bg-black">
       <AppSidebar />
@@ -60,6 +65,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <AppTour /> {/* Render AppTour component here */}
     </div>
   );
 } 

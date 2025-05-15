@@ -17,7 +17,7 @@ import { getProfile } from '@/lib/api';
 // Minor change timestamp: 2023-10-27T10:00:00Z
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setProfile, setLoading } = useAuthStore();
+  const { setUser, setProfile, setLoading, setHasAttemptedProfileFetch } = useAuthStore();
   const supabase = getBrowserClient();
   // const router = useRouter(); // No longer needed
   // const pathname = usePathname(); // No longer needed
@@ -34,9 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (sessionError) {
           console.error('[AuthProvider] initializeAuth: Error fetching initial session:', sessionError);
           useAuthStore.getState().clearAuth();
-          console.log('[AuthProvider] initializeAuth: Session error. setLoading(false) call imminent.');
+          console.log('[AuthProvider] initializeAuth: Session error. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+          setHasAttemptedProfileFetch(true);
           setLoading(false);
-          console.log('[AuthProvider] initializeAuth: Session error. setLoading(false) CALLED.');
+          console.log('[AuthProvider] initializeAuth: Session error. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
           return;
         }
 
@@ -63,26 +64,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('[AuthProvider] initializeAuth: Error fetching initial profile:', error);
             setProfile(null);
           } finally {
-            console.log('[AuthProvider] initializeAuth: Profile fetch attempt done. setLoading(false) call imminent.');
+            console.log('[AuthProvider] initializeAuth: Profile fetch attempt done. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+            setHasAttemptedProfileFetch(true);
             setLoading(false);
-            console.log('[AuthProvider] initializeAuth: Profile fetch attempt done. setLoading(false) CALLED.');
+            console.log('[AuthProvider] initializeAuth: Profile fetch attempt done. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
           }
         } else {
           console.log('[AuthProvider] initializeAuth: No initial user. Clearing auth.');
           useAuthStore.getState().clearAuth();
-          // setProfile(null); // clearAuth handles profile
-          console.log('[AuthProvider] initializeAuth: No initial user. setLoading(false) call imminent.');
+          console.log('[AuthProvider] initializeAuth: No initial user. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+          setHasAttemptedProfileFetch(true);
           setLoading(false);
-          console.log('[AuthProvider] initializeAuth: No initial user. setLoading(false) CALLED.');
+          console.log('[AuthProvider] initializeAuth: No initial user. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
         }
       } catch (e) {
         console.error('[AuthProvider] initializeAuth: Critical error:', e);
         useAuthStore.getState().clearAuth();
-        // setUser(null); // clearAuth handles user
-        // setProfile(null); // clearAuth handles profile
-        console.log('[AuthProvider] initializeAuth: Critical error. setLoading(false) call imminent.');
+        console.log('[AuthProvider] initializeAuth: Critical error. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+        setHasAttemptedProfileFetch(true);
         setLoading(false);
-        console.log('[AuthProvider] initializeAuth: Critical error. setLoading(false) CALLED.');
+        console.log('[AuthProvider] initializeAuth: Critical error. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
       }
       console.log('[AuthProvider] initializeAuth: END');
     };
@@ -124,16 +125,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('[AuthProvider] Listener: Error fetching profile:', error);
             setProfile(null); 
           } finally {
-            console.log('[AuthProvider] Listener: Profile fetch attempt done. setLoading(false) call imminent.');
+            console.log('[AuthProvider] Listener: Profile fetch attempt done. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+            setHasAttemptedProfileFetch(true);
             setLoading(false);
-            console.log('[AuthProvider] Listener: Profile fetch attempt done. setLoading(false) CALLED.');
+            console.log('[AuthProvider] Listener: Profile fetch attempt done. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
           }
         } else {
           console.log('[AuthProvider] Listener: No user/session or SIGNED_OUT. Clearing auth.');
           useAuthStore.getState().clearAuth();
-          console.log('[AuthProvider] Listener: No user. setLoading(false) call imminent.');
+          console.log('[AuthProvider] Listener: No user. setLoading(false) and setHasAttemptedProfileFetch(true) call imminent.');
+          setHasAttemptedProfileFetch(true);
           setLoading(false);
-          console.log('[AuthProvider] Listener: No user. setLoading(false) CALLED.');
+          console.log('[AuthProvider] Listener: No user. setLoading(false) and setHasAttemptedProfileFetch(true) CALLED.');
         }
         console.log('[AuthProvider] onAuthStateChange: END');
       }
@@ -143,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListener.subscription?.unsubscribe();
     };
-  }, [supabase, setUser, setProfile, setLoading]);
+  }, [supabase, setUser, setProfile, setLoading, setHasAttemptedProfileFetch]);
 
   return <>{children}</>;
 } 

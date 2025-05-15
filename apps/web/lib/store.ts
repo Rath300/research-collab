@@ -8,9 +8,12 @@ interface AuthState {
   user: any | null;
   profile: DbProfile | null;
   isLoading: boolean;
+  hasAttemptedProfileFetch: boolean;
   setUser: (user: any | null) => void;
   setProfile: (profile: DbProfile | null) => void;
   setLoading: (isLoading: boolean) => void;
+  setHasAttemptedProfileFetch: (attempted: boolean) => void;
+  markTourAsCompletedInStore: () => void;
   signOut: () => void;
   clearAuth: () => void;
 }
@@ -61,11 +64,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profile: null,
   isLoading: true,
+  hasAttemptedProfileFetch: false,
   setUser: (user) => set({ user }),
   setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
-  signOut: () => set({ user: null, profile: null, isLoading: false }),
-  clearAuth: () => set({ user: null, profile: null, isLoading: false }),
+  setHasAttemptedProfileFetch: (attempted) => set({ hasAttemptedProfileFetch: attempted }),
+  markTourAsCompletedInStore: () => set((state) => ({
+    profile: state.profile ? { ...state.profile, has_completed_tour: true } : null,
+  })),
+  signOut: () => set({ user: null, profile: null, isLoading: false, hasAttemptedProfileFetch: false }),
+  clearAuth: () => set({ user: null, profile: null, isLoading: false, hasAttemptedProfileFetch: false }),
 }));
 
 export const useSwipeStore = create<SwipeState>((set) => ({

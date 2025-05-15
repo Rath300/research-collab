@@ -47,6 +47,7 @@ export const profileSchema = z.object({
   location: z.string().max(255).optional().nullable(),
   field_of_study: z.string().max(255).optional().nullable(),
   availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
+  has_completed_tour: z.boolean().optional().default(false),
 });
 
 export type Profile = z.infer<typeof profileSchema>;
