@@ -18,31 +18,28 @@ export function AuthRedirectLink({
   className, 
   ...props 
 }: AuthRedirectLinkProps) {
-  const { user } = useAuthStore();
-  const router = useRouter();
+  // const { user } = useAuthStore(); // No longer need to check client-side auth state here
+  // const router = useRouter(); // No longer needed for immediate client-side redirect
 
-  const handleRedirect = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    e.preventDefault(); // Prevent default Link behavior if we're redirecting
-    router.push('/dashboard');
-  };
+  // const handleRedirect = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  //   e.preventDefault(); 
+  //   router.push('/dashboard');
+  // };
 
-  if (user) {
-    // If user is logged in, this link/button should go to the dashboard
-    // We render an anchor tag styled like the original link/button
-    // but its click action is to go to /dashboard
-    return (
-      <a 
-        href="/dashboard" // Visually shows dashboard but JS handles click
-        onClick={handleRedirect}
-        className={className}
-        {...props} // Pass through other props like style, id, etc.
-      >
-        {children}
-      </a>
-    );
-  }
+  // if (user) {
+  //   return (
+  //     <a 
+  //       href="/dashboard" 
+  //       onClick={handleRedirect}
+  //       className={className}
+  //       {...props}
+  //     >
+  //       {children}
+  //     </a>
+  //   );
+  // }
 
-  // If no user, render the original Link as intended
+  // Always render the original Link. Middleware will handle redirection if necessary.
   return (
     <Link href={href} className={className} {...props}>
       {children}
