@@ -115,6 +115,23 @@ export default function ProfilePage() {
       const profileResult = results[0];
       if (profileResult.status === 'fulfilled' && profileResult.value && !profileResult.value.error) {
         fetchedProfile = profileResult.value.data as Profile;
+        // Normalize potentially null/undefined array fields to empty arrays
+        if (fetchedProfile) {
+          fetchedProfile.interests = fetchedProfile.interests || [];
+          // Ensure skills and looking_for are also initialized if they exist on the Profile type
+          // and are intended to be arrays. This assumes they follow a similar pattern.
+          if ('skills' in fetchedProfile && typeof fetchedProfile.skills === 'undefined') {
+            fetchedProfile.skills = [];
+          } else if ('skills' in fetchedProfile && fetchedProfile.skills === null) {
+             fetchedProfile.skills = [];
+          }
+
+          if ('looking_for' in fetchedProfile && typeof fetchedProfile.looking_for === 'undefined') {
+            fetchedProfile.looking_for = [];
+          } else if ('looking_for' in fetchedProfile && fetchedProfile.looking_for === null) {
+            fetchedProfile.looking_for = [];
+          }
+        }
       } else {
         const errorMsg = profileResult.status === 'rejected' 
           ? profileResult.reason?.message 

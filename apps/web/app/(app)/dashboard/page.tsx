@@ -271,26 +271,69 @@ export default function DashboardPage() {
     try {
       const userId = user.id;
 
+      // Define a helper async function to get active projects count
+      const getActiveProjectsCount = async (): Promise<{ count: number; error: any }> => {
+        const { data: collaboratorEntries, error: collabError } = await supabase
+          .from('project_collaborators')
+          .select('project_id')
+          .eq('user_id', userId);
+
+        if (collabError) {
+          console.error('Error fetching collaborator entries for active count:', collabError.message);
+          return { count: 0, error: collabError };
+        }
+
+        if (!collaboratorEntries || collaboratorEntries.length === 0) {
+          return { count: 0, error: null };
+        }
+
+        const projectIds = collaboratorEntries.map(pc => pc.project_id);
+        const { count, error: activeError } = await supabase
+          .from('projects')
+          .select('id', { count: 'exact', head: true })
+          .in('id', projectIds)
+          .eq('status', 'active');
+        
+        return { count: count ?? 0, error: activeError };
+      };
+
       // Fetch all counts in parallel
       const countsPromises = [
         supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
         supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-        supabase.from('project_collaborators').select('project_id!inner(status)', { count: 'exact', head: true }).eq('user_id', userId).eq('project_id.status', 'active'),
-        supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'), // Assuming target_user_id, adjust if different
+        getActiveProjectsCount(), // This returns Promise<{ count: number; error: any }>
+        supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'),
         supabase.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', userId).eq('is_read', false)
       ];
 
+      const processedPromises = countsPromises.map(item => {
+        // getActiveProjectsCount already returns Promise<{ count: number; error: any }>
+        // Supabase queries are thenable and resolve to { data, count, error, status, statusText }
+        return (item as any).then((response: { data?: any; count?: number | null; error?: any; /* other Supabase response props */ }) => {
+          return {
+            count: response.count ?? 0,
+            error: response.error || null
+          };
+        }).catch((err: any) => {
+            // Catch errors from individual promises to ensure Promise.all doesn't reject early
+            console.error('[DashboardPage] Error in one of the count promises:', err);
+            return { count: 0, error: err };
+        });
+      });
+
+      const results = await Promise.all(processedPromises);
+      
       const [
         { count: postCount },
         { count: matchCount },
         { count: messageCount },
-        { count: activeProjectsCount, error: activeProjectsError },
+        { count: activeProjectsCount, error: activeProjectsError }, // Result from getActiveProjectsCount
         { count: pendingRequestsCount, error: pendingRequestsError },
         { count: unreadMessagesCount, error: unreadMessagesError }
-      ] = await Promise.all(countsPromises.map(p => p.then(response => ({ ...response, count: response.count || 0 }))));
+      ] = results;
       
-      if (activeProjectsError) console.error('Error fetching active projects count:', activeProjectsError.message);
+      if (activeProjectsError) console.error('Error fetching active projects count (new method):', activeProjectsError?.message);
       if (pendingRequestsError) console.error('Error fetching pending requests count:', pendingRequestsError.message);
       if (unreadMessagesError) console.error('Error fetching unread messages count:', unreadMessagesError.message);
       
