@@ -86,10 +86,11 @@ export default function MatchPage() {
         queryBuilder = queryBuilder.not('id', 'in', `(${uniqueInteractedIds.join(',')})`);
       }
 
+      console.log("[MatchPage] Attempting to fetch profiles for potential matches. Current query filters:", queryBuilder.toString());
       const { data: profilesData, error: profilesError } = await queryBuilder.limit(20);
 
       if (profilesError) {
-        console.error("Supabase profiles fetch error in fetchPotentialMatches:", profilesError);
+        console.error("[MatchPage] Supabase profiles fetch error in fetchPotentialMatches. Full error object:", JSON.stringify(profilesError, null, 2));
         // PGRST116 is Supabase's error code for "Not Acceptable" (406) or related issues like RLS / resource not found
         if (profilesError.code === 'PGRST116' || (profilesError as any).status === 406) { 
              console.error("***************************************************************************");
@@ -175,18 +176,10 @@ export default function MatchPage() {
     searchParams, 
     reviewModeActive, 
     fetchPotentialMatches, // useCallback ensures stable identity if its own deps (user, supabase) don't change
-    // The following are crucial for re-evaluation when fetch conditions might change
     potentialMatches.length, 
     loading, 
-    error,
-    // also include internal state setters if they were part of the logic before, but they typically aren't deps
-    // supabase, // already a dep of fetchPotentialMatches
-    setLoading, // state setters are usually stable, but good to list if used directly in effect logic not just in callbacks
-    setIsReviewLoading,
-    setError,
-    setReviewError,
-    setPotentialMatches,
-    setReviewModeActive
+    error
+    // State setters like setLoading, setError, etc., are guaranteed to be stable and typically don't need to be in deps.
   ]);
 
   const childRefs = useMemo(
