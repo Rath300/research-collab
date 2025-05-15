@@ -68,46 +68,47 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 // Type for Supabase DB update payload for profiles
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
+const PROFILE_FETCH_TIMEOUT_MS = 15000; // 15 seconds
+
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-    const supabase = getBrowserClient();
-  try {
+  const supabase = getBrowserClient();
+
+  const fetchProfilePromise = async () => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', id)
       .single();
-      
+
     if (error) {
-      // Handle specific Supabase error for "no rows found"
       if (error.code === 'PGRST116') {
         return null; // Profile not found
       }
-      // For other errors, throw a custom SupabaseError
       throw new SupabaseError(
         `Error fetching profile: ${error.message}`,
         (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500,
         (error as PostgrestError).code
       );
     }
-
-    // If data is null (e.g., profile not found, though PGRST116 should catch this),
-    // or if data is present but doesn't match schema, Zod will handle it.
-    // Explicitly return null if data is null before parsing to prevent Zod error on null input.
     if (data === null) {
-      return null; // Profile genuinely not found or unexpected null response
+      return null; 
     }
-
-    // Validate data against Zod schema before returning
-    // The `parse` method will throw if data doesn't match the schema.
     return importedProfileSchema.parse(data) as DbProfile;
+  };
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new SupabaseError('Profile fetch timed out', 408, 'TIMEOUT')), PROFILE_FETCH_TIMEOUT_MS)
+  );
+
+  try {
+    // Race the actual fetch against the timeout
+    return await Promise.race([fetchProfilePromise(), timeoutPromise]);
   } catch (error) {
-    console.error('Error in getProfile:', error);
-    if (error instanceof SupabaseError) throw error;
+    console.error('Error in getProfile (or timeout):', error);
+    if (error instanceof SupabaseError) throw error; // Re-throw our custom errors (including timeout)
     if (error instanceof z.ZodError) {
-      // This will catch validation errors if `data` is not null but malformed
       throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
-    // For any other unexpected errors
     throw new SupabaseError((error as Error).message || 'Failed to get profile', (error as { status?: number })?.status || 500);
   }
 };
