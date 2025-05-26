@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { ResearchPost, Match, type Profile as DbProfile } from '@research-collab/db';
 
 // Define Profile type based on the database schema
@@ -14,7 +15,6 @@ interface AuthState {
   setLoading: (isLoading: boolean) => void;
   setHasAttemptedProfileFetch: (attempted: boolean) => void;
   markTourAsCompletedInStore: () => void;
-  signOut: () => void;
   clearAuth: () => void;
 }
 
@@ -60,21 +60,45 @@ interface ResearchState {
   resetPosts: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  profile: null,
-  isLoading: true,
-  hasAttemptedProfileFetch: false,
-  setUser: (user) => set({ user }),
-  setProfile: (profile) => set({ profile }),
-  setLoading: (isLoading) => set({ isLoading }),
-  setHasAttemptedProfileFetch: (attempted) => set({ hasAttemptedProfileFetch: attempted }),
-  markTourAsCompletedInStore: () => set((state) => ({
-    profile: state.profile ? { ...state.profile, has_completed_tour: true } : null,
-  })),
-  signOut: () => set({ user: null, profile: null, isLoading: false, hasAttemptedProfileFetch: false }),
-  clearAuth: () => set({ user: null, profile: null, isLoading: false, hasAttemptedProfileFetch: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      profile: null,
+      isLoading: true,
+      hasAttemptedProfileFetch: false,
+      setUser: (user) => set({ user }),
+      setProfile: (profile) => set({ profile, hasAttemptedProfileFetch: true }),
+      setLoading: (isLoading) => set({ isLoading }),
+      setHasAttemptedProfileFetch: (attempted) => set({ hasAttemptedProfileFetch: attempted }),
+      markTourAsCompletedInStore: () => set((state) => {
+        if (state.profile) {
+          return { profile: { ...state.profile, has_completed_tour: true } };
+        }
+        return {};
+      }),
+      clearAuth: () => set({ 
+        user: null, 
+        profile: null, 
+        isLoading: false, 
+        hasAttemptedProfileFetch: true, 
+      }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ 
+        user: state.user, 
+        profile: state.profile, 
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log('[AuthStore] Successfully rehydrated state from localStorage.');
+        }
+      }
+    }
+  )
+);
 
 export const useSwipeStore = create<SwipeState>((set) => ({
   swipedUsers: [],
