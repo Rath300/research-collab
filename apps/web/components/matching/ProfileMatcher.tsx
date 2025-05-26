@@ -19,6 +19,7 @@ export function ProfileMatcher() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [seenProfileIds, setSeenProfileIds] = useState<string[]>([])
+  const [isDeciding, setIsDeciding] = useState(false);
 
   const loadNextProfile = useCallback(async () => {
     if (!user) {
@@ -95,6 +96,7 @@ export function ProfileMatcher() {
       setError('User or profile ID missing.');
       return;
     }
+    setIsDeciding(true);
 
     try {
       const { error: insertError } = await supabase
@@ -130,6 +132,8 @@ export function ProfileMatcher() {
     } catch (err) {
       console.error('Error in handleMatchDecision:', err);
       setError(err instanceof Error ? err.message : 'Failed to record match decision');
+    } finally {
+      setIsDeciding(false);
     }
   };
 
@@ -206,7 +210,7 @@ export function ProfileMatcher() {
               onClick={() => handleMatchDecision(currentProfile.id, 'rejected')}
               variant="outline"
               className="flex-1 py-3 text-lg"
-              disabled={!currentProfile.id}
+              disabled={!currentProfile.id || isDeciding}
             >
               Pass
             </Button>
@@ -214,7 +218,7 @@ export function ProfileMatcher() {
               onClick={() => handleMatchDecision(currentProfile.id, 'matched')}
               variant="primary"
               className="flex-1 py-3 text-lg"
-              disabled={!currentProfile.id}
+              disabled={!currentProfile.id || isDeciding}
             >
               Interested
             </Button>

@@ -37,60 +37,40 @@ export default function MatchesPage() {
     setError(null);
 
     try {
-      // Fetch matches where current user was the matcher
-      const { data: initiatedMatchesData, error: initiatedMatchesError } = await supabase
+      // Step 1: Get all user IDs the CurrentUser has 'matched'
+      const { data: currentUserLikes, error: currentUserLikesError } = await supabase
         .from('profile_matches')
-        .select('created_at, matchee_profile:matchee_user_id!inner(*)')
+        .select('matchee_user_id') // ID of the person CurrentUser liked
         .eq('matcher_user_id', user.id)
         .eq('status', 'matched');
 
-      if (initiatedMatchesError) throw initiatedMatchesError;
-
-      // Fetch matches where current user was the matchee
-      // AND the matcher also has a 'matched' status towards the current user (for mutual matches)
-      // This assumes our swipe right immediately creates a 'matched' record.
-      // If we had a 'liked' status, this query would be more complex to find true mutual matches.
-      const { data: receivedMatchesData, error: receivedMatchesError } = await supabase
-        .from('profile_matches')
-        .select('created_at, matcher_profile:matcher_user_id!inner(*)')
-        .eq('matchee_user_id', user.id)
-        .eq('status', 'matched');
-        
-      if (receivedMatchesError) throw receivedMatchesError;
-
-      const profilesMap = new Map<string, MatchedProfile>();
-
-      if (initiatedMatchesData) {
-        initiatedMatchesData.forEach((match: any) => {
-          if (match.matchee_profile && !profilesMap.has(match.matchee_profile.id)) {
-            profilesMap.set(match.matchee_profile.id, { 
-              ...match.matchee_profile, 
-              match_created_at: match.created_at 
-            });
-          }
-        });
-      }
-
-      if (receivedMatchesData) {
-        receivedMatchesData.forEach((match: any) => {
-          if (match.matcher_profile && !profilesMap.has(match.matcher_profile.id)) {
-             // To ensure this is a *mutual* match with the current simplified logic
-             // (where a right swipe by current user = 'matched'), we need to check
-             // if the current user also 'matched' this 'matcher_profile'.
-             // This check is implicitly handled if both queries only look for 'matched' status.
-             // A more robust system would check for reciprocal 'liked' statuses.
-            profilesMap.set(match.matcher_profile.id, { 
-              ...match.matcher_profile, 
-              match_created_at: match.created_at 
-            });
-          }
-        });
-      }
+      if (currentUserLikesError) throw currentUserLikesError;
       
-      const uniqueProfiles = Array.from(profilesMap.values());
-      uniqueProfiles.sort((a, b) => new Date(b.match_created_at).getTime() - new Date(a.match_created_at).getTime());
+      const likedUserIds = currentUserLikes?.map(like => like.matchee_user_id) || [];
 
-      setMatchedProfiles(uniqueProfiles);
+      if (likedUserIds.length === 0) {
+        setMatchedProfiles([]); // No one CurrentUser likes, so no mutual matches
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Find among those likedUserIds, who has ALSO 'matched' the CurrentUser
+      const { data: mutualMatchesData, error: mutualMatchesError } = await supabase
+        .from('profile_matches')
+        .select('matcher_profile:matcher_user_id!inner(*), created_at') // Get profile of person who liked CurrentUser
+        .eq('matchee_user_id', user.id) // CurrentUser is the one being liked
+        .eq('status', 'matched')        // Their status towards CurrentUser is 'matched'
+        .in('matcher_user_id', likedUserIds); // And they are one of the people CurrentUser liked
+
+      if (mutualMatchesError) throw mutualMatchesError;
+
+      const mutualProfiles: MatchedProfile[] = mutualMatchesData?.map((match: any) => ({
+        ...(match.matcher_profile as Profile),
+        match_created_at: match.created_at,
+      })) || [];
+
+      mutualProfiles.sort((a, b) => new Date(b.match_created_at).getTime() - new Date(a.match_created_at).getTime());
+      setMatchedProfiles(mutualProfiles);
 
     } catch (err) {
       console.error("Error fetching matched profiles:", err);

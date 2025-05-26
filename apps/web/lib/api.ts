@@ -68,46 +68,26 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 // Type for Supabase DB update payload for profiles
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
-const PROFILE_FETCH_TIMEOUT_MS = 15000; // 15 seconds
-
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-  const supabase = getBrowserClient();
-
-  const fetchProfilePromise = async () => {
+    const supabase = getBrowserClient();
+  try {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', id)
       .single();
-
+      
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // Profile not found
-      }
-      throw new SupabaseError(
-        `Error fetching profile: ${error.message}`,
-        (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500,
-        (error as PostgrestError).code
-      );
+      if (error.code === 'PGRST116') return null; // Not found
+      throw new SupabaseError(`Error fetching profile: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
     }
-    if (data === null) {
-      return null; 
-    }
-    return importedProfileSchema.parse(data) as DbProfile;
-  };
-
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new SupabaseError('Profile fetch timed out', 408, 'TIMEOUT')), PROFILE_FETCH_TIMEOUT_MS)
-  );
-
-  try {
-    // Race the actual fetch against the timeout
-    return await Promise.race([fetchProfilePromise(), timeoutPromise]);
+    // Validate data against Zod schema before returning
+    return importedProfileSchema.parse(data) as DbProfile | null; 
   } catch (error) {
-    console.error('Error in getProfile (or timeout):', error);
-    if (error instanceof SupabaseError) throw error; // Re-throw our custom errors (including timeout)
+    console.error('Error in getProfile:', error);
+    if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400);
+      throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
     }
     throw new SupabaseError((error as Error).message || 'Failed to get profile', (error as { status?: number })?.status || 500);
   }
@@ -167,36 +147,6 @@ export const updateProfile = async (userId: string, updateData: Partial<DbProfil
   }
 };
 
-export const setProfileTourCompleted = async (userId: string): Promise<DbProfile | null> => {
-  const supabase = getBrowserClient();
-  const updatePayload = {
-    has_completed_tour: true,
-    updated_at: new Date().toISOString(),
-  };
-
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updatePayload)
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      throw new SupabaseError(`Error updating profile tour status: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
-    }
-    if (!data) throw new SupabaseError('No data returned after updating profile tour status', 500);
-    // Force cast through unknown, relying on Zod to ensure runtime correctness.
-    return importedProfileSchema.parse(data as any) as unknown as DbProfile;
-  } catch (error) {
-    console.error('Error in setProfileTourCompleted:', error);
-    if (error instanceof SupabaseError) throw error;
-    if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Profile data validation failed for tour status update: ${error.errors.map(e=>e.message).join(', ')}`, 400);
-    }
-    throw new SupabaseError((error as Error).message || 'Failed to update profile tour status', (error as { status?: number })?.status || 500);
-  }
-};
 
 export const profiles = {
   getById: getProfile,
