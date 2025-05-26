@@ -126,8 +126,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthProvider] onAuthStateChange: Event:', event, 'Session:', session ? session.user.id : 'null');
-        // setLoading(true); // Set loading true at start of handling an auth event.
-                          // This helps signal that auth state might be in flux.
         useAuthStore.getState().setLoading(true); 
 
         const listenerUser = session?.user ?? null;
@@ -135,40 +133,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         console.log('[AuthProvider] onAuthStateChange: Listener user:', listenerUser ? listenerUser.id : 'null', 'Store user:', currentStoreUser ? currentStoreUser.id : 'null');
 
-        // Only update user from listener if it's actually different.
         if (JSON.stringify(listenerUser) !== JSON.stringify(currentStoreUser)) {
           console.log('[AuthProvider] onAuthStateChange: Updating user in store to:', listenerUser ? listenerUser.id : 'null');
           setUser(listenerUser);
         }
 
         if (listenerUser) {
-          console.log(`[AuthProvider] onAuthStateChange: User (ID: ${listenerUser.id}) present. Fetching/re-validating profile.`);
-          try {
-            const profileData = await getProfile(listenerUser.id);
-            console.log('[AuthProvider] onAuthStateChange: getProfile returned.'); // Avoid logging profile data
-            
-            // Update profile only if it differs from what's in store.
-            if (JSON.stringify(profileData) !== JSON.stringify(useAuthStore.getState().profile)) {
-                console.log('[AuthProvider] onAuthStateChange: Updating profile in store.');
-                setProfile(profileData); // This also sets hasAttemptedProfileFetch: true
-            } else if (!useAuthStore.getState().hasAttemptedProfileFetch && profileData){
-                setHasAttemptedProfileFetch(true);
-            } else if (!profileData && useAuthStore.getState().profile) {
-                console.log('[AuthProvider] onAuthStateChange: Fresh fetch found no profile, clearing stale profile from store.');
-                setProfile(null);
-            }
-            
-            console.log('[AuthProvider] onAuthStateChange: Profile fetch/re-validation successful.');
-          } catch (error) {
-            console.error('[AuthProvider] onAuthStateChange: Error fetching profile:', error);
-            setProfile(null); // Clear profile on error; also sets hasAttemptedProfileFetch: true
+          const storeProfile = useAuthStore.getState().profile;
+          // Ensure we use the user ID from the listenerUser for consistency in this block.
+          const listenerUserId = listenerUser.id;
+
+          let shouldFetchProfile = false;
+          let fetchReason = "";
+
+          if (event === 'SIGNED_IN') {
+            shouldFetchProfile = true;
+            fetchReason = "User signed in.";
+          } else if (event === 'USER_UPDATED') {
+            shouldFetchProfile = true;
+            fetchReason = "User data updated by Supabase.";
+          } else if (!storeProfile) {
+            shouldFetchProfile = true;
+            fetchReason = "No profile in store for current user.";
+          } else if (storeProfile.id !== listenerUserId) {
+            shouldFetchProfile = true;
+            fetchReason = `Profile in store (id: ${storeProfile.id}) belongs to a different user (id: ${listenerUserId}).`;
+          } else if (event === 'TOKEN_REFRESHED' && !useAuthStore.getState().hasAttemptedProfileFetch) {
+            // If token refreshed, but profile fetch hasn't been successfully completed for this user session yet.
+            shouldFetchProfile = true;
+            fetchReason = "Token refreshed, and profile not yet successfully fetched in this session.";
           }
-        } else { // No listenerUser (e.g., SIGNED_OUT event)
-          console.log('[AuthProvider] onAuthStateChange: No listener user (SIGNED_OUT or error). Clearing auth state.');
-          useAuthStore.getState().clearAuth(); // Sets isLoading: false, hasAttemptedProfileFetch: true
+          // For TOKEN_REFRESHED: if none of the above, and a profile for listenerUserId exists
+          // and hasAttemptedProfileFetch is true, we skip re-fetching.
+
+          if (shouldFetchProfile) {
+            console.log(`[AuthProvider] onAuthStateChange: Fetching profile. Reason: ${fetchReason} User: ${listenerUserId}`);
+            try {
+              const profileData = await getProfile(listenerUserId);
+              console.log('[AuthProvider] onAuthStateChange: getProfile returned.');
+              
+              if (JSON.stringify(profileData) !== JSON.stringify(useAuthStore.getState().profile)) {
+                  console.log('[AuthProvider] onAuthStateChange: Updating profile in store.');
+                  setProfile(profileData); 
+              } else if (!useAuthStore.getState().hasAttemptedProfileFetch && profileData){
+                  console.log('[AuthProvider] onAuthStateChange: Profile same as store, ensuring hasAttemptedProfileFetch is true.');
+                  setHasAttemptedProfileFetch(true);
+              } else if (!profileData && useAuthStore.getState().profile) {
+                  console.log('[AuthProvider] onAuthStateChange: Fresh fetch found no profile, clearing stale profile from store.');
+                  setProfile(null);
+              }
+              console.log('[AuthProvider] onAuthStateChange: Profile fetch/re-validation process complete.');
+            } catch (error) {
+              console.error('[AuthProvider] onAuthStateChange: Error fetching profile:', error);
+              setProfile(null); 
+            }
+          } else {
+            console.log(`[AuthProvider] onAuthStateChange: Profile fetch SKIPPED for event '${event}', user ${listenerUserId}.`);
+            // If fetch was skipped, but profile exists and hasAttemptedProfileFetch is somehow false, ensure it's true.
+            if (storeProfile && storeProfile.id === listenerUserId && !useAuthStore.getState().hasAttemptedProfileFetch) {
+                console.log('[AuthProvider] onAuthStateChange: Marking hasAttemptedProfileFetch true for existing profile after skipped fetch.');
+                setHasAttemptedProfileFetch(true);
+            }
+          }
+        } else { 
+          console.log('[AuthProvider] onAuthStateChange: No listener user (e.g. SIGNED_OUT). Clearing auth state.');
+          useAuthStore.getState().clearAuth();
         }
         
-        // Crucially, set loading to false after handling the event and potential profile fetch.
         useAuthStore.getState().setLoading(false);
         console.log('[AuthProvider] onAuthStateChange: END. isLoading:', useAuthStore.getState().isLoading, 'hasAttemptedProfileFetch:', useAuthStore.getState().hasAttemptedProfileFetch);
       }
