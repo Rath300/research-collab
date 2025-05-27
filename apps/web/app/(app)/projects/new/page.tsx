@@ -10,19 +10,42 @@ import { FileUpload } from '@/components/research/FileUpload';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperclip, FiTag } from 'react-icons/fi';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperclip, FiFilePlus, FiFileText, FiTrash2, FiFile } from 'react-icons/fi';
 
 // Define schema for research post form validation (aligned with research_posts table)
 const researchPostFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
-  content: z.string().min(20, 'Content must be at least 20 characters').max(10000, 'Content must be less than 10000 characters'),
+  content: z.string().min(20, 'Content must be at least 20 characters (plain text equivalent). HTML may be longer.').max(15000, 'Content must be less than 15000 characters (HTML).'),
   visibility: z.enum(['public', 'private', 'connections']).default('public'),
   tags: z.array(z.string()).optional().default([]),
 });
 
 type ResearchPostFormData = z.infer<typeof researchPostFormSchema>;
 
-// Unused constants PROJECT_CATEGORIES and SKILLS_NEEDED are removed.
+interface UploadedFileData {
+  name: string;
+  path: string;
+  type: string;
+  size: number;
+}
+
+// Helper to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Helper to get file icon
+function getFileIcon(fileType: string): React.ReactElement {
+  if (fileType.startsWith('image/')) return <FiFilePlus className="text-blue-400" />;
+  if (fileType === 'application/pdf') return <FiFileText className="text-red-400" />;
+  // Add more specific icons as needed
+  return <FiFile className="text-neutral-400" />;
+}
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -42,6 +65,8 @@ export default function NewProjectPage() {
   const [pageSuccess, setPageSuccess] = useState<string | null>(null); // For success messages
   const [createdResearchPostId, setCreatedResearchPostId] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileData[]>([]); // State for uploaded files list
+  const [isRemovingFile, setIsRemovingFile] = useState<string | null>(null); // To track which file is being removed
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -54,6 +79,13 @@ export default function NewProjectPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name as keyof ResearchPostFormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleContentChange = (richText: string) => {
+    setFormData(prev => ({ ...prev, content: richText }));
+    if (errors.content) {
+      setErrors(prev => ({ ...prev, content: undefined }));
     }
   };
 
@@ -131,27 +163,82 @@ export default function NewProjectPage() {
       if (!data || !data.id) throw new Error('Failed to create post or ID missing.');
       
       setCreatedResearchPostId(data.id);
-      setPageSuccess('Post details saved! You can now upload associated files below.');
+      setPageSuccess('Project details saved! You can now upload associated files below.');
       // Clear form or keep data? For now, keep data if user wants to revise before uploading files for a *new* post.
       // If navigation happens away, form will reset on next visit naturally.
     } catch (err: any) {
       console.error('Submission error:', err);
       // Check for Supabase specific error codes for duplicate titles if applicable
       if (err.code === '23505') { // PostgreSQL unique violation
-        setPageError('A post with this title already exists. Please choose a different title.');
+        setPageError('A project with this title already exists. Please choose a different title.');
         setErrors(prev => ({...prev, title: 'This title is already taken.'}));
       } else {
-      setPageError(err.message || 'Failed to create research post. Please try again.');
+      setPageError(err.message || 'Failed to create project. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  const handleFileUploadComplete = (filePath: string) => {
-    setPageSuccess(`File uploaded: ${filePath.split('/').pop()}. You can upload more or finish.`);
-    // Consider adding a list of uploaded files here.
-  }
+  const handleFileUploadComplete = (fileData: UploadedFileData) => {
+    setUploadedFiles(prevFiles => [...prevFiles, fileData]);
+    setPageSuccess(`File "${fileData.name}" added successfully.`); // Update success message
+    setPageError(null); // Clear any previous errors
+  };
+
+  // Placeholder for future remove file logic
+  const handleRemoveFile = async (filePathToRemove: string) => {
+    if (!createdResearchPostId || !user) {
+      setPageError("Cannot remove file: Project or user context is missing.");
+      return;
+    }
+    if (isRemovingFile) return; // Prevent multiple removal requests
+
+    setIsRemovingFile(filePathToRemove);
+    setPageError(null);
+    setPageSuccess(null);
+
+    try {
+      // 1. Remove from Supabase Storage
+      const { error: storageError } = await supabase.storage
+        .from('project_files')
+        .remove([filePathToRemove]);
+
+      if (storageError) {
+        // If storage deletion fails, we might not want to proceed to DB deletion,
+        // or we might want to log it and attempt DB deletion anyway, depending on desired consistency.
+        // For now, let's throw and stop.
+        throw new Error(`Storage error: ${storageError.message}`);
+      }
+
+      // 2. Remove from 'project_files' DB table
+      // Assuming 'file_path' is unique enough for deletion. If not, might need project_id and uploader_id too.
+      const { error: dbError } = await supabase
+        .from('project_files')
+        .delete()
+        .eq('file_path', filePathToRemove)
+        .eq('research_post_id', createdResearchPostId); // Ensure we only delete from the current project
+
+      if (dbError) {
+        // What if storage was deleted but DB fails? This could leave an orphaned file in storage.
+        // Or if DB delete worked but storage didn't, an entry in DB for non-existent file.
+        // Robust error handling might involve retry mechanisms or cleanup jobs.
+        // For now, we'll report the error.
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
+      // 3. Update UI
+      const removedFileName = uploadedFiles.find(f => f.path === filePathToRemove)?.name;
+      setUploadedFiles(prevFiles => prevFiles.filter(f => f.path !== filePathToRemove));
+      setPageSuccess(removedFileName ? `File "${removedFileName}" removed successfully.` : "File removed successfully.");
+
+    } catch (err: any) {
+      console.error("File removal error:", err);
+      setPageError(err.message || 'Failed to remove file. Please try again.');
+    } finally {
+      setIsRemovingFile(null);
+    }
+  };
 
   const handleFinish = () => {
     router.push(createdResearchPostId ? `/research/${createdResearchPostId}` : '/dashboard');
@@ -161,8 +248,8 @@ export default function NewProjectPage() {
   const commonLabelClass = "block text-sm font-medium text-neutral-300 mb-1.5 font-sans";
   const tagItemClass = "flex items-center bg-neutral-700 text-neutral-200 px-3 py-1.5 rounded-full text-xs font-sans shadow-sm transition-all hover:bg-neutral-600";
   const tagRemoveButtonClass = "ml-2 text-neutral-400 hover:text-white focus:outline-none transition-colors";
-  const inputBaseClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
-  const textareaBaseClass = inputBaseClass.replace('h-10', 'min-h-[80px]'); // For textarea
+  const inputBaseClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
+  const textareaBaseClass = inputBaseClass.replace('h-10', 'min-h-[80px]').replace('focus-visible:ring-accent-purple', 'focus-visible:ring-accent-purple'); // Ensure textarea also gets accent color
 
   if (authLoading) {
     return (
@@ -185,9 +272,9 @@ export default function NewProjectPage() {
       <div className="w-full max-w-2xl">
         <Card className="bg-neutral-900 border border-neutral-800 shadow-xl w-full overflow-hidden rounded-lg">
           <CardHeader className="pt-8 pb-6 text-center border-b border-neutral-800">
-            <FiPaperclip className="text-5xl text-neutral-500 mx-auto mb-4" />
+            <FiFilePlus className="text-5xl text-neutral-500 mx-auto mb-4" />
             <CardTitle className="text-3xl sm:text-4xl font-heading text-neutral-100">
-              Create New Research Post
+              Create New Project
             </CardTitle>
             <CardDescription className="text-neutral-400 mt-2 text-base px-4 font-sans">
               Share your research ideas, findings, or collaboration requests.
@@ -236,16 +323,11 @@ export default function NewProjectPage() {
                   <label htmlFor="content" className={commonLabelClass}>
                     Content / Description<span className="text-red-500 ml-1">*</span>
                   </label>
-                  <textarea
-                    id="content"
-                    name="content"
-                    rows={6}
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={handleInputChange}
-                    placeholder="Describe your project in detail..."
-                    className={`${textareaBaseClass} ${errors.content ? 'border-red-600 focus-visible:ring-red-500' : ''}`}
-                    aria-invalid={!!errors.content}
-                    aria-describedby={errors.content ? "content-error" : undefined}
+                    onChange={handleContentChange}
+                    placeholder="Describe your project in detail... (Use toolbar for formatting)"
+                    hasError={!!errors.content}
                   />
                   {errors.content && <p id="content-error" className="mt-1 text-sm text-red-400 font-sans">{errors.content}</p>}
                 </div>
@@ -290,7 +372,7 @@ export default function NewProjectPage() {
                     name="visibility" 
                     value={formData.visibility} 
                     onChange={handleInputChange}
-                    className={`${inputBaseClass} appearance-none`}
+                    className={`${inputBaseClass} appearance-none ${errors.visibility ? 'border-red-600 focus-visible:ring-red-500' : ''}`}
                   >
                     <option value="public">Public</option>
                     <option value="connections">Connections Only</option>
@@ -306,38 +388,71 @@ export default function NewProjectPage() {
                     isLoading={isSubmitting}
                   disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Saving...' : 'Save Details & Next'}
+                    {isSubmitting ? 'Saving...' : 'Save Project Details & Next'}
                 </Button>
                 </div>
               </form>
             ) : (
-              <div className="space-y-6 pt-6 text-center">
-                {pageSuccess && (
-                    <div className="p-3 mb-6 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-start space-x-2.5 font-sans">
-                        <FiCheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-400" />
-                        <div>
-                            <h5 className="font-semibold mb-0.5 font-heading">Details Saved!</h5>
-                            <span>{pageSuccess.includes('File uploaded:') ? pageSuccess : 'You can now upload associated files below.'}</span>
-                        </div>
-                    </div>
-                )}
+              <div className="space-y-6 pt-4">
                 <div>
-                  <h3 className="text-xl font-heading text-neutral-100 mb-2">Upload Project Files (Optional)</h3>
-                  <p className="text-neutral-400 mb-4 font-sans">Upload relevant documents, images, or data for your research post.</p>
+                  <h3 className="text-xl font-heading text-neutral-100 mb-2">Attached Files</h3>
+                  {uploadedFiles.length > 0 ? (
+                    <ul className="space-y-2 mb-4 border border-neutral-700 rounded-md p-3 bg-neutral-800/40">
+                      {uploadedFiles.map((file) => (
+                        <li key={file.path} className="flex items-center justify-between p-2 rounded hover:bg-neutral-700/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(file.type)} 
+                            <span className="text-sm text-neutral-200 font-sans truncate max-w-[250px]" title={file.name}>{file.name}</span>
+                            <span className="text-xs text-neutral-500">({formatFileSize(file.size)})</span>
+                          </div>
+                          <button 
+                            onClick={() => handleRemoveFile(file.path)} 
+                            title="Remove file"
+                            className="text-neutral-500 hover:text-red-400 transition-colors p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isRemovingFile === file.path}
+                          >
+                            {isRemovingFile === file.path ? <FiLoader className="animate-spin" size={16}/> : <FiTrash2 size={16} />}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-neutral-500 mb-4 p-3 border border-dashed border-neutral-700 rounded-md text-center font-sans">
+                      No files uploaded yet.
+                    </p>
+                  )}
                   <FileUpload 
-                    researchPostId={createdResearchPostId}
+                    researchPostId={createdResearchPostId!}
                     onUploadComplete={handleFileUploadComplete}
                   />
+                  {pageError && createdResearchPostId && ( // Display errors related to file operations here
+                    <div className="mt-4 p-3 bg-red-900/30 border border-red-700/50 rounded-md text-red-300 text-sm flex items-start space-x-2.5 font-sans">
+                      <FiAlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-400" />
+                      <div>
+                          <h5 className="font-semibold mb-0.5 font-heading">Error</h5>
+                          <span>{pageError}</span>
+                      </div>
+                    </div>
+                  )}
+                  {pageSuccess && createdResearchPostId && ( // Display success messages for file operations
+                     <div className="mt-4 p-3 bg-green-900/30 border border-green-700/50 rounded-md text-green-300 text-sm flex items-start space-x-2.5 font-sans">
+                        <FiCheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-400" />
+                        <div>
+                            <h5 className="font-semibold mb-0.5 font-heading">Success!</h5>
+                            <span>{pageSuccess}</span>
+                        </div>
+                      </div>
+                  )}
                 </div>
-                <div className="pt-6 border-t border-neutral-800">
+                <div className="pt-6 border-t border-neutral-800 mt-6">
                   <Button 
                     onClick={handleFinish} 
                     className="w-full sm:w-auto font-sans bg-green-600 hover:bg-green-500 text-white"
                   >
-                    <FiCheckCircle className="mr-2" /> Finish & View Post
+                    <FiCheckCircle className="mr-2" /> Finish & View Project
                   </Button>
                   <p className="text-xs text-neutral-500 mt-3 font-sans">
-                    You can also skip file upload and view your post directly.
+                    You can also skip file upload and view your project directly.
                   </p>
                 </div>
               </div>
