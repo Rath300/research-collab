@@ -89,67 +89,6 @@ const DashboardCard: React.FC<{ title?: string; titleIcon?: React.ElementType; c
   </motion.div>
 );
 
-const MyProfileSnapshot = () => {
-  const { profile } = useAuthStore();
-  const router = useRouter();
-  
-  // Corrected displayName logic
-  const calculatedDisplayName = (profile?.first_name && profile?.last_name 
-    ? `${profile.first_name} ${profile.last_name}` 
-    : profile?.first_name)
-    || 'User';
-  const displayName = calculatedDisplayName.trim() || 'User'; // Ensure it's not empty string, fallback to 'User'
-  
-  // Ensure displayAvatarUrl is null if not a valid URL
-  const isValidAvatarUrl = profile?.avatar_url && (profile.avatar_url.startsWith('http://') || profile.avatar_url.startsWith('https://'));
-  const displayAvatarUrl = isValidAvatarUrl ? profile.avatar_url : null;
-
-  return (
-    <DashboardCard title="Profile Status" titleIcon={FiUser} className="mb-6 md:mb-8">
-      <div className="flex items-center space-x-4 mb-4">
-        <Avatar src={displayAvatarUrl} alt={displayName} size='lg' fallback={<FiUser size={24}/>} />
-        <div>
-          <h4 className="text-lg font-heading text-neutral-100 truncate max-w-xs">{displayName}</h4>
-          <Link href={profile?.id ? `/profile/${profile.id}` : '/settings/account'} className="text-sm text-neutral-400 hover:text-neutral-100 font-sans hover:underline">
-            View Profile
-          </Link>
-        </div>
-      </div>
-      <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" onClick={() => router.push(profile?.id ? `/profile/${profile.id}` : '/settings/account')} className="font-sans bg-neutral-800 hover:bg-neutral-700 text-neutral-100"><FiUser className="mr-1"/> View Full</Button>
-        <Button variant="outline" size="sm" onClick={() => router.push('/settings/account')} className="font-sans border-neutral-700 hover:border-neutral-600 text-neutral-300 hover:text-neutral-100"><FiEdit2 className="mr-1"/> Edit Profile</Button>
-      </div>
-    </DashboardCard>
-  );
-};
-
-const QuickActions = () => {
-  const router = useRouter();
-  const actions = [
-    { label: "Match", href: "/match" },
-    { label: "New Project", href: "/projects/new" },
-    { label: "Messages", href: "/chats" },
-    { label: "Profile", href: "/settings/account" }
-  ];
-
-  return (
-    <DashboardCard title="Quick Actions" titleIcon={FiTarget} className="mb-6 md:mb-8">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {actions.map((action) => (
-          <button
-            key={action.label}
-            onClick={() => router.push(action.href)}
-            className="flex flex-col items-center justify-center p-3 bg-neutral-800 rounded-lg hover:bg-neutral-700/80 transition-colors aspect-square group"
-          >
-            {/* <action.icon className="w-7 h-7 text-neutral-300 group-hover:text-white mb-1 transition-colors" /> */}
-            <span className="text-[10px] leading-tight font-sans text-neutral-200 group-hover:text-white text-center transition-colors">{action.label}</span>
-          </button>
-        ))}
-      </div>
-    </DashboardCard>
-  );
-};
-
 const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) => {
   const router = useRouter();
   const hasActualActivity = notifications && notifications.length > 0;
@@ -170,84 +109,128 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
   };
 
   return (
-    <DashboardCard title="Recent Activity" titleIcon={FiActivity} className="min-h-[200px] mb-6 md:mb-8">
-      {hasActualActivity ? (
-        <motion.ul
-          variants={{ 
-            visible: { transition: { staggerChildren: 0.1 } },
-            hidden: {}
-          }}
-          initial="hidden"
-          animate="visible"
-          className="space-y-3"
-        >
-          {notifications.map((activity) => (
-            <motion.li
-              key={activity.id} 
-              className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
-            >
-              {activity.link_to ? (
-                <Link href={activity.link_to} className="hover:underline">
-                  {activity.content}
-                </Link>
-              ) : (
-                <span>{activity.content}</span>
-              )}
-              {' - '}
-              <span className="text-xs text-neutral-500">{formatTimeAgo(activity.created_at)}</span>
-            </motion.li>
-          ))}
-        </motion.ul>
-      ) : (
-        <div className="text-center py-6 font-sans">
-          <p className="text-neutral-500 mb-3">No recent activity yet.</p>
-          <Button variant="secondary" size="sm" onClick={() => router.push('/trending')} className="font-sans">
-            <FiSearch className="mr-1"/> Explore Platform
-          </Button>
-        </div>
-      )}
-    </DashboardCard>
+    <div className="mb-6 md:mb-8">
+      <div className="flex items-center mb-4">
+        <FiActivity className="w-6 h-6 text-neutral-400 mr-3" />
+        <h3 className="text-xl font-heading text-neutral-100">Recent Activity</h3>
+      </div>
+      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 min-h-[200px]">
+        {hasActualActivity ? (
+          <motion.ul
+            variants={{ 
+              visible: { transition: { staggerChildren: 0.1 } },
+              hidden: {}
+            }}
+            initial="hidden"
+            animate="visible"
+            className="space-y-3"
+          >
+            {notifications.map((activity) => (
+              <motion.li
+                key={activity.id} 
+                className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+              >
+                {activity.link_to ? (
+                  <Link href={activity.link_to} className="hover:underline">
+                    {activity.content}
+                  </Link>
+                ) : (
+                  <span>{activity.content}</span>
+                )}
+                {' - '}
+                <span className="text-xs text-neutral-500">{formatTimeAgo(activity.created_at)}</span>
+              </motion.li>
+            ))}
+          </motion.ul>
+        ) : (
+          <div className="text-center py-6 font-sans">
+            <p className="text-neutral-500 mb-3">No recent activity yet.</p>
+            <Button variant="secondary" size="sm" onClick={() => router.push('/trending')} className="font-sans">
+              <FiSearch className="mr-1"/> Explore Platform
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
 const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
-  
+  const router = useRouter();
+
   interface StatDetail {
     label: string;
     value: number;
     icon: React.ElementType;
+    href?: string;
   }
 
   const statItems: StatDetail[] = [
-    { label: "Active Projects", value: stats.activeProjectsCount, icon: FiBriefcase },
-    { label: "Pending Requests", value: stats.pendingRequestsCount, icon: FiUsers },
-    { label: "Unread Messages", value: stats.unreadMessagesCount, icon: FiMessageSquare },
+    { label: "Active Projects", value: stats.activeProjectsCount, icon: FiBriefcase, href: "/projects" },
+    { label: "Pending Requests", value: stats.pendingRequestsCount, icon: FiUsers, href: "/collaborators/requests" },
+    { label: "Unread Messages", value: stats.unreadMessagesCount, icon: FiMessageSquare, href: "/chats" },
   ];
 
   return (
-    <DashboardCard title="Collaboration Stats" titleIcon={FiTrendingUp} className="mb-6 md:mb-8">
-      <div className="space-y-4 font-sans">
-        {statItems.map((item) => (
-          <div key={item.label} className="bg-neutral-800/60 p-4 rounded-lg flex items-center transition-all hover:bg-neutral-800/90">
-            <item.icon className="w-6 h-6 text-accent-purple mr-4 flex-shrink-0" />
-            <div className="flex-grow">
-              <p className="text-sm text-neutral-400">{item.label}</p>
-              <p className="text-xl font-heading text-neutral-100">{item.value}</p>
-            </div>
+    <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      {statItems.map((item) => {
+        const StatCardContent = (
+          <>
+            <item.icon className="w-7 h-7 text-accent-purple mb-2" />
+            <p className="text-2xl md:text-3xl font-heading text-neutral-100 mb-0.5">{item.value}</p>
+            <p className="text-sm text-neutral-400 font-sans">{item.label}</p>
+          </>
+        );
+
+        return item.href ? (
+          <Link href={item.href} key={item.label} className="block p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-800 transition-all duration-200 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 text-center cursor-pointer">
+            {StatCardContent}
+          </Link>
+        ) : (
+          <div key={item.label} className="p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md border border-neutral-800 text-center">
+            {StatCardContent}
           </div>
-        ))}
-      </div>
-    </DashboardCard>
+        );
+      })}
+    </div>
   );
 };
 
-// HomeButton component
-const HomeButton = () => (
-  <Link href="/dashboard" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-sans text-sm mb-4">
-    <FiHome className="h-5 w-5" /> Home
-  </Link>
-);
+const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
+  const router = useRouter();
+
+  return (
+    <div className="mb-6 md:mb-8">
+      <div className="flex items-center mb-4">
+        <FiUsers className="w-6 h-6 text-neutral-400 mr-3" />
+        <h3 className="text-xl font-heading text-neutral-100">Recent Matches</h3>
+      </div>
+      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800">
+        {matches.length > 0 ? (
+          <ul className="space-y-3">
+            {matches.map(match => (
+              <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-neutral-800/70 transition-colors">
+                <Avatar src={match.matched_profile?.avatar_url} alt={match.matched_profile?.full_name || 'User'} size="sm" fallback={<FiUser size={18}/>} />
+                <div>
+                  <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-neutral-200 hover:underline">
+                    {match.matched_profile?.full_name || 'Matched User'}
+                  </Link>
+                  <p className="text-xs text-neutral-500 font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-neutral-500 py-4 text-center">No recent matches yet.</p>
+        )}
+        <Link href="/match" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">
+          Find New Collaborators
+        </Link>
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -263,7 +246,6 @@ export default function DashboardPage() {
   });
   
   const [recentMatches, setRecentMatches] = useState<ProfileMatch[]>([]);
-  const [recentPosts, setRecentPosts] = useState<ResearchPostWithProfile[]>([]);
   const [recentNotifications, setRecentNotifications] = useState<UserNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -279,7 +261,6 @@ export default function DashboardPage() {
     try {
       const userId = user.id;
 
-      // Define a helper async function to get active projects count
       const getActiveProjectsCount = async (): Promise<{ count: number; error: any }> => {
         const { data: collaboratorEntries, error: collabError } = await supabase
           .from('project_collaborators')
@@ -297,34 +278,29 @@ export default function DashboardPage() {
 
         const projectIds = collaboratorEntries.map(pc => pc.project_id);
         const { count, error: activeError } = await supabase
-          .from('projects')
+          .from('research_posts')
           .select('id', { count: 'exact', head: true })
-          .in('id', projectIds)
-          .eq('status', 'active');
+          .in('id', projectIds);
         
         return { count: count ?? 0, error: activeError };
       };
 
-      // Fetch all counts in parallel
       const countsPromises = [
         supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
         supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-        getActiveProjectsCount(), // This returns Promise<{ count: number; error: any }>
+        getActiveProjectsCount(),
         supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'),
         supabase.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', userId).eq('is_read', false)
       ];
 
       const processedPromises = countsPromises.map(item => {
-        // getActiveProjectsCount already returns Promise<{ count: number; error: any }>
-        // Supabase queries are thenable and resolve to { data, count, error, status, statusText }
-        return (item as any).then((response: { data?: any; count?: number | null; error?: any; /* other Supabase response props */ }) => {
+        return (item as any).then((response: { data?: any; count?: number | null; error?: any; }) => {
           return {
             count: response.count ?? 0,
             error: response.error || null
           };
         }).catch((err: any) => {
-            // Catch errors from individual promises to ensure Promise.all doesn't reject early
             console.error('[DashboardPage] Error in one of the count promises:', err);
             return { count: 0, error: err };
         });
@@ -336,7 +312,7 @@ export default function DashboardPage() {
         { count: postCount },
         { count: matchCount },
         { count: messageCount },
-        { count: activeProjectsCount, error: activeProjectsError }, // Result from getActiveProjectsCount
+        { count: activeProjectsCount, error: activeProjectsError },
         { count: pendingRequestsCount, error: pendingRequestsError },
         { count: unreadMessagesCount, error: unreadMessagesError }
       ] = results;
@@ -349,13 +325,12 @@ export default function DashboardPage() {
         postCount: postCount || 0,
         matchCount: matchCount || 0,
         messageCount: messageCount || 0,
-        viewCount: 0, // viewCount is not fetched, keeping as 0
+        viewCount: 0, 
         activeProjectsCount: activeProjectsCount || 0,
         pendingRequestsCount: pendingRequestsCount || 0,
         unreadMessagesCount: unreadMessagesCount || 0
       });
       
-      // Fetch detailed data
       const detailedDataPromises = [
         supabase
           .from('profile_matches')
@@ -364,23 +339,17 @@ export default function DashboardPage() {
           .order('created_at', { ascending: false })
           .limit(3),
         supabase
-          .from('research_posts')
-          .select('*, profiles (*)')
-          .order('created_at', { ascending: false })
-          .limit(1),
-        supabase
           .from('user_notifications')
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
-          .limit(4) // Fetch 4 notifications for the activity feed
+          .limit(4)
       ];
 
       const [
         { data: matchesData, error: matchesError },
-        { data: postsData, error: postsError },
         { data: notificationsData, error: notificationsError }
-      ] = await Promise.all(detailedDataPromises);
+      ] = await Promise.all(detailedDataPromises.filter(p => p));
             
       if (matchesError) {
         console.error('Error fetching matches:', matchesError);
@@ -388,12 +357,6 @@ export default function DashboardPage() {
         setRecentMatches(matchesData as ProfileMatch[] || []);
       }
       
-      if (postsError) {
-        console.error('Error fetching recent posts:', postsError);
-      } else {
-        setRecentPosts(postsData as ResearchPostWithProfile[] || []);
-      }
-
       if (notificationsError) {
         console.error('Error fetching notifications:', notificationsError);
       } else {
@@ -414,7 +377,8 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <p className="text-neutral-400 font-sans">Loading dashboard...</p>
+        <FiLoader className="animate-spin text-accent-purple text-4xl" />
+        <p className="text-neutral-400 font-sans ml-3">Loading dashboard...</p>
       </div>
     );
   }
@@ -426,8 +390,7 @@ export default function DashboardPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <HomeButton />
-      <header className="mb-8">
+      <header className="mb-6">
         <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
         {profile?.first_name && (
           <p className="text-lg text-neutral-400 mt-1 font-sans">
@@ -436,55 +399,15 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          <div className="space-y-6 md:space-y-8">
-            <MyProfileSnapshot />
-            <QuickActions />
-          </div>
-
-          <div className="space-y-6 md:space-y-8">
-            <ActivityFeed notifications={recentNotifications} />
-            <CollaborationStatsDisplay stats={stats} />
-          </div>
+      <CollaborationStatsDisplay stats={stats} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mt-6">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+          <ActivityFeed notifications={recentNotifications} />
         </div>
         
         <div className="lg:col-span-1 space-y-6 md:space-y-8">
-          <DashboardCard title="Recent Research Posts" titleIcon={FiList} className="min-h-[600px] flex flex-col">
-            {recentPosts.length > 0 ? (
-              <div className="space-y-6 flex-grow overflow-y-auto">
-                {recentPosts.map(post => (
-                  <ResearchPostCard key={post.id} post={post} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex-grow flex items-center justify-center">
-                <p className="text-neutral-500">No recent posts to display.</p>
-              </div>
-            )}
-            <Link href="/research" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline flex-shrink-0">View All Posts</Link>
-          </DashboardCard>
-
-          <DashboardCard title="Recent Matches" titleIcon={FiUsers}>
-            {recentMatches.length > 0 ? (
-              <ul className="space-y-3">
-                {recentMatches.map(match => (
-                  <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-neutral-800 transition-colors">
-                    <Avatar src={match.matched_profile?.avatar_url} alt={match.matched_profile?.full_name || 'User'} size="sm" fallback={<FiUser size={18}/>} />
-                    <div>
-                      <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-neutral-200 hover:underline">
-                        {match.matched_profile?.full_name || 'Matched User'}
-                      </Link>
-                      <p className="text-xs text-neutral-500 font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-neutral-500">No recent matches yet.</p>
-            )}
-            <Link href="/match" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">Find New Collaborators</Link>
-          </DashboardCard>
+          <RecentMatchesDisplay matches={recentMatches} />
         </div>
       </div>
     </motion.div>
