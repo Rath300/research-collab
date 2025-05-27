@@ -35,10 +35,26 @@ const getAuthors = (entry: any): string[] => {
 // Helper to safely get array of categories
 const getCategories = (entry: any): string[] => {
   if (!entry.category) return [];
+
   if (Array.isArray(entry.category)) {
-    return entry.category.map((cat: any) => cat.$.term).filter(Boolean);
+    return entry.category
+      .map((cat: any) => {
+        // Check if cat and cat.$ and cat.$.term exist
+        if (cat && cat.$ && typeof cat.$.term === 'string') {
+          return cat.$.term;
+        }
+        return null; // Return null for invalid categories
+      })
+      .filter(Boolean) as string[]; // Filter out nulls and assert type
   }
-  return [entry.category.$.term].filter(Boolean);
+
+  // Handle single category entry
+  // Check if entry.category, entry.category.$, and entry.category.$.term exist
+  if (entry.category && entry.category.$ && typeof entry.category.$.term === 'string') {
+    return [entry.category.$.term].filter(Boolean) as string[];
+  }
+  
+  return []; // Return empty array if no valid categories found
 };
 
 /**
