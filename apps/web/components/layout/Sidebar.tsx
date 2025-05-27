@@ -49,6 +49,7 @@ export function Sidebar() {
     { label: 'Discover Matches', href: '/match', icon: <FiSearch /> },
     { label: 'My Matches', href: '/matches', icon: <FiHeart /> },
     { label: 'Trending', href: '/trending', icon: <FiTrendingUp /> },
+    { label: 'External Research', href: '/external-research', icon: <FiSearch /> },
   ];
   
   const settingsSubItems = [

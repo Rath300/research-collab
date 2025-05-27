@@ -4,11 +4,11 @@ const CROSSREF_API_BASE_URL = process.env.NEXT_PUBLIC_CROSSREF_API_BASE_URL;
 const CROSSREF_MAILTO = process.env.NEXT_PUBLIC_CROSSREF_MAILTO;
 
 interface CrossrefSearchParams {
-  query: string; // General query string
+  query: string; // General query string, e.g., for title, author, etc.
   filter?: Record<string, string>; // e.g., { type: 'journal-article', 'from-online-pub-date': '2020' }
   rows?: number;
   offset?: number;
-  sortBy?: string; // e.g., 'score' or 'created'
+  sortBy?: string; // e.g., 'score' or 'created' or 'published'
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -16,7 +16,14 @@ interface CrossrefAuthor {
   given?: string;
   family?: string;
   ORCID?: string;
-  // Other author fields from CrossRef
+  sequence?: string; // e.g., 'first', 'additional'
+  affiliation?: { name: string }[];
+}
+
+interface CrossrefDateParts {
+  'date-parts': number[][]; // e.g., [[2023, 5, 1]]
+  'date-time'?: string; // ISO 8601 string
+  timestamp?: number;
 }
 
 interface CrossrefPaper {
@@ -24,9 +31,12 @@ interface CrossrefPaper {
   title: string[]; // Titles can be an array
   authors?: CrossrefAuthor[];
   publisher?: string;
-  publishedDateParts?: number[][]; // e.g., [[2023, 5, 1]]
+  publishedDate?: CrossrefDateParts; // Using 'published-print' or 'published-online' or 'created'
   abstract?: string; // Note: CrossRef often does NOT have abstracts.
-  URL?: string; // Link to the publisher page or DOI link
+  URL?: string; // Link to the publisher page or DOI link (usually just the DOI URL itself)
+  type?: string; // e.g., 'journal-article'
+  ISSN?: string[];
+  journalTitle?: string; // Often under container-title
   // Add other relevant fields from CrossRef response
 }
 
@@ -39,38 +49,81 @@ interface CrossrefPaper {
 export async function searchCrossref(params: CrossrefSearchParams): Promise<CrossrefPaper[]> {
   if (!CROSSREF_API_BASE_URL) {
     console.error('CROSSREF_API_BASE_URL is not configured.');
-    return [];
+    throw new Error('CrossRef API base URL not configured.');
   }
   if (!CROSSREF_MAILTO) {
-    console.warn('CROSSREF_MAILTO is not configured. This is recommended for polite API usage.');
+    console.warn('CROSSREF_MAILTO is not configured. This is recommended for polite API usage with CrossRef.');
   }
 
-  // Example endpoint: /works?query.bibliographic=machine+learning&filter=type:journal-article&rows=5&mailto=your-email@example.com
-  // let url = `${CROSSREF_API_BASE_URL}works?query.bibliographic=${encodeURIComponent(params.query)}&rows=${params.rows || 10}&offset=${params.offset || 0}`;
-  // if (CROSSREF_MAILTO) url += `&mailto=${CROSSREF_MAILTO}`;
-  // if (params.filter) {
-  //   Object.entries(params.filter).forEach(([key, value]) => {
-  //     url += `&filter=${key}:${encodeURIComponent(value)}`;
-  //   });
-  // }
+  const queryParams = new URLSearchParams();
+  queryParams.append('query.bibliographic', params.query); // For general bibliographic queries
+  // queryParams.append('query.author', params.authorQuery); // Can also add specific field queries
+  // queryParams.append('query.title', params.titleQuery);
+  queryParams.append('rows', (params.rows || 10).toString());
+  queryParams.append('offset', (params.offset || 0).toString());
 
-  console.log('Placeholder: Searching CrossRef with params:', params);
-  // In a real implementation:
-  // 1. Construct URL with query, filters, rows, offset, mailto.
-  // 2. Fetch data.
-  // 3. Parse JSON response (usually response.message.items).
-  // 4. Map to CrossrefPaper[].
-  // 5. Handle errors.
+  if (params.sortBy) queryParams.append('sort', params.sortBy);
+  if (params.sortOrder) queryParams.append('order', params.sortOrder);
+  if (CROSSREF_MAILTO) queryParams.append('mailto', CROSSREF_MAILTO);
 
-  // Placeholder data
-  return Promise.resolve([
-    {
-      DOI: '10.1234/test.doi.5678',
-      title: ['A Study on Cross-Referencing Academic Literature'],
-      authors: [{ family: 'Researcher', given: 'Ron' }],
-      publisher: 'Scholarly Publishing Inc.',
-      publishedDateParts: [[new Date().getFullYear(), new Date().getMonth() + 1]],
-      URL: 'https://doi.org/10.1234/test.doi.5678',
-    },
-  ]);
+  if (params.filter) {
+    Object.entries(params.filter).forEach(([key, value]) => {
+      queryParams.append(`filter`, `${key}:${value}`);
+    });
+  }
+
+  const url = `${CROSSREF_API_BASE_URL}works?${queryParams.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`CrossRef API request failed: ${response.status} ${await response.text()}`);
+    }
+    const data = await response.json();
+
+    // Results are usually in data.message.items
+    const items = data.message?.items || [];
+    if (!Array.isArray(items)) {
+        console.error("CrossRef API did not return items array or it's malformed", data);
+        return [];
+    }
+
+    return items.map(mapCrossrefItemToPaper).filter((paper): paper is CrossrefPaper => paper !== null);
+
+  } catch (error) {
+    console.error('Error searching CrossRef:', error);
+    throw error;
+  }
+}
+
+function mapCrossrefItemToPaper(item: any): CrossrefPaper | null {
+  if (!item || !item.DOI) return null;
+
+  // Title is an array, take the first one usually
+  const title = Array.isArray(item.title) && item.title.length > 0 ? item.title : (item.title ? [String(item.title)] : []);
+
+  const authors: CrossrefAuthor[] = Array.isArray(item.author) ? item.author.map((auth: any) => ({
+    given: auth.given,
+    family: auth.family,
+    ORCID: auth.ORCID,
+    sequence: auth.sequence,
+    affiliation: Array.isArray(auth.affiliation) ? auth.affiliation.map((aff:any) => ({name: aff.name})) : []
+  })) : [];
+  
+  // CrossRef has multiple date fields like 'published-print', 'published-online', 'created', 'issued'
+  // We try to pick one, preferring published ones.
+  const publishedDate = item['published-print'] || item['published-online'] || item.issued || item.created;
+
+  return {
+    DOI: item.DOI,
+    title: title,
+    authors,
+    publisher: item.publisher,
+    publishedDate: publishedDate as CrossrefDateParts, // Cast as it can be complex
+    abstract: item.abstract ? String(item.abstract).replace(/<[^>]*>/gm, '') : undefined, // Basic stripping of JATS XML if present
+    URL: item.URL, // This is usually the DOI link
+    type: item.type,
+    ISSN: item.ISSN,
+    journalTitle: Array.isArray(item['container-title']) ? item['container-title'].join(', ') : item['container-title'],
+  };
 } 
