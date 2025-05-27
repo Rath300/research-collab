@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUIStore, useAuthStore } from '@/lib/store';
+import { getBrowserClient } from '@/lib/supabaseClient'; // Import Supabase client
 import { Sidebar as ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { 
   FiGrid, // For Dashboard icon (square grid)
@@ -33,9 +34,9 @@ export function Sidebar() {
     sidebarOpen: state.sidebarOpen,
     setSidebarOpen: state.setSidebarOpen,
   }));
-  const { profile, signOut } = useAuthStore(state => ({
+  const { profile, clearAuth } = useAuthStore(state => ({
     profile: state.profile,
-    signOut: state.signOut,
+    clearAuth: state.clearAuth, // Use clearAuth
   }));
 
   const currentUserId = profile?.id;
@@ -45,9 +46,8 @@ export function Sidebar() {
   const mainNavItems = [
     { label: 'Dashboard', href: '/dashboard', icon: <FiGrid /> },
     { label: 'Chats', href: '/chats', icon: <FiMessageSquare /> },
-    { label: 'Discover Matches', href: '/match', icon: <FiHeart /> },
+    { label: 'Discover Matches', href: '/match', icon: <FiSearch /> },
     { label: 'My Matches', href: '/matches', icon: <FiHeart /> },
-    { label: 'New Project', href: '/projects/new', icon: <FiPlus /> },
     { label: 'Trending', href: '/trending', icon: <FiTrendingUp /> },
   ];
   
@@ -58,11 +58,22 @@ export function Sidebar() {
   const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) && href !== '/') || (href === '/settings' && pathname?.startsWith('/settings'));
 
   const handleSignOut = async () => {
-    if (signOut) {
-      await signOut();
-    } else {
-      console.warn('Sign out function not available on useAuthStore');
-      alert("Logout functionality to be fully implemented!");
+    const supabase = getBrowserClient();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        // Optionally show an error message to the user
+        alert('Error signing out. Please try again.');
+        return;
+      }
+      // Successfully signed out from Supabase, now clear client-side auth state
+      clearAuth();
+      // Router will redirect to /login due to AppLayout's useEffect
+      // router.push('/login'); // Explicit redirect can also be an option if needed
+    } catch (e) {
+      console.error('Unexpected error during sign out:', e);
+      alert('An unexpected error occurred during sign out.');
     }
   };
 

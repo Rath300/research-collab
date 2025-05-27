@@ -5,7 +5,7 @@ import { ResearchPost, Match, type Profile as DbProfile } from '@research-collab
 // Define Profile type based on the database schema
 // type ProfileFromDb = Database['public']['Tables']['profiles']['Row'];
 
-interface AuthState {
+export interface AuthState {
   user: any | null;
   profile: DbProfile | null;
   isLoading: boolean;

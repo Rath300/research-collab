@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { FiUser } from 'react-icons/fi'; // Import FiUser as a potential default
@@ -20,6 +20,8 @@ export function Avatar({
   className, 
   priority = false 
 }: AvatarProps) {
+  const [imageError, setImageError] = useState(false);
+
   const sizeMap = {
     sm: { dimension: 32, textClass: 'text-sm', iconSize: 16 },
     md: { dimension: 40, textClass: 'text-base', iconSize: 20 },
@@ -37,8 +39,12 @@ export function Avatar({
     fallbackContent = <FiUser size={iconSize} />;
   }
   
-  // If src is explicitly null or undefined, or an empty string, use fallback.
-  const shouldUseFallback = !src;
+  // Reset imageError state if src changes
+  useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
+  const shouldUseFallback = !src || imageError;
 
   if (shouldUseFallback) {
     return (
@@ -72,11 +78,9 @@ export function Avatar({
         height={dimension}
         className={'object-cover w-full h-full'} 
         priority={priority}
-        onError={(e) => {
-          // Optional: More sophisticated error handling, e.g., try to load a different default image
-          // For now, if NextImage errors, it might show its own broken image icon or alt text.
-          // This component currently doesn't switch to fallback *after* an Image load error.
+        onError={() => {
           console.warn(`Avatar image failed to load: ${src}`);
+          setImageError(true); // Set error state to true to trigger fallback render
         }}
       />
     </div>

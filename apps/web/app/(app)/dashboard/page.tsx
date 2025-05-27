@@ -32,13 +32,12 @@ import {
   FiLoader,
   FiHome
 } from 'react-icons/fi';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, type AuthState } from '@/lib/store';
 import { Database } from '@/lib/database.types';
 import { getBrowserClient } from '@/lib/supabaseClient';
 import { ResearchPostCard } from '@/components/research/ResearchPostCard';
 import { Avatar } from '@/components/ui/Avatar';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type BaseProfileMatch = Database['public']['Tables']['profile_matches']['Row'];
 
@@ -47,8 +46,6 @@ interface ProfileMatch extends BaseProfileMatch {
 }
 
 type UserNotification = Database['public']['Tables']['user_notifications']['Row'];
-
-type Message = Database['public']['Tables']['messages']['Row'];
 
 interface DashboardStats {
   postCount: number;
@@ -60,34 +57,10 @@ interface DashboardStats {
   unreadMessagesCount: number;
 }
 
-interface ResearchPostWithProfile extends ResearchPost {
-  profiles: Profile;
-}
-
 function titleCase(str: string | null | undefined): string {
   if (!str) return '';
   return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
-
-const DashboardCard: React.FC<{ title?: string; titleIcon?: React.ElementType; className?: string; children: React.ReactNode }> = 
-  ({ title, titleIcon: TitleIconProp, className = '', children }) => (
-  <motion.div 
-    className={`bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 ${className}`}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-  > 
-    {(title || TitleIconProp) && (
-      <div className="flex items-center mb-4">
-        {TitleIconProp && <TitleIconProp className="w-6 h-6 text-neutral-400 mr-3" />}
-        {title && <h3 className="text-xl font-heading text-neutral-100">{title}</h3>}
-      </div>
-    )}
-    <div className="font-sans text-neutral-300"> 
-      {children}
-    </div>
-  </motion.div>
-);
 
 const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) => {
   const router = useRouter();
@@ -111,7 +84,9 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex items-center mb-4">
-        <FiActivity className="w-6 h-6 text-neutral-400 mr-3" />
+        <div className="p-2 bg-neutral-800/70 rounded-lg mr-3 shadow">
+          <FiActivity className="w-5 h-5 text-accent-purple" />
+        </div>
         <h3 className="text-xl font-heading text-neutral-100">Recent Activity</h3>
       </div>
       <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60 min-h-[200px]">
@@ -176,14 +151,20 @@ const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
     <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
       {statItems.map((item) => {
         const StatCardContent = (
-          <>
-            <item.icon className="w-7 h-7 text-accent-purple mb-2" />
-            <p className="text-2xl md:text-3xl font-heading text-neutral-100 mb-0.5">{item.value}</p>
-            <p className="text-sm text-neutral-400 font-sans">{item.label}</p>
-          </>
+          <div className="flex flex-col items-start text-left h-full p-1">
+            <div className="flex items-center w-full">
+              <item.icon className="w-6 h-6 text-accent-purple mr-3 flex-shrink-0" />
+              <p className="text-2xl md:text-3xl font-heading text-neutral-100 truncate">
+                {item.value}
+              </p>
+            </div>
+            <p className="text-xs text-neutral-500 font-sans mt-1 ml-[calc(1.5rem+0.75rem)]"> {/* 24px (w-6) + 12px (mr-3) = 36px */}
+              {item.label}
+            </p>
+          </div>
         );
 
-        const kpiBlockClasses = "block p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-700/60 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 text-center cursor-pointer";
+        const kpiBlockClasses = "block p-3 md:p-4 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-700/60 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 cursor-pointer";
 
         return item.href ? (
           <Link href={item.href} key={item.label} className={kpiBlockClasses}>
@@ -205,7 +186,9 @@ const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex items-center mb-4">
-        <FiUsers className="w-6 h-6 text-neutral-400 mr-3" />
+        <div className="p-2 bg-neutral-800/70 rounded-lg mr-3 shadow">
+          <FiUsers className="w-5 h-5 text-accent-purple" />
+        </div>
         <h3 className="text-xl font-heading text-neutral-100">Recent Matches</h3>
       </div>
       <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60">
@@ -213,10 +196,10 @@ const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
           <ul className="space-y-3">
             {matches.map(match => (
               <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-neutral-800/70 transition-colors">
-                <Avatar src={match.matched_profile?.avatar_url} alt={match.matched_profile?.full_name || 'User'} size="sm" fallback={<FiUser size={18}/>} />
+                <Avatar src={match.matched_profile?.avatar_url} alt={titleCase(match.matched_profile?.full_name) || 'User'} size="sm" fallback={<FiUser size={18}/>} />
                 <div>
                   <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-neutral-200 hover:underline">
-                    {match.matched_profile?.full_name || 'Matched User'}
+                    {titleCase(match.matched_profile?.full_name) || 'Matched User'}
                   </Link>
                   <p className="text-xs text-neutral-500 font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
                 </div>
@@ -236,7 +219,7 @@ const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, profile } = useAuthStore();
+  const { user, profile } = useAuthStore() as AuthState;
   const [stats, setStats] = useState<DashboardStats>({
     postCount: 0,
     matchCount: 0,
@@ -370,7 +353,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, setStats, setRecentMatches, setRecentNotifications, setIsLoading]);
 
   useEffect(() => {
     loadDashboardData();
@@ -396,7 +379,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
         {profile?.first_name && (
           <p className="text-lg text-neutral-400 mt-1 font-sans">
-            Welcome back, <span className="font-semibold text-neutral-200">{profile.first_name}</span>!
+            Welcome back, <span className="font-semibold text-neutral-200">{titleCase(profile.first_name)}</span>!
           </p>
         )}
       </header>
