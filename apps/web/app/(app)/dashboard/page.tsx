@@ -114,7 +114,7 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
         <FiActivity className="w-6 h-6 text-neutral-400 mr-3" />
         <h3 className="text-xl font-heading text-neutral-100">Recent Activity</h3>
       </div>
-      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800 min-h-[200px]">
+      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60 min-h-[200px]">
         {hasActualActivity ? (
           <motion.ul
             variants={{ 
@@ -183,12 +183,14 @@ const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
           </>
         );
 
+        const kpiBlockClasses = "block p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-700/60 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 text-center cursor-pointer";
+
         return item.href ? (
-          <Link href={item.href} key={item.label} className="block p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-800 transition-all duration-200 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 text-center cursor-pointer">
+          <Link href={item.href} key={item.label} className={kpiBlockClasses}>
             {StatCardContent}
           </Link>
         ) : (
-          <div key={item.label} className="p-4 md:p-5 bg-neutral-900 rounded-lg shadow-md border border-neutral-800 text-center">
+          <div key={item.label} className={kpiBlockClasses}>
             {StatCardContent}
           </div>
         );
@@ -206,7 +208,7 @@ const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
         <FiUsers className="w-6 h-6 text-neutral-400 mr-3" />
         <h3 className="text-xl font-heading text-neutral-100">Recent Matches</h3>
       </div>
-      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-lg border border-neutral-800">
+      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60">
         {matches.length > 0 ? (
           <ul className="space-y-3">
             {matches.map(match => (
