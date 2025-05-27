@@ -123,33 +123,56 @@ export async function searchArxiv(params: ArxivSearchParams): Promise<ArxivPaper
 }
 
 function mapArxivEntryToPaper(entry: any): ArxivPaper | null {
-  if (!entry || !entry.id) return null;
+  if (!entry || typeof entry.id !== 'string' || !entry.id) {
+    // If basic entry structure is invalid, skip it
+    console.warn('Skipping arXiv entry due to missing or invalid id:', entry);
+    return null;
+  }
 
   const authors = getAuthors(entry);
   const categories = getCategories(entry);
   
   let pdfLink: string | undefined = undefined;
   if (entry.link) {
-    if (Array.isArray(entry.link)) {
-      const pdfEntry = entry.link.find((l: any) => l && l.$ && l.$.title === 'pdf');
-      if (pdfEntry && pdfEntry.$ && typeof pdfEntry.$.href === 'string') {
-        pdfLink = pdfEntry.$.href;
+    const links = Array.isArray(entry.link) ? entry.link : [entry.link];
+    for (const l of links) {
+      if (l && l.$ && typeof l.$.title === 'string' && l.$.title === 'pdf' && typeof l.$.href === 'string') {
+        pdfLink = l.$.href;
+        break; // Found PDF link
       }
-    } else if (entry.link.$ && entry.link.$.title === 'pdf' && typeof entry.link.$.href === 'string') {
-      // Handle single link entry
-      pdfLink = entry.link.$.href;
     }
   }
 
+  // Safely access title, providing a default if it's not a string or is missing
+  const title = (typeof entry.title === 'string' && entry.title) 
+                ? entry.title.replace(/\s*\n\s*/g, ' ').trim() 
+                : 'No title provided';
+
+  // Safely access summary
+  const summary = (typeof entry.summary === 'string' && entry.summary)
+                  ? entry.summary.replace(/\s*\n\s*/g, ' ').trim()
+                  : 'No summary available';
+                  
+  // Safely access published date
+  const publishedDate = (typeof entry.published === 'string' && entry.published) ? entry.published : '';
+
+  // Safely access updated date
+  const updatedDate = (typeof entry.updated === 'string' && entry.updated) ? entry.updated : '';
+
+  // Safely access primary category
+  const primaryCategory = (entry['arxiv:primary_category'] && entry['arxiv:primary_category'].$ && typeof entry['arxiv:primary_category'].$.term === 'string')
+                          ? entry['arxiv:primary_category'].$.term
+                          : undefined;
+
   return {
-    id: typeof entry.id === 'string' ? entry.id : '', // Ensure id is a string
-    title: typeof entry.title === 'string' ? entry.title.replace(/\s*\n\s*/g, ' ') : 'No title',
+    id: entry.id, // Already validated as string
+    title,
     authors,
-    summary: typeof entry.summary === 'string' ? entry.summary.replace(/\s*\n\s*/g, ' ') : 'No summary',
-    publishedDate: typeof entry.published === 'string' ? entry.published : '',
-    updatedDate: typeof entry.updated === 'string' ? entry.updated : '',
+    summary,
+    publishedDate,
+    updatedDate,
     pdfLink,
     categories,
-    primaryCategory: entry['arxiv:primary_category']?.$.term || undefined,
+    primaryCategory,
   };
 } 
