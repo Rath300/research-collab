@@ -375,7 +375,7 @@ export default function DashboardPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <header className="mb-6">
+      <header className="mb-8 md:mb-10">
         <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
         {profile?.first_name && (
           <p className="text-lg text-neutral-400 mt-1 font-sans">

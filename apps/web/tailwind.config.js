@@ -32,7 +32,7 @@ module.exports = {
         'accent-purple-hover': '#A78BFA', // Tailwind violet-400
       },
       fontFamily: {
-        sans: ['Inter', ...fontFamily.sans],
+        sans: ['var(--font-inter)', ...fontFamily.sans],
         heading: ['var(--font-geist-sans)', ...fontFamily.sans],
         mono: fontFamily.mono,
       },
@@ -70,40 +70,44 @@ module.exports = {
       typography: (theme) => ({
         DEFAULT: {
           css: {
-            color: theme('colors.researchbee-white'),
+            color: theme('colors.ic-text-primary'),
             a: {
-              color: theme('colors.researchbee-yellow'),
+              color: theme('colors.accent-purple'),
               '&:hover': {
-                color: theme('colors.researchbee-yellow-dark'),
+                color: theme('colors.accent-purple-hover'),
               },
             },
             h1: {
-              color: theme('colors.researchbee-white'),
+              color: theme('colors.ic-text-primary'),
+              fontFamily: theme('fontFamily.heading')[0],
             },
             h2: {
-              color: theme('colors.researchbee-white'),
+              color: theme('colors.ic-text-primary'),
+              fontFamily: theme('fontFamily.heading')[0],
             },
             h3: {
-              color: theme('colors.researchbee-white'),
+              color: theme('colors.ic-text-primary'),
+              fontFamily: theme('fontFamily.heading')[0],
             },
             h4: {
-              color: theme('colors.researchbee-white'),
+              color: theme('colors.ic-text-primary'),
+              fontFamily: theme('fontFamily.heading')[0],
             },
             strong: {
-              color: theme('colors.researchbee-white'),
+              color: theme('colors.ic-text-primary'),
             },
             blockquote: {
-              color: theme('colors.researchbee-light-gray'),
-              borderLeftColor: theme('colors.researchbee-medium-gray'),
+              color: theme('colors.ic-text-secondary'),
+              borderLeftColor: theme('colors.ic-border'),
             },
             code: {
-              color: theme('colors.researchbee-yellow'),
+              color: theme('colors.accent-purple'),
             },
             pre: {
-              backgroundColor: theme('colors.researchbee-dark-gray'),
+              backgroundColor: theme('colors.ic-dark-bg'),
             },
             hr: {
-              borderColor: theme('colors.researchbee-medium-gray'),
+              borderColor: theme('colors.ic-border'),
             },
           },
         },
@@ -111,7 +115,7 @@ module.exports = {
     },
   },
   plugins: [
-    require('tailwindcss-font-inter'),
+    // require('tailwindcss-font-inter'),
     require('@tailwindcss/typography'),
     require('@tailwindcss/forms'),
   ],

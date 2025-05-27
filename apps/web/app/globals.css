@@ -1,12 +1,12 @@
 /* @import '@fontsource/geist-sans/variable.css'; */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); */ /* Will be replaced by next/font */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Research-Bee color palette */
+  /* Research-Bee color palette - these seem older, consider if still needed or if ic-colors are primary */
   --researchbee-yellow: #E8B317;
   --researchbee-yellow-dark: #C9980F;
   --researchbee-yellow-light: #F4D88A;
@@ -16,10 +16,10 @@
   --researchbee-light-gray: #B3B3B3;
   --researchbee-white: #FFFFFF;
   
-  /* Typography */
-  --font-sans: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Typography - REMOVE THIS as Tailwind will manage font variables via next/font */
+  /* --font-sans: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; */
   
-  /* System colors */
+  /* System colors - These are fine for fallback if needed, but ensure primary colors come from Tailwind theme */
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
   --background-end-rgb: 20, 20, 20;
@@ -27,57 +27,66 @@
 
 /* System defaults */
 body {
-  color: rgb(var(--foreground-rgb));
+  color: rgb(var(--foreground-rgb)); /* This can be replaced by Tailwind text utilities */
   background: linear-gradient(
       to bottom,
       rgb(var(--background-start-rgb)),
       rgb(var(--background-end-rgb))
-    );
-  font-family: var(--font-sans);
-  font-feature-settings: "rlig" 1, "calt" 1;
-  @apply text-white bg-black;
+    ); /* This specific gradient might be overridden by Tailwind bg utilities like on the body tag in layout.tsx */
+  /* font-family: var(--font-sans); */ /* REMOVE - Tailwind font-sans class on html/body will handle this */
+  font-feature-settings: "rlig" 1, "calt" 1; /* This is fine, relates to OpenType features */
+  @apply text-white bg-black; /* This is good, sets base text/bg via Tailwind */
 }
 
 /* Base Element Styling */
 html {
-  font-family: var(--font-sans);
+  /* font-family: var(--font-sans); */ /* REMOVE - Tailwind font-sans class on html tag will handle this */
 }
 
+/* REMOVE these h1-h6 global styles. Rely on Tailwind's font-heading utility or @layer base typography */
+/* 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-sans); 
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+*/
 
-/* Base Typography Styles */
+/* Base Typography Styles - These @layer base styles for h1-p are generally good */
 @layer base {
   h1 {
-    @apply text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl;
+    @apply text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl; /* Ensure font-heading is applied where needed */
   }
   h2 {
-    @apply text-3xl font-bold tracking-tight md:text-4xl;
+    @apply text-3xl font-bold tracking-tight md:text-4xl; /* Ensure font-heading is applied where needed */
   }
   h3 {
-    @apply text-2xl font-bold tracking-tight md:text-3xl;
+    @apply text-2xl font-bold tracking-tight md:text-3xl; /* Ensure font-heading is applied where needed */
   }
   h4 {
-    @apply text-xl font-semibold tracking-tight md:text-2xl;
+    @apply text-xl font-semibold tracking-tight md:text-2xl; /* Ensure font-heading is applied where needed */
   }
   p {
-    @apply leading-relaxed text-researchbee-light-gray;
+    /* @apply leading-relaxed text-researchbee-light-gray; */ /* Consider using ic-text-secondary or similar from Tailwind config */
+    @apply leading-relaxed text-ic-text-secondary; /* Using a newer theme color */
   }
   a {
-    @apply transition-colors duration-200;
+    @apply transition-colors duration-200; /* Base link transition is fine */
+    /* Specific link colors should come from Tailwind config (e.g., typography plugin or text-accent-purple) */
   }
   body {
-    @apply bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-gray-100 min-h-screen font-sans;
-    /* Or a more vibrant one: from-indigo-700 via-purple-700 to-pink-700 */
-    /* Or a subtle one: from-slate-900 to-slate-800 */
-    font-family: 'Netflix Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    /* This body style seems to be a mix of an older theme (Netflix Sans) and a newer one. */
+    /* The body tag in layout.tsx applies bg-black text-neutral-100. */
+    /* We should ensure one source of truth for body background and text color. */
+    /* For now, keeping the @apply from above, but commenting out the direct font-family here. */
+    /* font-family: 'Netflix Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
   }
+  /* This h1-h6 block is redundant if the one above is kept and uses font-heading from Tailwind */
+  /* 
   h1, h2, h3, h4, h5, h6 {
     @apply text-gray-50;
   }
+  */
 }
 
 /* Research-Bee Component Styles */
