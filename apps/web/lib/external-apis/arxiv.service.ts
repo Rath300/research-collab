@@ -127,7 +127,19 @@ function mapArxivEntryToPaper(entry: any): ArxivPaper | null {
 
   const authors = getAuthors(entry);
   const categories = getCategories(entry);
-  const pdfLink = (Array.isArray(entry.link) ? entry.link.find((l: any) => l.$.title === 'pdf')?.$.href : (entry.link.$.title === 'pdf' ? entry.link.$.href : undefined));
+  
+  let pdfLink: string | undefined = undefined;
+  if (entry.link) {
+    if (Array.isArray(entry.link)) {
+      const pdfEntry = entry.link.find((l: any) => l && l.$ && l.$.title === 'pdf');
+      if (pdfEntry && pdfEntry.$ && typeof pdfEntry.$.href === 'string') {
+        pdfLink = pdfEntry.$.href;
+      }
+    } else if (entry.link.$ && entry.link.$.title === 'pdf' && typeof entry.link.$.href === 'string') {
+      // Handle single link entry
+      pdfLink = entry.link.$.href;
+    }
+  }
 
   return {
     id: typeof entry.id === 'string' ? entry.id : '', // Ensure id is a string
