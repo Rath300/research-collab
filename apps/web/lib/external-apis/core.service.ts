@@ -19,7 +19,7 @@ interface CoreAuthor {
 interface CorePaper {
   id: string; // CORE ID
   title: string;
-  authors?: CoreAuthor[];
+  authors?: CoreAuthor[]; // CORE API v3 authors is an array of strings
   abstract?: string | null;
   yearPublished?: number;
   doi?: string | null;
@@ -38,35 +38,66 @@ interface CorePaper {
 export async function searchCore(params: CoreSearchParams): Promise<CorePaper[]> {
   if (!CORE_API_BASE_URL) {
     console.error('CORE_API_BASE_URL is not configured.');
-    return [];
+    throw new Error('CORE API base URL not configured.');
   }
   if (!CORE_API_KEY) {
     console.error('CORE_API_KEY is not configured. CORE API requires an API key.');
-    return [];
+    throw new Error('CORE API key not configured.');
   }
 
-  // Example endpoint for searching articles: /search/articles
-  // const url = `${CORE_API_BASE_URL}search/articles?q=${encodeURIComponent(params.query)}&page=${params.page || 1}&pageSize=${params.pageSize || 10}&apiKey=${CORE_API_KEY}`;
-  
-  console.log('Placeholder: Searching CORE API with params:', params);
-  // In a real implementation:
-  // 1. Construct URL with query parameters and API key.
-  // 2. Fetch data (CORE API v3 uses GET requests with API key in query params).
-  // 3. Parse JSON response.
-  // 4. Map to CorePaper[].
-  // 5. Handle errors and rate limits.
+  const queryParams = new URLSearchParams({
+    q: params.query,
+    page: (params.page || 1).toString(),
+    limit: (params.pageSize || 10).toString(), // CORE API uses 'limit' not 'pageSize' for v3 search
+    apiKey: CORE_API_KEY, // CORE API v3 uses apiKey in query params
+  });
 
-  // Placeholder data
-  return Promise.resolve([
-    {
-      id: 'core-id-7890',
-      title: 'Open Access Trends in Scientific Publishing',
-      authors: [{ name: 'Dr. Open Access' }],
-      abstract: 'An analysis of the growth and impact of open access publishing models in various scientific disciplines.',
-      yearPublished: new Date().getFullYear() -1,
-      doi: '10.5555/core.test.7890',
-      downloadUrl: 'https://core.ac.uk/download/pdf/someid.pdf',
-      publisher: 'Open Science Publishers',
-    },
-  ]);
+  const url = `${CORE_API_BASE_URL}search/articles?${queryParams.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      // Try to parse error from CORE if available
+      let errorBody = 'Unknown error';
+      try {
+        const errorData = await response.json();
+        errorBody = errorData.message || JSON.stringify(errorData);
+      } catch (e) { /* Ignore if error body is not JSON */ }
+      throw new Error(`CORE API request failed with status ${response.status}: ${errorBody}`);
+    }
+
+    const data = await response.json();
+    
+    // CORE API v3 search/articles returns an object with a 'results' array
+    const results = data.results || [];
+    if (!Array.isArray(results)) {
+        console.error("CORE API did not return a results array or it's malformed", data);
+        return [];
+    }
+
+    return results.map(mapCoreResultToPaper).filter((paper): paper is CorePaper => paper !== null);
+
+  } catch (error) {
+    console.error('Error searching CORE API:', error);
+    throw error;
+  }
+}
+
+function mapCoreResultToPaper(result: any): CorePaper | null {
+  if (!result || !result.id) return null;
+
+  // CORE authors are typically an array of strings
+  const authors = Array.isArray(result.authors) ? result.authors.map((name: any) => ({ name: String(name) })) : [];
+
+  return {
+    id: String(result.id),
+    title: result.title || 'No title',
+    authors,
+    abstract: result.abstract || null,
+    yearPublished: result.yearPublished || (result.publishedDate ? new Date(result.publishedDate).getFullYear() : undefined),
+    doi: result.doi || null,
+    downloadUrl: result.downloadUrl || (Array.isArray(result.sourceFulltextUrls) && result.sourceFulltextUrls.length > 0 ? result.sourceFulltextUrls[0] : undefined),
+    sourceFulltextUrls: result.sourceFulltextUrls || [],
+    publisher: result.publisher || null,
+  };
 } 
