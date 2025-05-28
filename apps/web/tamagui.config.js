@@ -1,7 +1,7 @@
-import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { themes, tokens } from '@tamagui/themes'
-import { createTamagui } from 'tamagui'
+const { createInterFont } = require('@tamagui/font-inter')
+const { shorthands } = require('@tamagui/shorthands')
+const { themes, tokens } = require('@tamagui/themes')
+const { createTamagui } = require('tamagui')
 
 const interFont = createInterFont()
 
@@ -81,6 +81,6 @@ const config = createTamagui({
   shorthands,
   tokens: customTokens,
   themes: customThemes,
-})
+});
 
-export default config 
+module.exports = config; 
