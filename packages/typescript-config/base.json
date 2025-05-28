@@ -2,6 +2,12 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Default",
   "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "ui": ["packages/ui/src"],
+      "api": ["packages/api/src"],
+      "@research-collab/db": ["packages/db"]
+    },
     "composite": false,
     "declaration": true,
     "declarationMap": true,
