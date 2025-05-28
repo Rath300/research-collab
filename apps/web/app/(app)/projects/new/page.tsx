@@ -441,8 +441,8 @@ export default function NewProjectPage() {
                             <h5 className="font-semibold mb-0.5 font-heading">Success!</h5>
                             <span>{pageSuccess}</span>
                         </div>
-                      </div>
-                  )}
+                    </div>
+                )}
                 </div>
                 <div className="pt-6 border-t border-neutral-800 mt-6">
                   <Button 

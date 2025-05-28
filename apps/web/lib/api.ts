@@ -69,11 +69,12 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-    const supabase = getBrowserClient();
+  console.log('[api.ts] getProfile called with ID:', id); // Log the ID
+  const supabase = getBrowserClient();
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, user_id, first_name, last_name, email, avatar_url, institution, bio, website, skills, interests, collaboration_pitch, location, field_of_study, availability, has_completed_tour, updated_at') // Select specific columns
       .eq('id', id)
       .single();
       
@@ -175,7 +176,7 @@ export const profiles = {
         .from('profiles')
         // The payload to insert should match Database['public']['Tables']['profiles']['Insert']
         // `validatedInsertData` should conform to this after parsing. Supabase client handles this.
-        .insert(validatedInsertData as Database['public']['Tables']['profiles']['Insert']) 
+        .insert(validatedInsertData as unknown as Database['public']['Tables']['profiles']['Insert']) 
         .select()
         .single();
       

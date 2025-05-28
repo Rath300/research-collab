@@ -228,3 +228,7 @@ export function ProfileMatcher() {
     </div>
   );
 } 
+      </Card>
+    </div>
+  );
+} 

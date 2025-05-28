@@ -312,3 +312,77 @@ export const profileMatchSchema = z.object({
   created_at: z.date().optional(), // Will be set by Supabase default
 });
 export type ProfileMatch = z.infer<typeof profileMatchSchema>; 
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+});
+
+export type ProjectCollaborator = z.infer<typeof projectCollaboratorSchema>;
+
+// Research Item Schema
+export const researchItemTypeSchema = z.enum(['file', 'link', 'text_block']);
+export type ResearchItemType = z.infer<typeof researchItemTypeSchema>;
+
+export const researchItemSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(), // Foreign key to research_posts.id
+  user_id: z.string().uuid(),    // Foreign key to auth.users.id (creator/last editor of this item)
+  type: researchItemTypeSchema,
+  order: z.number().int().default(0), // For ordering items within a project view
+
+  // Common field for title/description or text content
+  title: z.string().max(255).optional().nullable(), // Title for links/files, or a short heading for text_block
+  description: z.string().optional().nullable(), // Main content for text_block, or description for links/files
+
+  // Fields for 'link'
+  url: z.string().url().optional().nullable(), // URL for 'link' type
+
+  // Fields for 'file'
+  file_path: z.string().optional().nullable(),      // Path in Supabase storage (e.g., 'project_items/{project_id}/{item_id}/{file_name}')
+  file_name: z.string().max(255).optional().nullable(),      // Original file name
+  file_type: z.string().max(100).optional().nullable(),      // MIME type
+  file_size_bytes: z.number().int().positive().optional().nullable(), // File size in bytes
+  
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date; 
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+});
+
+export type ResearchItem = z.infer<typeof researchItemSchema>;
+
+// Helper types for API responses
+export type SupabaseResponse<T> = {
+  data: T | null;
+  error: Error | null;
+};
+
+// Export all components for use in other packages
+export * from './types';
+
+// New schema for profile-to-profile matching
+export const profileMatchSchema = z.object({
+  id: z.string().uuid(),
+  matcher_user_id: z.string().uuid({ message: "Matcher user ID must be a valid UUID." }),
+  matchee_user_id: z.string().uuid({ message: "Matchee user ID must be a valid UUID." }),
+  status: z.enum(['matched', 'rejected'], { message: "Status must be either 'matched' or 'rejected'." }),
+  created_at: z.date().optional(), // Will be set by Supabase default
+});
+export type ProfileMatch = z.infer<typeof profileMatchSchema>; 

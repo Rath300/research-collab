@@ -201,3 +201,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 } 
+
+            if (event === 'SIGNED_IN') { shouldFetchProfile = true; fetchReason = "User signed in."; }
+            else if (event === 'USER_UPDATED') { shouldFetchProfile = true; fetchReason = "User data updated by Supabase."; }
+            else if (!storeProfile) { shouldFetchProfile = true; fetchReason = "No profile in store."; }
+            else if (storeProfile.id !== listenerUserId) { shouldFetchProfile = true; fetchReason = `Profile in store for different user.`; }
+            else if (event === 'TOKEN_REFRESHED' && !useAuthStore.getState().hasAttemptedProfileFetch) {
+                shouldFetchProfile = true; fetchReason = "Token refreshed, profile not yet fetched this session.";
+            }
+
+            if (shouldFetchProfile) {
+              console.log(`[AuthProvider] onAuthStateChange: Fetching profile. Reason: ${fetchReason} User: ${listenerUserId}`);
+              try {
+                const profileData = await getProfile(listenerUserId);
+                if (!isMounted) return;
+                console.log('[AuthProvider] onAuthStateChange: getProfile returned.');
+                if (JSON.stringify(profileData) !== JSON.stringify(useAuthStore.getState().profile)) {
+                  setProfile(profileData);
+                } else if (!useAuthStore.getState().hasAttemptedProfileFetch && profileData) {
+                  setHasAttemptedProfileFetch(true);
+                } else if (!profileData && useAuthStore.getState().profile) {
+                  setProfile(null);
+                }
+              } catch (error) {
+                if (!isMounted) return;
+                console.error('[AuthProvider] onAuthStateChange: Error fetching profile:', error);
+                setProfile(null);
+              }
+            } else {
+              console.log(`[AuthProvider] onAuthStateChange: Profile fetch SKIPPED for event '${event}', user ${listenerUserId}.`);
+              if (storeProfile && storeProfile.id === listenerUserId && !useAuthStore.getState().hasAttemptedProfileFetch) {
+                setHasAttemptedProfileFetch(true);
+              }
+            }
+          } else {
+            useAuthStore.getState().clearAuth();
+          }
+          
+          if (isMounted) {
+            useAuthStore.getState().setLoading(false);
+            console.log('[AuthProvider] onAuthStateChange: END. isLoading:', useAuthStore.getState().isLoading, 'hasAttemptedProfileFetch:', useAuthStore.getState().hasAttemptedProfileFetch);
+          }
+        }
+      );
+      if (listenerData) { // Ensure listenerData and its subscription property exist
+        authListenerSubscription = listenerData.subscription;
+      }
+    };
+
+    mainAuthSetup().catch(error => {
+      console.error("[AuthProvider] Critical error in mainAuthSetup:", error);
+      if(isMounted) {
+        useAuthStore.getState().clearAuth(); // Fallback to clear auth and set loading states
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
+      authListenerSubscription?.unsubscribe();
+    };
+  }, [supabase, setUser, setProfile, setLoading, setHasAttemptedProfileFetch]); // Keep store setters as deps
+
+  return <>{children}</>;
+} 

@@ -1,7 +1,7 @@
-const { createInterFont } = require('@tamagui/font-inter')
-const { shorthands } = require('@tamagui/shorthands')
-const { themes, tokens } = require('@tamagui/themes')
-const { createTamagui } = require('tamagui')
+import { createInterFont } from '@tamagui/font-inter'
+import { shorthands } from '@tamagui/shorthands'
+import { themes, tokens } from '@tamagui/themes'
+import { createTamagui } from 'tamagui'
 
 const interFont = createInterFont()
 
@@ -17,41 +17,24 @@ const researchBeeColors = {
 
 // Custom theme based on Tamagui themes
 const customThemes = {
-  light: {
+  ...themes,
+  researchBeeLight: {
     ...themes.light,
     background: researchBeeColors.researchbeeLightGray,
     color: researchBeeColors.researchbeeBlack,
     borderColor: researchBeeColors.researchbeeMediumGray,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
-    primary: researchBeeColors.researchbeeYellow,
-    accent: researchBeeColors.researchbeeAccent,
+    ...researchBeeColors,
   },
-  dark: {
+  researchBeeDark: {
     ...themes.dark,
     background: researchBeeColors.researchbeeBlack,
     color: '#FFFFFF',
     borderColor: researchBeeColors.researchbeeDarkGray,
     shadowColor: 'rgba(0, 0, 0, 0.5)',
-    primary: researchBeeColors.researchbeeYellow,
-    accent: researchBeeColors.researchbeeAccent,
+    ...researchBeeColors,
   },
 }
-
-// To make your custom color palette easily accessible as tokens if needed:
-const customColorTokens = {
-  ...tokens.color, // Keep existing color tokens
-  researchbeeYellow: researchBeeColors.researchbeeYellow,
-  researchbeeBlack: researchBeeColors.researchbeeBlack,
-  researchbeeLightGray: researchBeeColors.researchbeeLightGray,
-  researchbeeMediumGray: researchBeeColors.researchbeeMediumGray,
-  researchbeeDarkGray: researchBeeColors.researchbeeDarkGray,
-  researchbeeAccent: researchBeeColors.researchbeeAccent,
-};
-
-const customTokens = {
-  ...tokens,
-  color: customColorTokens,
-};
 
 const config = createTamagui({
   defaultFont: 'body',
@@ -79,8 +62,8 @@ const config = createTamagui({
     heading: interFont,
   },
   shorthands,
-  tokens: customTokens,
+  tokens,
   themes: customThemes,
-});
+})
 
-module.exports = config; 
+export default config 

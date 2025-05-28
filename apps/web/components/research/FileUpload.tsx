@@ -116,3 +116,27 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
     </div>
   );
 } 
+          htmlFor={`file-upload-${researchPostId}`}
+          className={`${labelButtonClasses} ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <FiUploadCloud className="mr-2 h-4 w-4" />
+          {uploading ? 'Uploading...' : (selectedFileName ? 'Change File' : 'Choose File')}
+        </label>
+        <input
+          id={`file-upload-${researchPostId}`}
+          type="file"
+          className="hidden"
+          onChange={handleFileSelect}
+          disabled={uploading}
+        />
+        {selectedFileName && !uploading && (
+            <p className="text-sm text-neutral-400 font-sans truncate max-w-[200px]" title={selectedFileName}>Selected: {selectedFileName}</p>
+        )}
+      </div>
+      
+      {error && (
+        <p className="text-sm text-red-400 font-sans">Error: {error}</p>
+      )}
+    </div>
+  );
+} 

@@ -293,3 +293,12 @@ body {
 html, body {
   height: 100%;
 }
+
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Ensure html, body take full height for gradient to always cover */
+html, body {
+  height: 100%;
+}

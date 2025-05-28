@@ -127,3 +127,4 @@ function mapCrossrefItemToPaper(item: any): CrossrefPaper | null {
     journalTitle: Array.isArray(item['container-title']) ? item['container-title'].join(', ') : item['container-title'],
   };
 } 
+ 

@@ -172,3 +172,35 @@ export const useResearchStore = create<ResearchState>((set) => ({
   setHasMore: (hasMore) => set({ hasMore }),
   resetPosts: () => set({ posts: [], isLoading: false, hasMore: true }),
 })); 
+    const currentUnread = get().unreadMessages[userId] || 0;
+    set((state) => ({
+      unreadMessages: { ...state.unreadMessages, [userId]: 0 },
+      totalUnreadMessages: Math.max(0, state.totalUnreadMessages - currentUnread),
+    }));
+  },
+  setTotalUnreadMessages: (count) => set({ totalUnreadMessages: count }),
+}));
+
+export const useUIStore = create<UIState>((set) => ({
+  sidebarOpen: false,
+  darkMode: typeof window !== 'undefined' 
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+    : false,
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
+  setDarkMode: (enabled) => set({ darkMode: enabled }),
+}));
+
+export const useResearchStore = create<ResearchState>((set) => ({
+  posts: [],
+  isLoading: false,
+  hasMore: true,
+  setPosts: (posts) => set({ posts }),
+  appendPosts: (posts) => set((state) => ({
+    posts: [...state.posts, ...posts],
+  })),
+  setLoading: (isLoading) => set({ isLoading }),
+  setHasMore: (hasMore) => set({ hasMore }),
+  resetPosts: () => set({ posts: [], isLoading: false, hasMore: true }),
+})); 
