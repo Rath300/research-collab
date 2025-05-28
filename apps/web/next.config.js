@@ -74,6 +74,7 @@ const tamaguiPluginOptions = {
     '@tamagui/themes',
     '@tamagui/animations-react-native',
     '@research-collab/db',
+    '@research-collab/ui',
     '@tamagui/alert-dialog',
     '@tamagui/animate-presence',
     '@tamagui/button',
