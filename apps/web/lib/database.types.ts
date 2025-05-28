@@ -394,6 +394,7 @@ export type Database = {
           field_of_study: string | null
           first_name: string
           full_name: string | null
+          has_completed_tour: boolean
           id: string
           institution: string | null
           interests: string[] | null
@@ -421,6 +422,7 @@ export type Database = {
           field_of_study?: string | null
           first_name: string
           full_name?: string | null
+          has_completed_tour?: boolean
           id: string
           institution?: string | null
           interests?: string[] | null
@@ -448,6 +450,7 @@ export type Database = {
           field_of_study?: string | null
           first_name?: string
           full_name?: string | null
+          has_completed_tour?: boolean
           id?: string
           institution?: string | null
           interests?: string[] | null
@@ -464,6 +467,87 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      project_activity_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          project_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          project_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          project_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activity_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_chat_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_collaborators: {
         Row: {
@@ -493,6 +577,73 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_documents: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          document_type: string
+          file_size_kb: number | null
+          id: string
+          last_edited_at: string | null
+          last_edited_by_user_id: string | null
+          project_id: string
+          storage_path: string | null
+          title: string
+          updated_at: string | null
+          uploader_user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          document_type: string
+          file_size_kb?: number | null
+          id?: string
+          last_edited_at?: string | null
+          last_edited_by_user_id?: string | null
+          project_id: string
+          storage_path?: string | null
+          title: string
+          updated_at?: string | null
+          uploader_user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          document_type?: string
+          file_size_kb?: number | null
+          id?: string
+          last_edited_at?: string | null
+          last_edited_by_user_id?: string | null
+          project_id?: string
+          storage_path?: string | null
+          title?: string
+          updated_at?: string | null
+          uploader_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_last_edited_by_user_id_fkey"
+            columns: ["last_edited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_documents_uploader_user_id_fkey"
+            columns: ["uploader_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -547,6 +698,86 @@ export type Database = {
             columns: ["uploader_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_timeline_milestones: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          milestone_name: string
+          order_index: number | null
+          project_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_name: string
+          order_index?: number | null
+          project_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_name?: string
+          order_index?: number | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_timeline_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -806,7 +1037,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_owned_projects: {
+        Args: { user_id_param: string }
+        Returns: string[]
+      }
+      get_user_projects: {
+        Args: { user_id_param: string }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never

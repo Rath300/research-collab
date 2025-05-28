@@ -127,4 +127,19 @@ export function titleCase(str: string | null | undefined): string {
   return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
+export function getInitials(firstName?: string | null, lastName?: string | null): string {
+  const firstInitial = firstName?.charAt(0).toUpperCase() || '';
+  const lastInitial = lastName?.charAt(0).toUpperCase() || '';
+  if (firstInitial && lastInitial) {
+    return `${firstInitial}${lastInitial}`;
+  }
+  if (firstInitial) {
+    return firstInitial;
+  }
+  if (lastInitial) {
+    return lastInitial;
+  }
+  return 'NN'; // Not Available or No Name
+}
+
 // Add other utility functions here as needed 
