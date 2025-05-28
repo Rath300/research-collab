@@ -50,8 +50,8 @@ const nextConfigBase = {
 };
 
 const tamaguiPluginOptions = {
-  config: './tamagui.config.ts',
-  components: ['tamagui'],
+  config: './tamagui.config.js',
+  components: ['tamagui', '@research-collab/ui'],
   importsWhitelist: ['constants.js', 'colors.js'],
   logTimings: true,
   disableExtraction: process.env.NODE_ENV === 'development',

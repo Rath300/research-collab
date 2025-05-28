@@ -240,15 +240,3 @@ export function Sidebar() {
     </div>
   );
 } 
-              <Link href="/projects/new" passHref>
-                <button className="bg-neutral-700 text-white p-2.5 rounded-lg hover:bg-neutral-600 transition-colors" aria-label="Add New Project">
-                  <FiPlus size={20} />
-                </button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </ProSidebar>
-    </div>
-  );
-} 
