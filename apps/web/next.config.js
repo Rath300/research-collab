@@ -51,7 +51,7 @@ const nextConfigBase = {
 
 const tamaguiPluginOptions = {
   config: './tamagui.config.js',
-  components: ['tamagui', '@research-collab/ui'],
+  components: ['tamagui', 'ui'],
   importsWhitelist: ['constants.js', 'colors.js'],
   logTimings: true,
   disableExtraction: process.env.NODE_ENV === 'development',
@@ -74,7 +74,7 @@ const tamaguiPluginOptions = {
     '@tamagui/themes',
     '@tamagui/animations-react-native',
     '@research-collab/db',
-    '@research-collab/ui',
+    'ui',
     '@tamagui/alert-dialog',
     '@tamagui/animate-presence',
     '@tamagui/button',
