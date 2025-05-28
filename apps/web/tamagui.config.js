@@ -17,24 +17,41 @@ const researchBeeColors = {
 
 // Custom theme based on Tamagui themes
 const customThemes = {
-  ...themes,
-  researchBeeLight: {
+  light: {
     ...themes.light,
     background: researchBeeColors.researchbeeLightGray,
     color: researchBeeColors.researchbeeBlack,
     borderColor: researchBeeColors.researchbeeMediumGray,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
-    ...researchBeeColors,
+    primary: researchBeeColors.researchbeeYellow,
+    accent: researchBeeColors.researchbeeAccent,
   },
-  researchBeeDark: {
+  dark: {
     ...themes.dark,
     background: researchBeeColors.researchbeeBlack,
     color: '#FFFFFF',
     borderColor: researchBeeColors.researchbeeDarkGray,
     shadowColor: 'rgba(0, 0, 0, 0.5)',
-    ...researchBeeColors,
+    primary: researchBeeColors.researchbeeYellow,
+    accent: researchBeeColors.researchbeeAccent,
   },
 }
+
+// To make your custom color palette easily accessible as tokens if needed:
+const customColorTokens = {
+  ...tokens.color, // Keep existing color tokens
+  researchbeeYellow: researchBeeColors.researchbeeYellow,
+  researchbeeBlack: researchBeeColors.researchbeeBlack,
+  researchbeeLightGray: researchBeeColors.researchbeeLightGray,
+  researchbeeMediumGray: researchBeeColors.researchbeeMediumGray,
+  researchbeeDarkGray: researchBeeColors.researchbeeDarkGray,
+  researchbeeAccent: researchBeeColors.researchbeeAccent,
+};
+
+const customTokens = {
+  ...tokens,
+  color: customColorTokens,
+};
 
 const config = createTamagui({
   defaultFont: 'body',
@@ -62,7 +79,7 @@ const config = createTamagui({
     heading: interFont,
   },
   shorthands,
-  tokens,
+  tokens: customTokens,
   themes: customThemes,
 })
 
