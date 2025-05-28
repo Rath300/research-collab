@@ -60,7 +60,7 @@ const nextConfigBase = {
 };
 
 const tamaguiPluginOptions = {
-  config: './tamagui.config.ts', // Path to your tamagui.config.ts
+  config: './tamagui.config.js', // Path to your tamagui.config.ts
   components: ['tamagui'], // Which packages to compile down
   importsWhitelist: ['constants.js', 'colors.js'], // Optional: Whitelist for imports
   logTimings: true, // Optional: Logs build times
