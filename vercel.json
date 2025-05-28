@@ -2,5 +2,10 @@
   "version": 2,
   "engines": {
     "node": "20.x"
+  },
+  "build": {
+    "env": {
+      "COREPACK_ENABLE_STRICT": "1"
+    }
   }
 }
