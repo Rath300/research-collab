@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "vercel-build": "cd apps/web && npm run build",
+    "vercel-build": "turbo run build --filter=web",
     "deploy:vercel-prepare": "npm install && npx turbo run build --filter=\"@research-collab/db\" --filter=\"ui\"",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
