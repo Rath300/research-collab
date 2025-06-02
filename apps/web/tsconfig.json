@@ -40,6 +40,18 @@
       ],
       "@/types/*": [
         "./types/*"
+      ],
+      "@research-collab/api/*": [
+        "../../packages/api/src/*"
+      ],
+      "@research-collab/api": [
+        "../../packages/api/src/root"
+      ],
+      "@research-collab/db": [
+        "../../packages/db/index"
+      ],
+      "@research-collab/db/*": [
+        "../../packages/db/*"
       ]
     }
   },

@@ -138,6 +138,8 @@ export const proofSchema = z.object({
 export type Proof = z.infer<typeof proofSchema>;
 
 // Chat Message Schema
+// Note: This 'messageSchema' seems to be for 1-on-1 direct messages related to a 'match_id'.
+// It's different from ProjectChatMessage which is for project-specific chats.
 export const messageSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime().optional(),
@@ -149,6 +151,14 @@ export const messageSchema = z.object({
 });
 
 export type Message = z.infer<typeof messageSchema>;
+
+// Export Project Chat Message Schema and Type
+export { 
+  projectChatMessageSchema, 
+  type ProjectChatMessage, 
+  projectMessageTypeSchema, 
+  type ProjectMessageType 
+} from './schema/chat_message';
 
 // AI Review Schema
 export const aiReviewSchema = z.object({
@@ -252,6 +262,175 @@ export const projectCollaboratorSchema = z.object({
 
 export type ProjectCollaborator = z.infer<typeof projectCollaboratorSchema>;
 
+// Enum Schemas for Workspaces
+export const workspaceRoleSchema = z.enum([
+  'owner',
+  'admin',
+  'editor',
+  'commenter',
+  'viewer',
+]);
+export type WorkspaceRole = z.infer<typeof workspaceRoleSchema>;
+
+export const workspaceTaskStatusSchema = z.enum([
+  'todo',
+  'in_progress',
+  'review',
+  'completed',
+  'archived',
+]);
+export type WorkspaceTaskStatus = z.infer<typeof workspaceTaskStatusSchema>;
+
+// Workspace Schema
+export const workspaceSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1, 'Workspace name is required'),
+  description: z.string().optional().nullable(),
+  owner_id: z.string().uuid(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date; // Return undefined for invalid dates for default to kick in
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type Workspace = z.infer<typeof workspaceSchema>;
+
+// Workspace Member Schema
+export const workspaceMemberSchema = z.object({
+  workspace_id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  role: workspaceRoleSchema.default('viewer'),
+  invitation_status: z.enum(['pending', 'accepted', 'declined']).default('accepted'),
+  joined_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type WorkspaceMember = z.infer<typeof workspaceMemberSchema>;
+
+// Workspace Document Schema
+export const workspaceDocumentTypeSchema = z.enum([
+  'Text Document',
+  'Code Notebook',
+  'Research Proposal',
+  'Methodology',
+  'Data Analysis',
+  'Literature Review',
+  'Generic Document',
+]);
+export type WorkspaceDocumentType = z.infer<typeof workspaceDocumentTypeSchema>;
+
+export const workspaceDocumentSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  title: z.string().min(1, 'Document title is required').max(255),
+  document_type: workspaceDocumentTypeSchema.default('Generic Document'),
+  content: z.record(z.any()).optional().nullable(), // For JSONB, a general record is suitable
+  created_by_user_id: z.string().uuid(),
+  last_edited_by_user_id: z.string().uuid().optional().nullable(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type WorkspaceDocument = z.infer<typeof workspaceDocumentSchema>;
+
+// Workspace Task Schema
+export const workspaceTaskSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  title: z.string().min(1, 'Task title is required'),
+  description: z.string().optional().nullable(),
+  status: workspaceTaskStatusSchema.default('todo'),
+  assigned_to_user_id: z.string().uuid().optional().nullable(),
+  due_date: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  created_by_user_id: z.string().uuid(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type WorkspaceTask = z.infer<typeof workspaceTaskSchema>;
+
+// Workspace File Schema
+export const workspaceFileSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  file_name: z.string().min(1, 'File name is required'),
+  storage_object_path: z.string(),
+  file_type: z.string().optional().nullable(),
+  file_size_bytes: z.preprocess((arg) => {
+    if (typeof arg === 'number') return BigInt(arg);
+    if (typeof arg === 'string') return BigInt(arg);
+    return null;
+  }, z.bigint().optional().nullable()),
+  description: z.string().optional().nullable(),
+  uploaded_by_user_id: z.string().uuid(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type WorkspaceFile = z.infer<typeof workspaceFileSchema>;
+
+// Workspace Chat Message Schema
+export const workspaceChatMessageSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  content: z.string().min(1, 'Message content cannot be empty'),
+  parent_message_id: z.string().uuid().optional().nullable(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    return undefined;
+  }, z.date().default(() => new Date())),
+});
+export type WorkspaceChatMessage = z.infer<typeof workspaceChatMessageSchema>;
+
 // Research Item Schema
 export const researchItemTypeSchema = z.enum(['file', 'link', 'text_block']);
 export type ResearchItemType = z.infer<typeof researchItemTypeSchema>;
@@ -302,6 +481,11 @@ export type SupabaseResponse<T> = {
 
 // Export all components for use in other packages
 export * from './types';
+// Schemas are already exported by virtue of being top-level consts with `export` keyword
+// export { 
+//   workspaceDocumentTypeSchema, 
+//   workspaceDocumentSchema 
+// };
 
 // New schema for profile-to-profile matching
 export const profileMatchSchema = z.object({
@@ -311,78 +495,7 @@ export const profileMatchSchema = z.object({
   status: z.enum(['matched', 'rejected'], { message: "Status must be either 'matched' or 'rejected'." }),
   created_at: z.date().optional(), // Will be set by Supabase default
 });
-export type ProfileMatch = z.infer<typeof profileMatchSchema>; 
-    }
-    return null;
-  }, z.date().optional().nullable()),
-  updated_at: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) {
-      const date = new Date(arg);
-      return isNaN(date.getTime()) ? null : date;
-    }
-    return null;
-  }, z.date().optional().nullable()),
-});
+export type ProfileMatch = z.infer<typeof profileMatchSchema>;
 
-export type ProjectCollaborator = z.infer<typeof projectCollaboratorSchema>;
-
-// Research Item Schema
-export const researchItemTypeSchema = z.enum(['file', 'link', 'text_block']);
-export type ResearchItemType = z.infer<typeof researchItemTypeSchema>;
-
-export const researchItemSchema = z.object({
-  id: z.string().uuid(),
-  project_id: z.string().uuid(), // Foreign key to research_posts.id
-  user_id: z.string().uuid(),    // Foreign key to auth.users.id (creator/last editor of this item)
-  type: researchItemTypeSchema,
-  order: z.number().int().default(0), // For ordering items within a project view
-
-  // Common field for title/description or text content
-  title: z.string().max(255).optional().nullable(), // Title for links/files, or a short heading for text_block
-  description: z.string().optional().nullable(), // Main content for text_block, or description for links/files
-
-  // Fields for 'link'
-  url: z.string().url().optional().nullable(), // URL for 'link' type
-
-  // Fields for 'file'
-  file_path: z.string().optional().nullable(),      // Path in Supabase storage (e.g., 'project_items/{project_id}/{item_id}/{file_name}')
-  file_name: z.string().max(255).optional().nullable(),      // Original file name
-  file_type: z.string().max(100).optional().nullable(),      // MIME type
-  file_size_bytes: z.number().int().positive().optional().nullable(), // File size in bytes
-  
-  created_at: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) {
-      const date = new Date(arg);
-      return isNaN(date.getTime()) ? null : date; 
-    }
-    return null;
-  }, z.date().optional().nullable()),
-  updated_at: z.preprocess((arg) => {
-    if (typeof arg === 'string' || arg instanceof Date) {
-      const date = new Date(arg);
-      return isNaN(date.getTime()) ? null : date;
-    }
-    return null;
-  }, z.date().optional().nullable()),
-});
-
-export type ResearchItem = z.infer<typeof researchItemSchema>;
-
-// Helper types for API responses
-export type SupabaseResponse<T> = {
-  data: T | null;
-  error: Error | null;
-};
-
-// Export all components for use in other packages
-export * from './types';
-
-// New schema for profile-to-profile matching
-export const profileMatchSchema = z.object({
-  id: z.string().uuid(),
-  matcher_user_id: z.string().uuid({ message: "Matcher user ID must be a valid UUID." }),
-  matchee_user_id: z.string().uuid({ message: "Matchee user ID must be a valid UUID." }),
-  status: z.enum(['matched', 'rejected'], { message: "Status must be either 'matched' or 'rejected'." }),
-  created_at: z.date().optional(), // Will be set by Supabase default
-});
-export type ProfileMatch = z.infer<typeof profileMatchSchema>; 
+export * from './schema/task'; 
+export * from './types'; // For database.types.ts 
