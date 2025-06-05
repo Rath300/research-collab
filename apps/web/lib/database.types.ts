@@ -513,38 +513,47 @@ export type Database = {
       project_chat_messages: {
         Row: {
           content: string
-          created_at: string | null
+          created_at: string
           id: string
+          message_type: string
+          parent_message_id: string | null
           project_id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           content: string
-          created_at?: string | null
+          created_at?: string
           id?: string
+          message_type?: string
+          parent_message_id?: string | null
           project_id: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           content?: string
-          created_at?: string | null
+          created_at?: string
           id?: string
+          message_type?: string
+          parent_message_id?: string | null
           project_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "project_chat_messages_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "project_chat_messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
             isOneToOne: false
-            referencedRelation: "projects"
+            referencedRelation: "project_chat_messages"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "project_chat_messages_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "project_chat_messages_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "research_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -553,22 +562,28 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          invited_by: string | null
           project_id: string
           role: string
+          status: Database["public"]["Enums"]["project_collaborator_status"]
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
+          invited_by?: string | null
           project_id: string
           role: string
+          status?: Database["public"]["Enums"]["project_collaborator_status"]
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          invited_by?: string | null
           project_id?: string
           role?: string
+          status?: Database["public"]["Enums"]["project_collaborator_status"]
           user_id?: string
         }
         Relationships: [
@@ -737,6 +752,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_tasks: {
+        Row: {
+          assignee_user_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          order: number | null
+          priority: Database["public"]["Enums"]["project_task_priority"] | null
+          project_id: string
+          reporter_user_id: string
+          status: Database["public"]["Enums"]["project_task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order?: number | null
+          priority?: Database["public"]["Enums"]["project_task_priority"] | null
+          project_id: string
+          reporter_user_id: string
+          status?: Database["public"]["Enums"]["project_task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order?: number | null
+          priority?: Database["public"]["Enums"]["project_task_priority"] | null
+          project_id?: string
+          reporter_user_id?: string
+          status?: Database["public"]["Enums"]["project_task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -1032,6 +1100,299 @@ export type Database = {
           },
         ]
       }
+      workspace_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_message_id: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_message_id?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_message_id?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_chat_messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_chat_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_documents: {
+        Row: {
+          content: Json | null
+          created_at: string
+          created_by_user_id: string
+          document_type: Database["public"]["Enums"]["workspace_document_type"]
+          id: string
+          last_edited_by_user_id: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          created_by_user_id: string
+          document_type?: Database["public"]["Enums"]["workspace_document_type"]
+          id?: string
+          last_edited_by_user_id?: string | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          created_by_user_id?: string
+          document_type?: Database["public"]["Enums"]["workspace_document_type"]
+          id?: string
+          last_edited_by_user_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_documents_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_documents_last_edited_by_user_id_fkey"
+            columns: ["last_edited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_files: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_name: string
+          file_size_bytes: number | null
+          file_type: string | null
+          id: string
+          storage_object_path: string
+          uploaded_by_user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          id?: string
+          storage_object_path: string
+          uploaded_by_user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          id?: string
+          storage_object_path?: string
+          uploaded_by_user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_files_uploaded_by_user_id_fkey"
+            columns: ["uploaded_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_files_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          invitation_status: string
+          joined_at: string
+          role: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          invitation_status?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          invitation_status?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_tasks: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string
+          created_by_user_id: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: Database["public"]["Enums"]["workspace_task_status"]
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          created_by_user_id: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["workspace_task_status"]
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["workspace_task_status"]
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_tasks_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_tasks_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1045,9 +1406,35 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: string[]
       }
+      is_workspace_member_with_roles: {
+        Args: {
+          p_workspace_id: string
+          p_user_id: string
+          p_required_roles: string[]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      project_collaborator_role: "owner" | "editor" | "viewer"
+      project_collaborator_status: "pending" | "active" | "declined" | "revoked"
+      project_task_priority: "low" | "medium" | "high" | "urgent"
+      project_task_status: "todo" | "in_progress" | "completed" | "archived"
+      workspace_document_type:
+        | "Text Document"
+        | "Code Notebook"
+        | "Research Proposal"
+        | "Methodology"
+        | "Data Analysis"
+        | "Literature Review"
+        | "Generic Document"
+      workspace_role: "owner" | "admin" | "editor" | "commenter" | "viewer"
+      workspace_task_status:
+        | "todo"
+        | "in_progress"
+        | "review"
+        | "completed"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1162,6 +1549,28 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      project_collaborator_role: ["owner", "editor", "viewer"],
+      project_collaborator_status: ["pending", "active", "declined", "revoked"],
+      project_task_priority: ["low", "medium", "high", "urgent"],
+      project_task_status: ["todo", "in_progress", "completed", "archived"],
+      workspace_document_type: [
+        "Text Document",
+        "Code Notebook",
+        "Research Proposal",
+        "Methodology",
+        "Data Analysis",
+        "Literature Review",
+        "Generic Document",
+      ],
+      workspace_role: ["owner", "admin", "editor", "commenter", "viewer"],
+      workspace_task_status: [
+        "todo",
+        "in_progress",
+        "review",
+        "completed",
+        "archived",
+      ],
+    },
   },
 } as const
