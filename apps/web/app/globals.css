@@ -46,7 +46,7 @@ html {
 /* REMOVE these h1-h6 global styles. Rely on Tailwind's font-heading utility or @layer base typography */
 /* 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans); 
+  font-family: var(--font-sans);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -285,15 +285,6 @@ body {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* Ensure html, body take full height for gradient to always cover */
-html, body {
-  height: 100%;
-}
-
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }

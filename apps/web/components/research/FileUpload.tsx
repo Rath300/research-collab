@@ -54,12 +54,12 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
 
       // Record file in database
       const fileMetadata = {
-        research_post_id: researchPostId,
-        uploader_id: user.id,
-        file_name: file.name,
-        file_path: filePath,
-        file_type: file.type,
-        file_size: file.size,
+          research_post_id: researchPostId,
+          uploader_id: user.id,
+          file_name: file.name,
+          file_path: filePath,
+          file_type: file.type,
+          file_size: file.size,
       };
       const { error: dbError } = await supabase
         .from('project_files')
@@ -91,10 +91,10 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
   return (
     <div className="space-y-3 p-4 border border-neutral-700 rounded-lg bg-neutral-800/30">
       <div className="flex items-center gap-3">
-        <label
-          htmlFor={`file-upload-${researchPostId}`}
+      <label
+        htmlFor={`file-upload-${researchPostId}`}
           className={`${labelButtonClasses} ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
+      >
           <FiUploadCloud className="mr-2 h-4 w-4" />
           {uploading ? 'Uploading...' : (selectedFileName ? 'Change File' : 'Choose File')}
         </label>
@@ -107,7 +107,7 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
         />
         {selectedFileName && !uploading && (
             <p className="text-sm text-neutral-400 font-sans truncate max-w-[200px]" title={selectedFileName}>Selected: {selectedFileName}</p>
-        )}
+      )}
       </div>
       
       {error && (

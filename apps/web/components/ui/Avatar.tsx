@@ -86,7 +86,3 @@ export function Avatar({
     </div>
   );
 } 
-      />
-    </div>
-  );
-} 

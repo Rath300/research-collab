@@ -81,7 +81,7 @@ export async function deleteResearchPost(id: string) {
     .eq('id', id);
 }
 
-export async function incrementEngagement(id: string) {
+export async function incrementEngagement(id: string): Promise<{ data: ResearchPost | null; error: Error | null; }> {
   const supabase = createClient();
   
   // First get the current count

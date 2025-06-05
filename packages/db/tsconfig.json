@@ -1,11 +1,12 @@
 {
-  "extends": "@research-collab/typescript-config/base.json",
+  "extends": "../typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "declaration": true,
     "declarationMap": true,
-    "rootDir": "./"
+    "rootDir": ".",
+    "composite": true
   },
-  "include": ["./**/*.ts"],
+  "include": ["*.ts", "types/**/*.ts", "schema/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 } 

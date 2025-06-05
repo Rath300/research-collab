@@ -1,5 +1,5 @@
 {
-  "name": "@acme/api",
+  "name": "@research-collab/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.38.4",
     "@trpc/client": "^10.43.0",
     "@trpc/server": "^10.43.0",
+    "next": "^13.5.11",
     "superjson": "^1.13.1",
     "zod": "^3.22.4"
   },

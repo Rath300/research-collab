@@ -1,34 +1,25 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
-import { type Session } from '@supabase/auth-helpers-nextjs';
-
-interface CreateContextOptions {
-  session: Session | null;
-  supabase: SupabaseClient;
-}
+import { cookies } from 'next/headers';
+import { createServerClient } from '@research-collab/db/supabaseClient';
 
 /**
  * Inner context with DB
  */
-export function createContextInner({ session, supabase }: CreateContextOptions) {
+export async function createContextInner(supabaseClient: ReturnType<typeof createServerClient>) {
+  const { data: { session }} = await supabaseClient.auth.getSession();
   return {
     session,
-    supabase,
+    supabase: supabaseClient,
   };
 }
 
 /**
  * Context for API routes
  */
-export function createContext(opts: CreateNextContextOptions) {
-  const { req } = opts;
-  
-  // Get the session and supabase client from your auth setup
-  // This is a placeholder - implement according to your auth setup
-  const session = null; // Get from your auth setup
-  const supabase = null; // Initialize your Supabase client
-  
-  return createContextInner({ session, supabase });
+export async function createContext(opts: CreateNextContextOptions) {
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
+  return await createContextInner(supabase);
 }
 
-export type Context = ReturnType<typeof createContextInner>; 
+export type Context = Awaited<ReturnType<typeof createContextInner>>; 

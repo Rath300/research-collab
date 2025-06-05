@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, type ZodIssueOptionalMessage, type ErrorMapCtx } from 'zod';
 import { type SupabaseClient, type PostgrestError } from '@supabase/supabase-js';
 import { type Database } from '../types/database.types';
 // import { 
@@ -69,12 +69,11 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-  console.log('[api.ts] getProfile called with ID:', id); // Log the ID
-  const supabase = getBrowserClient();
+    const supabase = getBrowserClient();
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, user_id, first_name, last_name, email, avatar_url, institution, bio, website, skills, interests, collaboration_pitch, location, field_of_study, availability, has_completed_tour, updated_at') // Select specific columns
+      .select('*')
       .eq('id', id)
       .single();
       
@@ -84,11 +83,11 @@ export const getProfile = async (id: string): Promise<DbProfile | null> => {
     }
     // Validate data against Zod schema before returning
     return importedProfileSchema.parse(data) as DbProfile | null; 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getProfile:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Profile data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+      throw new SupabaseError(`Profile data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
     }
     throw new SupabaseError((error as Error).message || 'Failed to get profile', (error as { status?: number })?.status || 500);
   }
@@ -138,11 +137,11 @@ export const updateProfile = async (userId: string, updateData: Partial<DbProfil
     }
     if (!data) throw new SupabaseError('No data returned after updating profile', 500);
     return importedProfileSchema.parse(data) as DbProfile | null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in updateProfile:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Updated profile data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+      throw new SupabaseError(`Updated profile data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
     }
     throw new SupabaseError((error as Error).message || 'Failed to update profile', (error as { status?: number })?.status || 500);
   }
@@ -176,7 +175,7 @@ export const profiles = {
         .from('profiles')
         // The payload to insert should match Database['public']['Tables']['profiles']['Insert']
         // `validatedInsertData` should conform to this after parsing. Supabase client handles this.
-        .insert(validatedInsertData as unknown as Database['public']['Tables']['profiles']['Insert']) 
+        .insert(validatedInsertData as Database['public']['Tables']['profiles']['Insert']) 
         .select()
         .single();
       
@@ -185,11 +184,11 @@ export const profiles = {
       }
       if (!data) throw new SupabaseError('No data returned after creating profile', 500);
       return importedProfileSchema.parse(data) as DbProfile | null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in profiles.create:', error);
       if (error instanceof SupabaseError) throw error;
       if (error instanceof z.ZodError) {
-        throw new SupabaseError(`Profile creation data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+        throw new SupabaseError(`Profile creation data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
       }
       throw new SupabaseError((error as Error).message || 'Failed to create profile', (error as { status?: number })?.status || 500);
     }
@@ -221,12 +220,12 @@ export const getMessagesForMatch = async (matchId: string): Promise<DbMessageTyp
       throw new SupabaseError(`Error fetching messages: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
     }
     // Validate each message if necessary, or trust Supabase types for now
-    return (data || []).map(item => importedMessageSchema.parse(item)) as DbMessageType[];
-  } catch (error) {
+    return (data || []).map((item: any) => importedMessageSchema.parse(item)) as DbMessageType[];
+  } catch (error: any) {
     console.error('Error in getMessagesForMatch:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Message data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+      throw new SupabaseError(`Message data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
     }
     throw new SupabaseError((error as Error).message || 'Failed to get messages', (error as { status?: number })?.status || 500);
   }
@@ -249,11 +248,11 @@ export const sendMessage = async (payload: MessageInsert): Promise<DbMessageType
     }
     if (!data) throw new SupabaseError('No data returned after sending message', 500);
     return importedMessageSchema.parse(data) as DbMessageType | null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in sendMessage:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Send message data validation failed: ${error.errors.map(e=>e.message).join(', ')}`, 400);
+      throw new SupabaseError(`Send message data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
     }
     throw new SupabaseError((error as Error).message || 'Failed to send message', (error as { status?: number })?.status || 500);
   }
@@ -274,12 +273,12 @@ export const setupMessageListener = (
           table: 'messages',
           filter: `match_id=eq.${matchId}`
         },
-      (payload) => {
+      (payload: any) => {
         console.log('New message received via listener:', payload);
         try {
           const validatedMessage = importedMessageSchema.parse(payload.new);
           callback(validatedMessage as DbMessageType);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error parsing new message from listener:', error);
           if (error instanceof z.ZodError) {
             console.error('Zod validation errors:', error.errors);
@@ -287,7 +286,7 @@ export const setupMessageListener = (
         }
       }
     )
-    .subscribe((status, err) => {
+    .subscribe((status: string, err?: Error | null) => {
       if (err) {
         console.error(`Error subscribing to messages for match ${matchId}:`, err);
       }
@@ -347,7 +346,7 @@ const projectFileSchemaForApi = z.object({
 const researchPostWithDetailsSchema = z.object({
   id: z.string().uuid(),
   created_at: z.date({
-    errorMap: (issue, ctx) => {
+    errorMap: (issue: ZodIssueOptionalMessage, ctx: ErrorMapCtx) => {
       if (issue.code === z.ZodIssueCode.invalid_type && issue.expected === 'date') {
         return { message: 'created_at was expected to be a Date object, but received something else.' };
       }
@@ -451,11 +450,11 @@ export const getResearchPostById = async (postId: string): Promise<ResearchPostW
     // Validate the combined data against the Zod schema
     return researchPostWithDetailsSchema.parse(combinedData) as ResearchPostWithDetails;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error in getResearchPostById for post ${postId}:`, error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Research post data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
+      throw new SupabaseError(`Research post data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
     }
     throw new SupabaseError((error as Error).message || 'Failed to get research post', (error as { status?: number })?.status || 500);
   }
@@ -560,11 +559,11 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
 
     return conversationItems.map(item => conversationListItemSchema.parse(item));
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getConversations:', error);
     if (error instanceof SupabaseError) throw error;
     if (error instanceof z.ZodError) {
-      throw new SupabaseError(`Conversation data validation failed: ${error.errors.map(e => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
+      throw new SupabaseError(`Conversation data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400, 'ZOD_VALIDATION_ERROR');
     }
     throw new SupabaseError((error as Error).message || 'Failed to get conversations', (error as { status?: number })?.status || 500);
   }
@@ -585,7 +584,7 @@ export const markMessagesAsRead = async (matchId: string, currentUserId: string)
       throw new SupabaseError(`Error marking messages as read: ${error.message}`, 500, error.code);
     }
     // console.log(`Messages marked as read for match ${matchId} for user ${currentUserId}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in markMessagesAsRead:', error);
     if (error instanceof SupabaseError) throw error;
     throw new SupabaseError((error as Error).message || 'Failed to mark messages as read', (error as { status?: number })?.status || 500);
@@ -596,3 +595,30 @@ export const markMessagesAsRead = async (matchId: string, currentUserId: string)
 // export const posts = { ... };
 
 // No more functions or exports beyond this point to ensure no duplicates. 
+
+export const setProfileTourCompleted = async (userId: string): Promise<DbProfile | null> => {
+  const supabase = getBrowserClient();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ has_completed_tour: true, updated_at: new Date().toISOString() })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw new SupabaseError(`Error updating profile tour status: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
+    }
+    if (!data) {
+      throw new SupabaseError('No data returned after updating tour status, profile might not exist.', 404);
+    }
+    return importedProfileSchema.parse(data) as DbProfile;
+  } catch (error: any) {
+    console.error('Error in setProfileTourCompleted:', error);
+    if (error instanceof SupabaseError) throw error;
+    if (error instanceof z.ZodError) {
+      throw new SupabaseError(`Profile tour status update data validation failed: ${error.errors.map((e: { message: string }) => e.message).join(', ')}`, 400);
+    }
+    throw new SupabaseError((error as Error).message || 'Failed to set profile tour completed status', (error as { status?: number })?.status || 500);
+  }
+}; 

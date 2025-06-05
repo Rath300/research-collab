@@ -33,10 +33,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-          {/* <Toaster /> */}
-        </AuthProvider>
-      </body>
-    </html>
-  );
-}

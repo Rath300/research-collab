@@ -1,0 +1,27 @@
+{
+  "extends": "../typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // Add any API-specific compiler options here if needed
+    // For example, if your API uses Node.js specific features for module resolution:
+    // "moduleResolution": "node", 
+    // or for newer Node.js versions with ESM support:
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "lib": ["es2020", "dom"],
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "composite": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../db" }
+  ]
+} 

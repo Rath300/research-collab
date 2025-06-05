@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let authListenerSubscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
-
+    
     const mainAuthSetup = async () => {
       if (!isMounted) return;
 
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           console.log('[AuthProvider] initializeAuth: Session user matches store user or both are null.');
         }
-        
+
         const userForProfileFetch = remoteUser;
         if (userForProfileFetch) {
           console.log(`[AuthProvider] initializeAuth: User (ID: ${userForProfileFetch.id}) present. Fetching profile.`);
@@ -104,8 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (isMounted) {
           if (useAuthStore.getState().isLoading) {
-            setLoading(false);
-          }
+        setLoading(false);
+      }
           if (!useAuthStore.getState().hasAttemptedProfileFetch) {
             setHasAttemptedProfileFetch(true);
           }
@@ -119,20 +119,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Setup onAuthStateChange listener
       console.log('[AuthProvider] Setting up onAuthStateChange listener...');
       const { data: listenerData } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
+      async (event, session) => {
           if (!isMounted) return;
           console.log('[AuthProvider] onAuthStateChange: Event:', event, 'Session:', session ? session.user.id : 'null');
           useAuthStore.getState().setLoading(true);
-
-          const listenerUser = session?.user ?? null;
-          const currentStoreUser = useAuthStore.getState().user;
+        
+        const listenerUser = session?.user ?? null;
+        const currentStoreUser = useAuthStore.getState().user;
           console.log('[AuthProvider] onAuthStateChange: Listener user:', listenerUser ? listenerUser.id : 'null', 'Store user:', currentStoreUser ? currentStoreUser.id : 'null');
 
-          if (JSON.stringify(listenerUser) !== JSON.stringify(currentStoreUser)) {
-            setUser(listenerUser);
-          }
+        if (JSON.stringify(listenerUser) !== JSON.stringify(currentStoreUser)) {
+          setUser(listenerUser);
+        }
 
-          if (listenerUser) {
+        if (listenerUser) {
             const storeProfile = useAuthStore.getState().profile;
             const listenerUserId = listenerUser.id;
             let shouldFetchProfile = false;
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (!isMounted) return;
                 console.log('[AuthProvider] onAuthStateChange: getProfile returned.');
                 if (JSON.stringify(profileData) !== JSON.stringify(useAuthStore.getState().profile)) {
-                  setProfile(profileData);
+              setProfile(profileData);
                 } else if (!useAuthStore.getState().hasAttemptedProfileFetch && profileData) {
                   setHasAttemptedProfileFetch(true);
                 } else if (!profileData && useAuthStore.getState().profile) {
@@ -162,15 +162,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               } catch (error) {
                 if (!isMounted) return;
                 console.error('[AuthProvider] onAuthStateChange: Error fetching profile:', error);
-                setProfile(null);
+            setProfile(null); 
               }
             } else {
               console.log(`[AuthProvider] onAuthStateChange: Profile fetch SKIPPED for event '${event}', user ${listenerUserId}.`);
               if (storeProfile && storeProfile.id === listenerUserId && !useAuthStore.getState().hasAttemptedProfileFetch) {
                 setHasAttemptedProfileFetch(true);
               }
-            }
-          } else {
+          }
+        } else {
             useAuthStore.getState().clearAuth();
           }
           
@@ -191,71 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         useAuthStore.getState().clearAuth(); // Fallback to clear auth and set loading states
       }
     });
-
-    return () => {
-      isMounted = false;
-      console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
-      authListenerSubscription?.unsubscribe();
-    };
-  }, [supabase, setUser, setProfile, setLoading, setHasAttemptedProfileFetch]); // Keep store setters as deps
-
-  return <>{children}</>;
-} 
-
-            if (event === 'SIGNED_IN') { shouldFetchProfile = true; fetchReason = "User signed in."; }
-            else if (event === 'USER_UPDATED') { shouldFetchProfile = true; fetchReason = "User data updated by Supabase."; }
-            else if (!storeProfile) { shouldFetchProfile = true; fetchReason = "No profile in store."; }
-            else if (storeProfile.id !== listenerUserId) { shouldFetchProfile = true; fetchReason = `Profile in store for different user.`; }
-            else if (event === 'TOKEN_REFRESHED' && !useAuthStore.getState().hasAttemptedProfileFetch) {
-                shouldFetchProfile = true; fetchReason = "Token refreshed, profile not yet fetched this session.";
-            }
-
-            if (shouldFetchProfile) {
-              console.log(`[AuthProvider] onAuthStateChange: Fetching profile. Reason: ${fetchReason} User: ${listenerUserId}`);
-              try {
-                const profileData = await getProfile(listenerUserId);
-                if (!isMounted) return;
-                console.log('[AuthProvider] onAuthStateChange: getProfile returned.');
-                if (JSON.stringify(profileData) !== JSON.stringify(useAuthStore.getState().profile)) {
-                  setProfile(profileData);
-                } else if (!useAuthStore.getState().hasAttemptedProfileFetch && profileData) {
-                  setHasAttemptedProfileFetch(true);
-                } else if (!profileData && useAuthStore.getState().profile) {
-                  setProfile(null);
-                }
-              } catch (error) {
-                if (!isMounted) return;
-                console.error('[AuthProvider] onAuthStateChange: Error fetching profile:', error);
-                setProfile(null);
-              }
-            } else {
-              console.log(`[AuthProvider] onAuthStateChange: Profile fetch SKIPPED for event '${event}', user ${listenerUserId}.`);
-              if (storeProfile && storeProfile.id === listenerUserId && !useAuthStore.getState().hasAttemptedProfileFetch) {
-                setHasAttemptedProfileFetch(true);
-              }
-            }
-          } else {
-            useAuthStore.getState().clearAuth();
-          }
-          
-          if (isMounted) {
-            useAuthStore.getState().setLoading(false);
-            console.log('[AuthProvider] onAuthStateChange: END. isLoading:', useAuthStore.getState().isLoading, 'hasAttemptedProfileFetch:', useAuthStore.getState().hasAttemptedProfileFetch);
-          }
-        }
-      );
-      if (listenerData) { // Ensure listenerData and its subscription property exist
-        authListenerSubscription = listenerData.subscription;
-      }
-    };
-
-    mainAuthSetup().catch(error => {
-      console.error("[AuthProvider] Critical error in mainAuthSetup:", error);
-      if(isMounted) {
-        useAuthStore.getState().clearAuth(); // Fallback to clear auth and set loading states
-      }
-    });
-
+    
     return () => {
       isMounted = false;
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');

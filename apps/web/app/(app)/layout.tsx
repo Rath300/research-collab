@@ -38,12 +38,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       (!authIsLoading && !user) ||
       (!authIsLoading && user && hasAttemptedProfileFetch && (!profile || !profile.first_name) && pathname !== '/profile-setup')
      ) {
-    return (
+  return (
       <div className="flex h-screen w-screen items-center justify-center bg-black">
         <FiLoader className="animate-spin text-accent-purple text-4xl" />
-      </div>
-    );
-  }
+    </div>
+  );
+} 
 
   // If all checks pass, render the layout
   return (

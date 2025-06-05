@@ -87,7 +87,7 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-export async function updateProfile(profile: Partial<Profile>) {
+export async function updateProfile(profile: Partial<Profile>): Promise<{ data: Profile | null; error: Error | null; }> {
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   

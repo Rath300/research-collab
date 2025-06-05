@@ -4,9 +4,7 @@
   "compilerOptions": {
     "baseUrl": "../..",
     "paths": {
-      "ui": ["packages/ui/src"],
-      "api": ["packages/api/src"],
-      "@research-collab/db": ["packages/db"]
+      "@research-collab/*": ["packages/*"]
     },
     "composite": false,
     "declaration": true,
