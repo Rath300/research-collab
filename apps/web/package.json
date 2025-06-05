@@ -9,10 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "ui": "workspace:*",
     "@fontsource/inter": "^5.0.18",
     "@headlessui/react": "^1.7.17",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-select": "^2.2.5",
     "@react-spring/web": "^10.0.0",
     "@research-collab/api": "workspace:*",
     "@research-collab/db": "workspace:*",
@@ -66,16 +66,17 @@
     "tailwindcss-font-inter": "^3.0.1",
     "tamagui": "1.61.0",
     "typescript": "^5.8.2",
+    "ui": "workspace:*",
     "xml2js": "^0.6.2",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@types/node": "^18.11.17",
+    "@types/react": "~18.2.14",
+    "@types/react-dom": "~18.2.14"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.6",
     "@tamagui/next-plugin": "^1.126.13",
-    "@types/node": "^18.11.17",
-    "@types/react": "~18.2.14",
-    "@types/react-dom": "~18.2.14",
     "@types/react-joyride": "^2.0.2",
     "@types/xml2js": "^0.4.14",
     "eslint": "^8.30.0",
