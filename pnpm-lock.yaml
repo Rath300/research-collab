@@ -8,15 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@babel/preset-env':
-        specifier: ^7.24.5
-        version: 7.27.2(@babel/core@7.27.3)
-      '@babel/preset-react':
-        specifier: ^7.24.1
-        version: 7.27.1(@babel/core@7.27.3)
-      '@babel/preset-typescript':
-        specifier: ^7.24.1
-        version: 7.27.1(@babel/core@7.27.3)
       '@tamagui/animations-css':
         specifier: ^1.94.3
         version: 1.126.13(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -32,9 +23,6 @@ importers:
       '@tamagui/themes':
         specifier: ^1.94.3
         version: 1.94.3
-      babel-plugin-transform-inline-environment-variables:
-        specifier: ^0.4.4
-        version: 0.4.4
       tamagui:
         specifier: ^1.94.3
         version: 1.126.14(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0)
@@ -4205,9 +4193,6 @@ packages:
 
   babel-plugin-transform-flow-enums@0.0.2:
     resolution: {integrity: sha512-g4aaCrDDOsWjbm0PUUeVnkcVd6AKJsVc/MbnPhEotEpkeJQP6b8nzewohQi7+QS8UyPehOhGWn0nOwjvWpmMvQ==}
-
-  babel-plugin-transform-inline-environment-variables@0.4.4:
-    resolution: {integrity: sha512-bJILBtn5a11SmtR2j/3mBOjX4K3weC6cq+NNZ7hG22wCAqpc3qtj/iN7dSe9HDiS46lgp1nHsQgeYrea/RUe+g==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -12823,8 +12808,6 @@ snapshots:
       '@babel/plugin-syntax-flow': 7.27.1(@babel/core@7.27.3)
     transitivePeerDependencies:
       - '@babel/core'
-
-  babel-plugin-transform-inline-environment-variables@0.4.4: {}
 
   balanced-match@1.0.2: {}
 

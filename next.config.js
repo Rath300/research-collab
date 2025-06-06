@@ -1,3 +1,6 @@
+/**
+ * @type {import('next').NextConfig}
+ */
 const { withTamagui } = require('@tamagui/next-plugin')
 const { join } = require('path')
 
@@ -17,65 +20,16 @@ const plugins = [
     outputCSS: process.env.NODE_ENV === 'production' ? './public/tamagui.css' : null,
     logTimings: true,
     disableExtraction,
-    // experiment - Fix subpaths resolving
-    shouldExtract: (path) => {
-      if (path.includes(join('packages', 'app'))) {
-        return true
-      }
-    },
-  }),
-]
-
-module.exports = function () {
-  /** @type {import('next').NextConfig} */
-  let config = {
-    //
-    // Europe (Frankfurt)
-    // i18n: {
-    //   locales: ['en-US', 'es-ES', 'fr-FR', 'de-DE'],
-    //   defaultLocale: 'en-US',
-    // },
-    // output: 'standalone',
-    //
-    images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'gravatar.com',
-          port: '',
-          pathname: '/avatar/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'lh3.googleusercontent.com',
-          port: '',
-          pathname: '/a/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'i.pravatar.cc',
-          port: '',
-          pathname: '/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'images.unsplash.com',
-          port: '',
-          pathname: '/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'plus.unsplash.com',
-          port: '',
-          pathname: '/**',
-        },
-      ],
-    },
-    //
-    //
+    appDir: true,
     transpilePackages: [
-      'solito',
+      'react-native',
       'react-native-web',
+      'tamagui',
+      '@tamagui/core',
+      '@tamagui/config',
+      '@tamagui/next-plugin',
+      '@tamagui/babel-plugin',
+      'solito',
       'expo-linking',
       'expo-constants',
       'expo-modules-core',
@@ -83,34 +37,38 @@ module.exports = function () {
       'expo-av',
       '@research-collab/ui',
     ],
-    //
-    //
-    experimental: {
-      // optimizeCss: true,
-      // scrollRestoration: true,
-      // legacyBrowsers: false,
-      // serverActions: true,
-    },
-    typescript: {
-      ignoreBuildErrors: true,
-    },
-    // modularizeImports: {
-    //   '@tamagui/lucide-icons': {
-    //     transform: `@tamagui/lucide-icons/dist/esm/icons/{{kebabCase member}}`,
-    //     skipDefaultConversion: true,
-    //   },
-    // },
-    //
-    //
-    //
-    webpack: (config, { isServer, dev, buildId, config: { pageExtensions } }) => {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'react-native$': 'react-native-web',
+    shouldExtract: (path) => {
+      if (path.includes(join('packages', 'app'))) {
+        return true
       }
-      return config
     },
-    //
+    excludeReactNativeWebExports: ['Switch', 'ProgressBar', 'Picker', 'CheckBox', 'Touchable'],
+  }),
+]
+
+module.exports = function () {
+  /** @type {import('next').NextConfig} */
+  let config = {
+    images: {
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'lh3.googleusercontent.com',
+        },
+        {
+          protocol: 'https',
+          hostname: 'i.pravatar.cc',
+        },
+        {
+          protocol: 'https',
+          hostname: 'ixvofwbhsgtbitjdayip.supabase.co',
+        },
+      ],
+    },
+    experimental: {
+      scrollRestoration: true,
+      appDir: true,
+    },
   }
 
   for (const plugin of plugins) {
