@@ -1,0 +1,18 @@
+{
+  "presets": [
+    "next/babel",
+    "@babel/preset-env",
+    "@babel/preset-react",
+    "@babel/preset-typescript"
+  ],
+  "plugins": [
+    [
+      "transform-inline-environment-variables",
+      {
+        "include": [
+          "TAMAGUI_TARGET"
+        ]
+      }
+    ]
+  ]
+} 
