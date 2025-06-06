@@ -65,7 +65,6 @@
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-font-inter": "^3.0.1",
     "tamagui": "1.61.0",
-    "typescript": "^5.8.2",
     "ui": "workspace:*",
     "xml2js": "^0.6.2",
     "zod": "^3.23.8",
@@ -73,7 +72,8 @@
     "@types/node": "^18.11.17",
     "@types/react": "~18.2.14",
     "@types/react-dom": "~18.2.14",
-    "@tamagui/next-plugin": "^1.126.13"
+    "@tamagui/next-plugin": "^1.126.13",
+    "typescript": "^5.8.2"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.6",
@@ -81,8 +81,7 @@
     "@types/xml2js": "^0.4.14",
     "eslint": "^8.30.0",
     "eslint-config-next": "13.0.7",
-    "postcss": "^8.4.38",
-    "typescript": "^5.8.2"
+    "postcss": "^8.4.38"
   },
   "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).",
   "main": "eslint.config.js",
