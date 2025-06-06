@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
     devDependencies:
       '@supabase/auth-helpers-nextjs':
         specifier: ^0.10.0
@@ -69,6 +65,9 @@ importers:
       turbo:
         specifier: ^2.5.3
         version: 2.5.3
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
       typescript-eslint:
         specifier: ^8.29.1
         version: 8.33.0(eslint@9.27.0(jiti@1.21.7))(typescript@5.8.2)
@@ -172,9 +171,6 @@ importers:
       '@tamagui/lucide-icons':
         specifier: ^1.94.3
         version: 1.126.13(react-dom@18.2.0(react@18.2.0))(react-native-svg@13.9.0(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0)
-      '@tamagui/next-plugin':
-        specifier: ^1.126.13
-        version: 1.126.13(@babel/core@7.27.3)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0)(webpack@5.99.9)
       '@tamagui/shorthands':
         specifier: 1.94.3
         version: 1.94.3
@@ -317,6 +313,9 @@ importers:
       '@next/eslint-plugin-next':
         specifier: ^13.5.6
         version: 13.5.11
+      '@tamagui/next-plugin':
+        specifier: ^1.126.13
+        version: 1.126.13(@babel/core@7.27.3)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0)(webpack@5.99.9)
       '@types/react-joyride':
         specifier: ^2.0.2
         version: 2.0.5(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
