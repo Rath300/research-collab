@@ -7,10 +7,9 @@ import { useUIStore, useAuthStore } from '@/lib/store';
 import { useRouter, usePathname } from 'next/navigation'; // Added usePathname
 import { FiLoader } from 'react-icons/fi'; // Added FiLoader
 import { AppTour } from '@/components/layout/AppTour'; // Import AppTour
-import { Theme } from 'tamagui'; // Import Theme
 
 export default function AppLayout({ children }: { children: React.ReactNode }) { // Renamed component
-  const { sidebarOpen, setSidebarOpen, theme, darkMode } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
   const { user, profile, isLoading: authIsLoading, hasAttemptedProfileFetch } = useAuthStore(); // Added hasAttemptedProfileFetch
   const router = useRouter();
   const pathname = usePathname(); // Initialize pathname
@@ -30,8 +29,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const isSidebarCollapsed = !sidebarOpen;
 
-  const currentTheme = `${darkMode ? 'dark' : 'light'}_${theme.split('_').pop()}`;
-
   // Combined loading condition:
   // 1. Auth is still loading.
   // 2. Auth is NOT loading, but there's NO user (useEffect is handling /login redirect, show loader).
@@ -50,27 +47,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // If all checks pass, render the layout
   return (
-    <Theme name={currentTheme as any}>
-      <div className="flex h-screen bg-black">
-        <AppSidebar />
-        <div 
-          className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ marginLeft: sidebarOpen ? '270px' : '80px' }}
-        >
-          <AppHeader 
-            profile={profile} 
-            toggleSidebar={toggleSidebar} 
-            isSidebarCollapsed={isSidebarCollapsed} 
-          />
-          <main className="flex-1 overflow-y-auto">
-            {/* The div with padding is important here for the PageContainer to fill correctly */}
-            <div className="p-6 md:p-8">
-              {children}
-            </div>
-          </main>
-        </div>
-        <AppTour /> {/* Render AppTour component here */}
+    <div className="flex h-screen bg-black">
+      <AppSidebar />
+      <div 
+        className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? '270px' : '80px' }}
+      >
+        <AppHeader 
+          profile={profile} 
+          toggleSidebar={toggleSidebar} 
+          isSidebarCollapsed={isSidebarCollapsed} 
+        />
+        <main className="flex-1 overflow-y-auto">
+          {/* The div with padding is important here for the PageContainer to fill correctly */}
+          <div className="p-6 md:p-8">
+            {children}
+          </div>
+        </main>
       </div>
-    </Theme>
+      <AppTour /> {/* Render AppTour component here */}
+    </div>
   );
 } 

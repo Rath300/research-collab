@@ -1,55 +1,41 @@
-const { withTamagui } = require('@tamagui/next-plugin');
+/** @type {import('next').NextConfig} */
 const path = require('path');
 
-const tamaguiOptions = {
-  config: path.join(__dirname, '../../packages/ui/src/tamagui.config.ts'),
-  components: ['tamagui', '@research-collab/ui'],
-  importsWhitelist: ['constants.js', 'colors.js'],
-  logTimings: true,
-  disableExtraction: process.env.NODE_ENV === 'development',
-  // Recommended settings for monorepos
-  shouldExtract: (path) => {
-    if (path.includes(path.join('packages', 'ui'))) {
-      return true;
-    }
-  },
-  excludeReactNativeWebExports: ['Switch', 'ProgressBar', 'Picker', 'CheckBox', 'ScrollView'],
-};
-
-const withTamaguiPlugin = withTamagui(tamaguiOptions);
-
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone', // This can sometimes cause issues in monorepos on Vercel
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: 'https://yltnvmypasnfdgtnyhwg.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsdG52bXlwYXNuZmRndG55aHdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDcxNTMsImV4cCI6MjA1OTkyMzE1M30.ajCPb95af8_It1m_D4yGJhErKuLEtqqfqk8Yq2n4MCw'
+  },
+  output: 'standalone',
   swcMinify: true,
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true
   },
-  experimental: {
-    scrollRestoration: true,
-    transpilePackages: [
-      'solito',
-      'react-native-web',
-      'expo-linking',
-      'expo-constants',
-      'expo-modules-core',
-      'react-native', // Explicitly add react-native
-      '@research-collab/ui',
-      '@research-collab/db',
+  images: {
+    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
     ],
   },
-   webpack: (config, { isServer }) => {
-    config.module.rules.push({
-      test: /\.node$/,
-      loader: 'node-loader',
-      options: {
-        name: '[name].[ext]',
-      },
-    });
+  reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['sharp', 'canvas'],
+  },
+  webpack: (config, { isServer, webpack }) => {
+    // Ignore optional native dependencies of ws
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^(bufferutil|utf-8-validate)$/,
+      })
+    );
 
+    // Also ensure that the fallbacks are properly set for these optional native modules
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,
@@ -57,8 +43,16 @@ const nextConfig = {
         'utf-8-validate': false,
       };
     }
+
+    // Required by Supabase to work with WebAssembly
+    config.experiments = { ...config.experiments, asyncWebAssembly: true };
+    
     return config;
   },
+  serverRuntimeConfig: {
+    PROJECT_ROOT: __dirname
+  },
+  transpilePackages: ['@research-collab/db'],
 };
 
-module.exports = withTamaguiPlugin(nextConfig);
+module.exports = nextConfig;
