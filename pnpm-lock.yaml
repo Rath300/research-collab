@@ -23,6 +23,9 @@ importers:
       '@tamagui/themes':
         specifier: ^1.94.3
         version: 1.94.3
+      babel-plugin-transform-inline-environment-variables:
+        specifier: ^0.4.4
+        version: 0.4.4
       tamagui:
         specifier: ^1.94.3
         version: 1.126.14(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.3)(@babel/preset-env@7.27.2(@babel/core@7.27.3))(react@18.2.0))(react@18.2.0)
@@ -48,9 +51,6 @@ importers:
       '@types/react-icons':
         specifier: ^2.2.7
         version: 2.2.7
-      babel-plugin-transform-inline-environment-variables:
-        specifier: ^0.4.4
-        version: 0.4.4
       eslint:
         specifier: ^9.24.0
         version: 9.27.0(jiti@1.21.7)
