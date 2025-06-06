@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +16,8 @@ import {
   type UnifiedSearchResultItem,
 } from '@/lib/external-apis'; // Adjust path as necessary
 import { FiSearch, FiLoader, FiAlertCircle, FiBookOpen } from 'react-icons/fi';
+import { api } from '@/lib/trpc';
+import { mapCoreResultToPaper } from '@/lib/external-apis/core.service'; // Keep the mapper
 
 type ApiSource = 'arxiv' | 'semanticScholar' | 'crossref' | 'pubmed' | 'core';
 
@@ -28,93 +30,33 @@ const availableSources: { id: ApiSource; name: string }[] = [
 ];
 
 export default function ExternalResearchPage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('AI');
+  const [submittedQuery, setSubmittedQuery] = useState('AI');
   const [selectedSources, setSelectedSources] = useState<ApiSource[]>(['arxiv', 'semanticScholar']); // Default selection
   const [results, setResults] = useState<UnifiedSearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setError('Please enter a search query.');
-      return;
+  const coreQuery = api.external.searchCore.useQuery(
+    { query: submittedQuery },
+    {
+      enabled: !!submittedQuery, // Only run the query if there is a submitted query
+      staleTime: 1000 * 60 * 5, // Cache results for 5 minutes
     }
-    if (selectedSources.length === 0) {
-      setError('Please select at least one data source.');
-      return;
-    }
+  );
 
-    setIsLoading(true);
-    setError(null);
-    setResults([]);
-
-    const query: ExternalSearchQuery = {
-      searchText: searchQuery,
-      sources: selectedSources,
-      maxResultsPerSource: 10, // Default for now
-    };
-
-    try {
-      // This is where the conceptual aggregator function would be great.
-      // For now, we'll call services individually and combine results (using placeholder data).
-      let combinedResults: UnifiedSearchResultItem[] = [];
-
-      // Simulating calls and combining mock data
-      if (selectedSources.includes('arxiv')) {
-        const arxivRes = await searchArxiv({ query: searchQuery });
-        combinedResults = combinedResults.concat(
-          arxivRes.map(p => ({ 
-            source: 'arXiv', 
-            id: p.id,
-            title: p.title,
-            authors: p.authors, // Directly use the string array
-            abstract: p.summary,
-            url: p.id, // arXiv entry URL can serve as the main URL
-            pdfUrl: p.pdfLink,
-            publishedDate: p.publishedDate 
-          }))
-        );
-      }
-      if (selectedSources.includes('semanticScholar')) {
-        const s2Res = await searchSemanticScholar({ query: searchQuery });
-        combinedResults = combinedResults.concat(
-          s2Res.map(p => ({ ...p, id: p.paperId, source: 'Semantic Scholar', authors: p.authors?.map(a => a.name) || [] }))
-        );
-      }
-      // ... Add similar blocks for CrossRef, PubMed, CORE using their respective search functions and mappers
-      // For now, these will use the placeholder data from their service files.
-      if (selectedSources.includes('core')) {
-        const coreRes = await searchCore({ query: searchQuery });
-        combinedResults = combinedResults.concat(
-          coreRes.map(p => ({ ...p, source: 'CORE', authors: p.authors?.map(a => a.name) || [], pdfUrl: p.downloadUrl }))
-        );
-      }
-       if (selectedSources.includes('crossref')) {
-        const crossrefRes = await searchCrossref({ query: searchQuery });
-        combinedResults = combinedResults.concat(
-          crossrefRes.map(p => ({ id: p.DOI, source: 'CrossRef', title: p.title[0], authors: p.authors?.map(a => `${a.given} ${a.family}`.trim()) || [], url: p.URL }))
-        );
-      }
-      if (selectedSources.includes('pubmed')) {
-        const pubmedRes = await searchPubmed({ term: searchQuery });
-        combinedResults = combinedResults.concat(
-          pubmedRes.map(p => ({ id: p.uid, source: 'PubMed', title: p.title, authors: p.authors?.map(a => a.name) || [], abstract: p.abstract, url: `https://pubmed.ncbi.nlm.nih.gov/${p.uid}/` }))
-        );
-      }
-
-
-      setResults(combinedResults);
-      if (combinedResults.length === 0) {
-        setError('No results found for your query.');
-      }
-
-    } catch (err) {
-      console.error('Search failed:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred during search.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittedQuery(searchQuery);
   };
+
+  const papers = useMemo(() => {
+    if (!coreQuery.data || !Array.isArray(coreQuery.data.results)) {
+      return [];
+    }
+    // Use the existing mapping function
+    return coreQuery.data.results.map(mapCoreResultToPaper).filter(Boolean);
+  }, [coreQuery.data]);
 
   const handleSourceChange = (sourceId: ApiSource) => {
     setSelectedSources(prev =>
@@ -203,27 +145,18 @@ export default function ExternalResearchPage() {
           </div>
         )}
 
-        {!isLoading && results.length > 0 && (
+        {!isLoading && papers.length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-heading text-neutral-100 mb-4">Search Results ({results.length})</h2>
-            {results.map((item, index) => (
-              <div key={`${item.source}-${item.id}-${index}`} className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-lg p-5 hover:border-neutral-700 transition-colors">
-                <h3 className="text-lg font-semibold font-heading text-accent-purple mb-1">{item.title}</h3>
-                <p className="text-xs text-neutral-500 mb-2 font-sans">Source: <span className="font-medium text-neutral-400">{item.source}</span> {item.publishedDate && `• Published: ${item.publishedDate}`}</p>
-                {item.authors && item.authors.length > 0 && (
-                  <p className="text-sm text-neutral-300 mb-2 font-sans">Authors: {item.authors.join(', ')}</p>
-                )}
-                {item.abstract && (
-                  <p className="text-sm text-neutral-400 mb-3 line-clamp-3 font-sans">{item.abstract}</p>
+            <h2 className="text-2xl font-heading text-neutral-100 mb-4">Search Results ({papers.length})</h2>
+            {papers.map((paper) => (
+              <div key={paper.id} className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-lg p-5 hover:border-neutral-700 transition-colors">
+                <h3 className="text-lg font-semibold font-heading text-accent-purple mb-1">{paper.title}</h3>
+                {paper.abstract && (
+                  <p className="text-sm text-neutral-400 mb-3 line-clamp-3 font-sans">{paper.abstract}</p>
                 )}
                 <div className="flex flex-wrap gap-3 items-center">
-                  {item.url && (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-blue-400 hover:text-blue-300 hover:underline transition-colors">
-                      View on {item.source}
-                    </a>
-                  )}
-                  {item.pdfUrl && (
-                    <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-green-400 hover:text-green-300 hover:underline transition-colors">
+                  {paper.downloadUrl && (
+                    <a href={paper.downloadUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-green-400 hover:text-green-300 hover:underline transition-colors">
                       Download PDF
                     </a>
                   )}
@@ -233,7 +166,7 @@ export default function ExternalResearchPage() {
           </div>
         )}
         
-        {!isLoading && !error && results.length === 0 && searchQuery && (
+        {!isLoading && !error && papers.length === 0 && searchQuery && (
              <div className="text-center py-12">
                 <FiBookOpen className="mx-auto text-6xl text-neutral-600 mb-4" />
                 <h2 className="text-xl font-heading text-neutral-300 mb-2">No Results Found</h2>

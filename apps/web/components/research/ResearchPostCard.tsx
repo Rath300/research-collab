@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -10,10 +10,15 @@ import {
   FiShare2, 
   FiClock, 
   FiZap, 
-  FiTag 
+  FiTag, 
+  FiEdit, 
+  FiTrash2 
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@/components/ui/Avatar';
+import { useAuthStore } from '@/lib/store';
+import { api } from '@/lib/trpc';
+import EditPostModal from './EditPostModal';
 
 type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -27,6 +32,10 @@ interface ResearchPostCardProps {
 }
 
 export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProps) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { user } = useAuthStore();
+  const utils = api.useUtils();
+
   const {
     id,
     title,
@@ -43,6 +52,27 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
   const institution = profiles?.institution || 'Independent Researcher';
   const userId = profiles?.id;
   
+  const isOwner = user?.id === profiles?.id;
+
+  const deleteMutation = api.project.delete.useMutation({
+    onSuccess: () => {
+      // Invalidate queries to refetch the list of posts
+      utils.project.listMyProjects.invalidate();
+      // Potentially invalidate other queries where this post might appear
+    },
+    onError: (error) => {
+      // Handle error, e.g., show a toast notification
+      console.error("Failed to delete post:", error);
+      alert(error.message);
+    }
+  });
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      deleteMutation.mutate({ id: post.id });
+    }
+  };
+
   // Truncate content if it's too long
   const truncatedContent = content.length > 300
     ? `${content.substring(0, 300)}...`
@@ -74,6 +104,17 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
               {institution} • {createdAt}
             </p>
           </div>
+          
+          {isOwner && (
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" onClick={() => setIsEditModalOpen(true)}>
+                <FiEdit size={16} />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleteMutation.isPending}>
+                <FiTrash2 size={16} className="text-red-500" />
+              </Button>
+            </div>
+          )}
           
           {is_boosted && (
             <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full flex items-center text-xs font-medium dark:bg-yellow-900/30 dark:text-yellow-400">
@@ -168,6 +209,10 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
           )}
         </div>
       </CardFooter>
+
+      {isEditModalOpen && (
+        <EditPostModal post={post} onClose={() => setIsEditModalOpen(false)} />
+      )}
     </Card>
   );
 } 

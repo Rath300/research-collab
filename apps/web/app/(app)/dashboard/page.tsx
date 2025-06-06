@@ -246,114 +246,73 @@ export default function DashboardPage() {
     try {
       const userId = user.id;
 
-      const getActiveProjectsCount = async (): Promise<{ count: number; error: any }> => {
+      // Define all data fetching promises together
+      const getActiveProjectsCount = async () => {
         const { data: collaboratorEntries, error: collabError } = await supabase
           .from('project_collaborators')
-          .select('project_id')
-          .eq('user_id', userId);
-
-        if (collabError) {
-          console.error('Error fetching collaborator entries for active count:', collabError.message);
-          return { count: 0, error: collabError };
-        }
-
-        if (!collaboratorEntries || collaboratorEntries.length === 0) {
-          return { count: 0, error: null };
-        }
-
-        const projectIds = collaboratorEntries.map(pc => pc.project_id);
-        const { count, error: activeError } = await supabase
-          .from('research_posts')
-          .select('id', { count: 'exact', head: true })
-          .in('id', projectIds);
-        
-        return { count: count ?? 0, error: activeError };
+          .select('project_id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('status', 'active');
+        return { count: collaboratorEntries?.length ?? 0, error: collabError };
       };
 
-      const countsPromises = [
-        supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
-        supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-        getActiveProjectsCount(),
-        supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'),
-        supabase.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', userId).eq('is_read', false)
-      ];
-
-      const processedPromises = countsPromises.map(item => {
-        return (item as any).then((response: { data?: any; count?: number | null; error?: any; }) => {
-          return {
-            count: response.count ?? 0,
-            error: response.error || null
-          };
-        }).catch((err: any) => {
-            console.error('[DashboardPage] Error in one of the count promises:', err);
-            return { count: 0, error: err };
-        });
-      });
-
-      const results = await Promise.all(processedPromises);
-      
-      const [
-        { count: postCount },
-        { count: matchCount },
-        { count: messageCount },
-        { count: activeProjectsCount, error: activeProjectsError },
-        { count: pendingRequestsCount, error: pendingRequestsError },
-        { count: unreadMessagesCount, error: unreadMessagesError }
-      ] = results;
-      
-      if (activeProjectsError) console.error('Error fetching active projects count (new method):', activeProjectsError?.message);
-      if (pendingRequestsError) console.error('Error fetching pending requests count:', pendingRequestsError.message);
-      if (unreadMessagesError) console.error('Error fetching unread messages count:', unreadMessagesError.message);
-      
-      setStats({
-        postCount: postCount || 0,
-        matchCount: matchCount || 0,
-        messageCount: messageCount || 0,
-        viewCount: 0, 
-        activeProjectsCount: activeProjectsCount || 0,
-        pendingRequestsCount: pendingRequestsCount || 0,
-        unreadMessagesCount: unreadMessagesCount || 0
-      });
-      
-      const detailedDataPromises = [
-        supabase
+      const promises = {
+        postCount: supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        matchCount: supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
+        messageCount: supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
+        activeProjectsCount: getActiveProjectsCount(),
+        pendingRequestsCount: supabase.from('collaborator_matches').select('id', { count: 'exact', head: true }).eq('target_user_id', userId).eq('status', 'pending'),
+        unreadMessagesCount: supabase.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', userId).eq('is_read', false),
+        recentMatches: supabase
           .from('profile_matches')
           .select('*, matched_profile:profiles!profile_matches_matchee_user_id_fkey (*)')
           .eq('matcher_user_id', userId)
           .order('created_at', { ascending: false })
           .limit(3),
-        supabase
+        recentNotifications: supabase
           .from('user_notifications')
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(4)
-      ];
+      };
 
+      // Await all promises simultaneously
+      const results = await Promise.all(Object.values(promises));
       const [
-        { data: matchesData, error: matchesError },
-        { data: notificationsData, error: notificationsError }
-      ] = await Promise.all(detailedDataPromises.filter(p => p));
-            
-      if (matchesError) {
-        console.error('Error fetching matches:', matchesError);
-      } else {
-        setRecentMatches(matchesData as ProfileMatch[] || []);
-      }
+        postCountRes,
+        matchCountRes,
+        messageCountRes,
+        activeProjectsCountRes,
+        pendingRequestsCountRes,
+        unreadMessagesCountRes,
+        matchesRes,
+        notificationsRes
+      ] = results;
+
+      // Process and set stats
+      setStats({
+        postCount: postCountRes.count ?? 0,
+        matchCount: matchCountRes.count ?? 0,
+        messageCount: messageCountRes.count ?? 0,
+        viewCount: 0, // Not implemented yet
+        activeProjectsCount: activeProjectsCountRes.count ?? 0,
+        pendingRequestsCount: pendingRequestsCountRes.count ?? 0,
+        unreadMessagesCount: unreadMessagesCountRes.count ?? 0,
+      });
+
+      if (matchesRes.error) console.error('Error fetching matches:', matchesRes.error);
+      else setRecentMatches((matchesRes.data as ProfileMatch[]) || []);
       
-      if (notificationsError) {
-        console.error('Error fetching notifications:', notificationsError);
-      } else {
-        setRecentNotifications(notificationsData as UserNotification[] || []);
-      }
+      if (notificationsRes.error) console.error('Error fetching notifications:', notificationsRes.error);
+      else setRecentNotifications((notificationsRes.data as UserNotification[]) || []);
 
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [user, setStats, setRecentMatches, setRecentNotifications, setIsLoading]);
+  }, [user, supabase]);
 
   useEffect(() => {
     loadDashboardData();

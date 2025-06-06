@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuthStore } from '@/lib/store'
 import { uploadAvatar } from '@/lib/api'
 import { type Profile } from '@research-collab/db'
-import { FiUser, FiUpload, FiAlertCircle, FiCheckCircle, FiX, FiSave, FiPlusCircle, FiTrash2 } from 'react-icons/fi'
+import { FiUser, FiUpload, FiAlertCircle, FiCheckCircle, FiX, FiSave, FiPlusCircle, FiTrash2, FiLoader } from 'react-icons/fi'
 import { Avatar } from '@/components/ui/Avatar'
+import { api } from '@/lib/trpc'
 
 interface ProfileFormData {
   full_name: string;
@@ -127,28 +128,57 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
     setAvatarFile(file);
   };
 
+  const updateProfileMutation = api.profile.update.useMutation({
+    onMutate: async (newProfileData) => {
+      // Snapshot the previous value
+      const previousProfile = authProfile;
+
+      // Optimistically update the store
+      // We merge the existing profile with the new data to form the optimistic profile
+      if (previousProfile) {
+        const optimisticProfile = { ...previousProfile, ...newProfileData };
+        setProfile(optimisticProfile as Profile);
+      }
+      
+      setSuccess('Saving...');
+      setError(null);
+
+      // Return a context object with the snapshotted value
+      return { previousProfile };
+    },
+    onError: (err, newProfile, context) => {
+      // Rollback to the previous value if mutation fails
+      if (context?.previousProfile) {
+        setProfile(context.previousProfile);
+      }
+      setError(err.message);
+      setSuccess(null);
+    },
+    onSuccess: (data) => {
+      // On success, the server returns the definitive data.
+      // We update the store with this confirmed data.
+      setProfile(data);
+      setSuccess('Profile saved successfully!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+      router.refresh(); // Or invalidate a specific query if preferred
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
-    setLoading(true)
+    
+    if (!user) {
+      setError('Not authenticated');
+      return;
+    }
 
     try {
-      if (!user) throw new Error('Not authenticated')
-
-      const nameParts = formData.full_name.trim().split(/\s+/);
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
       let newAvatarUrl = avatarPreview;
-
       if (avatarFile) {
         const uploadResult = await uploadAvatar(user.id, avatarFile);
-        if (uploadResult && typeof uploadResult.url === 'string') {
-          newAvatarUrl = uploadResult.url;
-        } else {
-          console.warn('Avatar upload failed or did not return a URL. Using existing avatar_url or preview.');
-        }
+        newAvatarUrl = uploadResult?.url ?? newAvatarUrl;
       }
       
       let educationDataToSave: any = null;
@@ -158,12 +188,12 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         throw new Error('Education data is not valid JSON.');
       }
 
-      const profileDataToSave: Partial<Profile> & { id: string; user_id: string; updated_at: string } = {
-        id: user.id,
-        user_id: user.id, 
+      const nameParts = formData.full_name.trim().split(/\s+/);
+
+      const profileDataToSave = {
         full_name: formData.full_name.trim(),
-        first_name: firstName,
-        last_name: lastName,
+        first_name: nameParts[0] || '',
+        last_name: nameParts.slice(1).join(' ') || '',
         title: formData.title,
         bio: formData.bio,
         institution: formData.institution,
@@ -174,62 +204,19 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         location: formData.location,
         field_of_study: formData.field_of_study,
         availability: formData.availability as Profile['availability'],
-        availability_hours: Number(formData.availability_hours) || null,
+        availability_hours: Number(formData.availability_hours) || undefined,
         project_preference: formData.project_preference,
         visibility: formData.visibility as Profile['visibility'],
         website: formData.website,
         education: educationDataToSave,
         avatar_url: newAvatarUrl,
-        updated_at: new Date().toISOString(),
       };
 
-      const { data: updatedProfileData, error: upsertError } = await supabase
-        .from('profiles')
-        .upsert(profileDataToSave)
-        .select('*')
-        .single();
+      updateProfileMutation.mutate(profileDataToSave);
 
-      if (upsertError) throw upsertError
-
-      setSuccess('Profile saved successfully!');
-      if (updatedProfileData) {
-        const profileForStore: Profile = {
-          ...updatedProfileData,
-          interests: updatedProfileData.interests ?? [],
-          skills: updatedProfileData.skills ?? [],
-          looking_for: updatedProfileData.looking_for ?? [],
-          education: updatedProfileData.education ?? null,
-          joining_date: updatedProfileData.joining_date ? new Date(updatedProfileData.joining_date) : new Date(),
-          created_at: updatedProfileData.created_at ? new Date(updatedProfileData.created_at) : new Date(),
-          updated_at: updatedProfileData.updated_at ? new Date(updatedProfileData.updated_at) : new Date(),
-          first_name: updatedProfileData.first_name ?? null,
-          last_name: updatedProfileData.last_name ?? null,
-          email: updatedProfileData.email ?? null,
-          title: updatedProfileData.title ?? null,
-          institution: updatedProfileData.institution ?? null,
-          location: updatedProfileData.location ?? null,
-          field_of_study: updatedProfileData.field_of_study ?? null,
-          project_preference: updatedProfileData.project_preference ?? null,
-          website: updatedProfileData.website ?? null,
-          collaboration_pitch: updatedProfileData.collaboration_pitch ?? null,
-          avatar_url: updatedProfileData.avatar_url ?? null,
-          bio: updatedProfileData.bio ?? null,
-          availability_hours: updatedProfileData.availability_hours ?? null,
-          visibility: updatedProfileData.visibility as Profile['visibility'] ?? 'public',
-          availability: updatedProfileData.availability as Profile['availability'] ?? 'full-time',
-        };
-         setProfile(profileForStore);
-      } else if (!upsertError) {
-        console.warn('Profile upsert successful but no data returned.');
-      }
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
-      router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.')
-    } finally {
-      setLoading(false)
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      updateProfileMutation.reset();
     }
   }
 
@@ -439,13 +426,24 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
             <span className="text-sm">{success}</span>
           </div>
         )}
-        <div className="flex justify-end space-x-3">
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" isLoading={loading} icon={<FiSave />}>
-            Save Changes
-          </Button>
+        <div className="flex justify-end gap-3 mt-8">
+            <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={updateProfileMutation.isPending}
+            >
+                <FiX className="mr-2" />
+                Cancel
+            </Button>
+            <Button type="submit" disabled={updateProfileMutation.isPending}>
+                {updateProfileMutation.isPending ? (
+                    <FiLoader className="mr-2 animate-spin" />
+                ) : (
+                    <FiSave className="mr-2" />
+                )}
+                {updateProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
+            </Button>
         </div>
       </div>
     </form>

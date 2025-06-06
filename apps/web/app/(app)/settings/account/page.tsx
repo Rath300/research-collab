@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { FiUser, FiSave, FiLoader, FiAlertCircle, FiCamera } from 'react-icons/fi';
 import { type Database } from '@/lib/database.types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
@@ -157,7 +158,7 @@ export default function AccountSettingsPage() {
 
   return (
     <PageContainer title="Account Settings" className="py-8 px-4 md:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-8">
         <Card className="bg-neutral-900 border border-neutral-800 shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl font-heading text-neutral-100 flex items-center">
@@ -251,6 +252,21 @@ export default function AccountSettingsPage() {
               </div>
             </form>
           </CardContent>
+        </Card>
+
+        {/* Display Settings Card */}
+        <Card className="bg-neutral-900 border border-neutral-800 shadow-xl">
+            <CardHeader>
+                <CardTitle className="text-2xl font-heading text-neutral-100">
+                    Display Settings
+                </CardTitle>
+                <CardDescription className="text-neutral-400">
+                    Customize the look and feel of your workspace.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ThemeSwitcher />
+            </CardContent>
         </Card>
       </div>
     </PageContainer>

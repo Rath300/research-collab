@@ -4,25 +4,40 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/Card';
-import { FiX, FiHash, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiHash, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
-import { createResearchPost } from '@/lib/api';
+import { api } from '@/lib/trpc';
+import { useRouter } from 'next/navigation';
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onPostCreated: () => void;
 }
 
-export default function CreatePostModal({ onClose, onPostCreated }: CreatePostModalProps) {
+export default function CreatePostModal({ onClose }: CreatePostModalProps) {
   const { user } = useAuthStore();
+  const router = useRouter();
+  const utils = api.useUtils();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'private' | 'connections'>('public');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const createPostMutation = api.project.create.useMutation({
+    onSuccess: (newPost) => {
+      // Invalidate queries that fetch lists of projects to show the new post
+      utils.project.listMyProjects.invalidate();
+      // You might also want to invalidate dashboard queries or other feeds
+      
+      onClose(); // Close the modal on success
+      router.push(`/projects/${newPost.id}`); // Redirect to the new project page
+    },
+    onError: (error) => {
+      // The error state from the hook will be used to display the message
+      console.error('Failed to create post:', error);
+    }
+  });
   
   const handleAddTag = () => {
     const trimmedTag = tagInput.trim();
@@ -43,40 +58,27 @@ export default function CreatePostModal({ onClose, onPostCreated }: CreatePostMo
     }
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim() || !content.trim()) {
-      setError('Please fill in all required fields');
+      createPostMutation.reset(); // Clear any previous error states
+      createPostMutation.mutate(undefined, {
+          onError: () => {} // Prevent unhandled rejection
+      });
       return;
     }
     
     if (!user) {
-      setError('You must be logged in to create a post');
       return;
     }
     
-    try {
-      setIsLoading(true);
-      setError('');
-      
-      await createResearchPost({
-        title,
-        content,
-        user_id: user.id,
-        tags: tags.length > 0 ? tags : undefined,
-        visibility,
-        is_boosted: false,
-        engagement_count: 0,
-      });
-      
-      onPostCreated();
-    } catch (err: any) {
-      console.error('Error creating post:', err);
-      setError(err.message || 'Failed to create post. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    createPostMutation.mutate({
+      title,
+      content,
+      tags: tags.length > 0 ? tags : undefined,
+      visibility,
+    });
   };
   
   return (
@@ -97,10 +99,10 @@ export default function CreatePostModal({ onClose, onPostCreated }: CreatePostMo
         
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {error && (
+            {createPostMutation.error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
                 <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
-                <span>{error}</span>
+                <span>{createPostMutation.error.message}</span>
               </div>
             )}
             
@@ -218,16 +220,17 @@ export default function CreatePostModal({ onClose, onPostCreated }: CreatePostMo
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isLoading}
+              disabled={createPostMutation.isPending}
             >
               Cancel
             </Button>
             
             <Button
               type="submit"
-              isLoading={isLoading}
+              disabled={createPostMutation.isPending}
             >
-              Publish
+              {createPostMutation.isPending ? <FiLoader className="animate-spin mr-2"/> : null}
+              {createPostMutation.isPending ? 'Publishing...' : 'Publish'}
             </Button>
           </CardFooter>
         </form>

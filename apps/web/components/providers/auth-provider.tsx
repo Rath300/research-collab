@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 // import { usePathname, useRouter } from 'next/navigation'; // useRouter and usePathname no longer needed here
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient'; // Import the singleton instance
 import { useAuthStore } from '@/lib/store';
 import { getProfile } from '@/lib/api';
 // import type { User } from '@supabase/supabase-js'; // User type not directly used
@@ -26,7 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // user: storeUserSnapshot,
     // profile: storeProfileSnapshot,
   } = useAuthStore();
-  const supabase = getBrowserClient();
   // const router = useRouter(); // No longer needed
   // const pathname = usePathname(); // No longer needed
 
@@ -197,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListenerSubscription?.unsubscribe();
     };
-  }, [supabase, setUser, setProfile, setLoading, setHasAttemptedProfileFetch]); // Keep store setters as deps
+  }, [setUser, setProfile, setLoading, setHasAttemptedProfileFetch]); // Removed `supabase` from dependency array as it's a stable singleton
 
   return <>{children}</>;
 } 

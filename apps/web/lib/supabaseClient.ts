@@ -69,3 +69,31 @@ export function resetSupabaseClient() { // Consider renaming to resetBrowserClie
 // export function createNewClient() {
 //   // ... old implementation using createClient ...
 // } 
+
+function createClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('CRITICAL: Missing Supabase environment variables');
+    throw new Error('CRITICAL: Missing Supabase environment variables');
+  }
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+}
+
+/**
+ * Creates a new Supabase browser client.
+ * This function is internal to this module and ensures env vars are present.
+ */
+function createSingletonBrowserClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // This will only be logged on the client, which is fine
+    console.error('CRITICAL: Missing Supabase environment variables');
+    throw new Error('CRITICAL: Missing Supabase environment variables');
+  }
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+}
+
+/**
+ * The singleton instance of the Supabase browser client.
+ * This ensures that only one instance of the client exists in the browser,
+ * preventing issues like multiple GoTrueClient instances.
+ */
+export const supabase = createClient(); 

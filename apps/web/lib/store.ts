@@ -43,10 +43,12 @@ interface ChatState {
 interface UIState {
   sidebarOpen: boolean;
   darkMode: boolean;
+  theme: string;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   toggleDarkMode: () => void;
   setDarkMode: (enabled: boolean) => void;
+  setTheme: (theme: string) => void;
 }
 
 interface ResearchState {
@@ -149,16 +151,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setTotalUnreadMessages: (count) => set({ totalUnreadMessages: count }),
 }));
 
-export const useUIStore = create<UIState>((set) => ({
-  sidebarOpen: false,
-  darkMode: typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches 
-    : false,
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
-  toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
-  setDarkMode: (enabled) => set({ darkMode: enabled }),
-}));
+export const useUIStore = create<UIState>()(
+  persist(
+    (set) => ({
+      sidebarOpen: false,
+      darkMode:
+        typeof window !== 'undefined'
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : false,
+      theme: 'dark_purple',
+      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
+      setDarkMode: (enabled) => set({ darkMode: enabled }),
+      setTheme: (theme) => set({ theme }),
+    }),
+    {
+      name: 'ui-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ darkMode: state.darkMode, theme: state.theme }),
+    }
+  )
+);
 
 export const useResearchStore = create<ResearchState>((set) => ({
   posts: [],

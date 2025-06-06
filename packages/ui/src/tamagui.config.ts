@@ -1,6 +1,15 @@
-import { tokens, themes as defaultThemes } from '@tamagui/themes' // Aliased themes to defaultThemes
+import { tokens as defaultTokens, themes as defaultThemes } from '@tamagui/themes' // Aliased themes to defaultThemes
 import { createTamagui, createFont } from 'tamagui'
 import { shorthands } from '@tamagui/shorthands'
+import {
+  blue,
+  gray,
+  green,
+  purple,
+  red,
+  white,
+  yellow,
+} from '@tamagui/colors'
 
 // const interFont = createInterFont() // Removed Inter font
 
@@ -22,8 +31,76 @@ const config = createTamagui({
     heading: bodyFont,
   },
   shorthands,
-  tokens,
-  themes: defaultThemes, // Using default themes directly from @tamagui/themes
+  tokens: {
+    ...defaultTokens,
+    color: {
+      ...defaultTokens.color,
+      // Add our new color palettes to the tokens
+      blue,
+      gray,
+      green,
+      purple,
+      red,
+      white,
+      yellow,
+    },
+  },
+  themes: {
+    ...defaultThemes,
+    // Add new themes using our color palettes
+    // These themes will have 'light' and 'dark' variants by default
+    dark_red: {
+      ...defaultThemes.dark,
+      background: '#1C1C1E',
+      color: red.red11,
+      // ... more token mappings
+    },
+    light_red: {
+      ...defaultThemes.light,
+      background: '#FFFFFF',
+      color: red.red11,
+    },
+    dark_blue: {
+      ...defaultThemes.dark,
+      background: '#1C1C1E',
+      color: blue.blue11,
+    },
+    light_blue: {
+      ...defaultThemes.light,
+      background: '#FFFFFF',
+      color: blue.blue11,
+    },
+    dark_yellow: {
+      ...defaultThemes.dark,
+      background: '#1C1C1E',
+      color: yellow.yellow11,
+    },
+    light_yellow: {
+      ...defaultThemes.light,
+      background: '#FFFFFF',
+      color: yellow.yellow11,
+    },
+    dark_purple: {
+      ...defaultThemes.dark,
+      background: '#1C1C1E',
+      color: purple.purple11,
+    },
+    light_purple: {
+      ...defaultThemes.light,
+      background: '#FFFFFF',
+      color: purple.purple11,
+    },
+     dark_white: {
+      ...defaultThemes.dark,
+      background: '#1C1C1E',
+      color: white.white11,
+    },
+    light_white: {
+      ...defaultThemes.light,
+      background: '#FFFFFF',
+      color: gray.gray12, // Using dark gray on a white background for a "white" theme
+    },
+  },
 })
 
 export type AppConfig = typeof config

@@ -176,61 +176,56 @@ export const projectRouter = router({
    * The creator is automatically added as an 'owner' in project_collaborators via a database trigger.
    */
   create: protectedProcedure
-    .input(createProjectInputSchema)
-    .output(projectSchema) // Define what the procedure will return
+    .input(
+      z.object({
+        title: z.string().min(1).max(255),
+        content: z.string().min(1),
+        tags: z.array(z.string()).optional(),
+        visibility: z.enum(['public', 'private', 'connections']).default('public'),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const { supabase, session } = ctx;
+      const userId = session.user.id;
 
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'You must be logged in to create a project.',
-        });
-      }
-
-      try {
-        const { data: newProject, error } = await ctx.supabase
-          .from('research_posts')
-          .insert({
-            ...input,
-            user_id: userId,
-            tags: input.tags ?? undefined,
-            is_boosted: input.is_boosted ?? false,
-            engagement_count: input.engagement_count ?? 0,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          console.error("Error creating project in Supabase:", error);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to create project in database.',
-            cause: error,
-          });
-        }
-        
-        if (!newProject) {
-            throw new TRPCError({
-                code: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to create project, no data returned.',
-            });
-        }
-
-        // The database trigger 'handle_new_project_owner' should automatically
-        // create a corresponding entry in 'project_collaborators' table.
-        return newProject;
-      } catch (error) {
-        // Catch any other errors, including TRPCErrors rethrown
-        if (error instanceof TRPCError) throw error;
-        
-        console.error("Unexpected error creating project:", error);
+      const { data, error } = await supabase
+        .from('research_posts')
+        .insert({
+          user_id: userId,
+          title: input.title,
+          content: input.content,
+          tags: input.tags,
+          visibility: input.visibility,
+        })
+        .select()
+        .single();
+      
+      if (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred while creating the project.',
+          message: 'Failed to create research post.',
           cause: error,
         });
       }
+
+      // Also add the creator as the 'owner' in project_collaborators
+      const { error: collabError } = await supabase
+        .from('project_collaborators')
+        .insert({
+            project_id: data.id,
+            user_id: userId,
+            role: 'owner',
+            status: 'active',
+        });
+
+      if (collabError) {
+        // If this fails, we should ideally roll back the post creation.
+        // For now, we'll log the error and the post will exist without an owner.
+        console.error('Failed to add owner to new project:', collabError);
+        // Depending on desired transactional integrity, you might throw an error here.
+      }
+
+      return data;
     }),
 
   /**
@@ -298,67 +293,68 @@ export const projectRouter = router({
    * Lists all projects where the current user is an active collaborator.
    * Returns project details along with the user's role in that project.
    */
-  listForUser: protectedProcedure
+  listMyProjects: protectedProcedure
     .output(z.array(
       projectSchema.extend({
-        // Add collaborator-specific info if needed, e.g., their role in this project
-        // For this, we would need to join or make a separate query within the map
-        // For simplicity now, just returning projectSchema. If role is needed, this needs adjustment.
-        // Example if role was directly on project_collaborators and we fetched it:
-        // role_in_project: projectCollaboratorRoleSchema 
+        role: projectCollaboratorRoleSchema,
       })
     ))
     .query(async ({ ctx }) => {
       const userId = ctx.session.user.id;
 
-      // Fetch all active collaborations for the user
-      const { data: collaborations, error: collaborationsError } = await ctx.supabase
+      // This is the shape Supabase actually returns for this specific join
+      type CollaborationWithNestedPostArray = {
+        role: "owner" | "editor" | "viewer";
+        research_posts: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+          title: string;
+          content: string;
+          visibility: "public" | "private" | "connections" | null;
+          tags: string[] | null;
+          is_boosted: boolean;
+          engagement_count: number;
+        }[] | null; // Supabase can return an array for the join
+      };
+
+      const { data, error } = await ctx.supabase
         .from('project_collaborators')
-        .select(`
-          project_id,
-          role, 
-          research_posts ( * ) 
-        `)
+        .select('role, research_posts(*)') // Keep the select simple
         .eq('user_id', userId)
         .eq('status', 'active');
 
-      if (collaborationsError) {
-        console.error("Error fetching user collaborations:", collaborationsError);
+      if (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch your projects.',
-          cause: collaborationsError,
+          message: 'Failed to fetch user projects.',
+          cause: error,
         });
       }
 
-      if (!collaborations) {
-        return []; // User has no active collaborations
-      }
+      const collaborations = data as CollaborationWithNestedPostArray[];
 
-      // The query above using Supabase join syntax `research_posts ( * )` should return
-      // an array of objects where each object is a collaboration record containing
-      // the full research_post details nested under a `research_posts` key (if not null).
-      // We need to transform this into the desired output shape.
-      
-      const projects = collaborations.map(collab => {
-        if (!collab.research_posts) {
-          // This case should ideally not happen if FK constraints are intact and project exists
-          // but good to handle defensively.
-          console.warn(`Collaboration found for project_id ${collab.project_id} but project data is missing.`);
-          return null;
-        }
-        // Spread research_post data and add the role from the collaboration
-        // This assumes projectSchema matches the fields in research_posts table
-        return {
-          ...(collab.research_posts as any), // Cast to any or ensure type matches projectSchema
-          // role_in_project: collab.role, // Add this if you adjust the output schema
-        };
-      }).filter(project => project !== null); // Filter out any nulls from missing data
+      const projects = collaborations
+        .map(collaboration => {
+          // The joined 'research_posts' table is an array, we take the first element.
+          const projectData = collaboration.research_posts?.[0];
 
-      // At this point, `projects` should be an array of objects that match `projectSchema`.
-      // If `projectSchema` has stricter parsing (e.g., for dates), ensure data conforms.
-      // For now, we assume direct compatibility after spreading `collab.research_posts`.
-      return projects as z.infer<typeof projectSchema>[]; 
+          if (!projectData) {
+            return null;
+          }
+
+          return {
+            ...projectData,
+            role: collaboration.role,
+            // Handle null from DB to match Zod schema which likely expects undefined
+            visibility: projectData.visibility ?? undefined,
+            tags: projectData.tags ?? undefined,
+          };
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+
+      return projects;
     }),
 
   /**
@@ -366,68 +362,48 @@ export const projectRouter = router({
    * Requires the user to be an 'owner' or 'editor' of the project.
    */
   update: protectedProcedure
-    .input(updateProjectInputSchema)
-    .output(projectSchema) // Returns the updated project
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().min(1).max(255).optional(),
+        content: z.string().min(1).optional(),
+        tags: z.array(z.string()).optional(),
+        visibility: z.enum(['public', 'private', 'connections']).optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const { id: projectId, ...updateData } = input;
+      const { supabase, session } = ctx;
+      const { id, ...updateData } = input;
 
-      // Check if the user has 'owner' or 'editor' role for this project
-      const { data: collaborator, error: collaboratorError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('role')
-        .eq('project_id', projectId)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (collaboratorError) {
-        console.error("Error checking project collaboration for update:", collaboratorError);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to verify project access for update.',
-          cause: collaboratorError,
-        });
-      }
-
-      if (!collaborator || (collaborator.role !== 'owner' && collaborator.role !== 'editor')) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this project.',
-        });
-      }
-
-      // If permission check passes, update the project
-      // Ensure that `user_id` (owner) is not changed via this endpoint.
-      // `updated_at` should be handled by database automatically if a trigger exists, or set manually.
-      const { data: updatedProject, error: updateError } = await ctx.supabase
+      // First, verify the user is the owner of the post
+      const { data: post, error: fetchError } = await supabase
         .from('research_posts')
-        .update({
-          ...updateData,
-          updated_at: new Date().toISOString(), // Explicitly set updated_at
-        })
-        .eq('id', projectId)
-        .select()
+        .select('user_id')
+        .eq('id', id)
         .single();
 
+      if (fetchError || !post) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
+      }
+
+      if (post.user_id !== session.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only edit your own posts.' });
+      }
+      
+      const { error: updateError } = await supabase
+        .from('research_posts')
+        .update(updateData)
+        .eq('id', id);
+
       if (updateError) {
-        console.error("Error updating project:", updateError);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update project.',
+          message: 'Failed to update post.',
           cause: updateError,
         });
       }
 
-      if (!updatedProject) {
-        // This might happen if the projectId was valid but the record was somehow deleted just before update
-        throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Project not found or failed to update, no data returned.'
-        });
-      }
-
-      return updatedProject;
+      return { success: true };
     }),
 
   /**
@@ -437,56 +413,40 @@ export const projectRouter = router({
    * project_collaborators and research_items.
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
-    .output(z.object({ success: z.boolean(), message: z.string().optional() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const { id: projectId } = input;
+      const { supabase, session } = ctx;
+      const { id } = input;
 
-      // Check if the user is an 'owner' of this project
-      const { data: collaborator, error: collaboratorError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('role')
-        .eq('project_id', projectId)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
+      // Verify the user is the owner before deleting
+      const { data: post, error: fetchError } = await supabase
+        .from('research_posts')
+        .select('user_id')
+        .eq('id', id)
+        .single();
 
-      if (collaboratorError) {
-        console.error("Error checking project ownership for delete:", collaboratorError);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to verify project ownership for delete.',
-          cause: collaboratorError,
-        });
+      if (fetchError || !post) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
       }
 
-      if (!collaborator || collaborator.role !== 'owner') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to delete this project.',
-        });
+      if (post.user_id !== session.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only delete your own posts.' });
       }
 
-      // If permission check passes, delete the project
-      const { error: deleteError } = await ctx.supabase
+      const { error: deleteError } = await supabase
         .from('research_posts')
         .delete()
-        .eq('id', projectId);
+        .eq('id', id);
 
       if (deleteError) {
-        console.error("Error deleting project:", deleteError);
-        // Check for specific errors, e.g., P2014 for FK constraint if cascade isn't working as expected
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete project.',
+          message: 'Failed to delete post.',
           cause: deleteError,
         });
       }
-      
-      // No data is returned on a successful delete by default with .delete()
-      // unless .select().single() was chained, but it's not typical for delete.
-      return { success: true, message: 'Project deleted successfully.' };
+
+      return { success: true };
     }),
 
   // Future procedures for project management will go here:

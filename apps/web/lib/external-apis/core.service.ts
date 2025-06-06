@@ -1,4 +1,6 @@
 // apps/web/lib/external-apis/core.service.ts
+import { trpcClient } from '@/lib/trpc'; // Import the pre-configured tRPC client
+import { type CorePaper, mapCoreResultToPaper } from './core.mapping'; // I'll move mapping logic to its own file
 
 const CORE_API_KEY = process.env.NEXT_PUBLIC_CORE_API_KEY;
 const CORE_API_BASE_URL = process.env.NEXT_PUBLIC_CORE_API_BASE_URL;
@@ -30,55 +32,28 @@ interface CorePaper {
 }
 
 /**
- * Searches the CORE API for open access research papers.
+ * Searches the CORE API via our tRPC backend to avoid CORS issues.
  *
  * @param params - Search parameters for CORE API.
  * @returns A promise that resolves to an array of CorePaper objects.
  */
 export async function searchCore(params: CoreSearchParams): Promise<CorePaper[]> {
-  if (!CORE_API_BASE_URL) {
-    console.error('CORE_API_BASE_URL is not configured.');
-    throw new Error('CORE API base URL not configured.');
-  }
-  if (!CORE_API_KEY) {
-    console.error('CORE_API_KEY is not configured. CORE API requires an API key.');
-    throw new Error('CORE API key not configured.');
-  }
-
-  const queryParams = new URLSearchParams({
-    q: params.query,
-    page: (params.page || 1).toString(),
-    limit: (params.pageSize || 10).toString(), // CORE API uses 'limit' not 'pageSize' for v3 search
-    apiKey: CORE_API_KEY, // CORE API v3 uses apiKey in query params
-  });
-
-  const url = `${CORE_API_BASE_URL}search/articles?${queryParams.toString()}`;
-
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      // Try to parse error from CORE if available
-      let errorBody = 'Unknown error';
-      try {
-        const errorData = await response.json();
-        errorBody = errorData.message || JSON.stringify(errorData);
-      } catch (e) { /* Ignore if error body is not JSON */ }
-      throw new Error(`CORE API request failed with status ${response.status}: ${errorBody}`);
-    }
-
-    const data = await response.json();
+    const result = await trpcClient.external.searchCore.query(params);
     
-    // CORE API v3 search/articles returns an object with a 'results' array
-    const results = data.results || [];
-    if (!Array.isArray(results)) {
-        console.error("CORE API did not return a results array or it's malformed", data);
+    // The result from tRPC is the raw API response. We still need to map it.
+    const papers = result.results || [];
+    if (!Array.isArray(papers)) {
+        console.error("CORE API via tRPC did not return a results array or it's malformed", papers);
         return [];
     }
-
-    return results.map(mapCoreResultToPaper).filter((paper): paper is CorePaper => paper !== null);
+    
+    return papers.map(mapCoreResultToPaper).filter((paper): paper is CorePaper => paper !== null);
 
   } catch (error) {
-    console.error('Error searching CORE API:', error);
+    console.error('Error searching CORE API via tRPC:', error);
+    // Depending on how you want to handle errors, you might re-throw
+    // or return an empty array.
     throw error;
   }
 }
