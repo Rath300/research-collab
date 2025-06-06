@@ -18,7 +18,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/lib/store';
 import { api } from '@/lib/trpc';
-import EditPostModal from './EditPostModal.tsx';
+import EditPostModal from './EditPostModal';
 
 type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];

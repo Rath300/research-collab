@@ -23,14 +23,14 @@ const tamaguiOptions = {
 const withTamaguiPlugin = withTamagui(tamaguiOptions);
 
 /** @type {import('next').NextConfig} */
-let nextConfig = {
-  output: 'standalone',
+const nextConfig = {
+  // output: 'standalone', // This can sometimes cause issues in monorepos on Vercel
   swcMinify: true,
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true
+    ignoreBuildErrors: true,
   },
   experimental: {
     // optimizeCss: true, // Re-enable if needed
@@ -42,6 +42,7 @@ let nextConfig = {
       'expo-linking',
       'expo-constants',
       'expo-modules-core',
+      'react-native', // Explicitly add react-native
       '@research-collab/ui',
       '@research-collab/db', // Add your own packages here
     ],
@@ -89,14 +90,4 @@ let nextConfig = {
   }
 };
 
-module.exports = function (name, { defaultConfig }) {
-  let config = {
-    ...defaultConfig,
-    ...nextConfig,
-  };
-
-  // Step 2: Add Tamagui plugin
-  config = withTamaguiPlugin(config);
-
-  return config;
-}; 
+module.exports = withTamaguiPlugin(nextConfig); 
