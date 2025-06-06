@@ -48,6 +48,9 @@ importers:
       '@types/react-icons':
         specifier: ^2.2.7
         version: 2.2.7
+      babel-plugin-transform-inline-environment-variables:
+        specifier: ^0.4.4
+        version: 0.4.4
       eslint:
         specifier: ^9.24.0
         version: 9.27.0(jiti@1.21.7)
@@ -4193,6 +4196,9 @@ packages:
 
   babel-plugin-transform-flow-enums@0.0.2:
     resolution: {integrity: sha512-g4aaCrDDOsWjbm0PUUeVnkcVd6AKJsVc/MbnPhEotEpkeJQP6b8nzewohQi7+QS8UyPehOhGWn0nOwjvWpmMvQ==}
+
+  babel-plugin-transform-inline-environment-variables@0.4.4:
+    resolution: {integrity: sha512-bJILBtn5a11SmtR2j/3mBOjX4K3weC6cq+NNZ7hG22wCAqpc3qtj/iN7dSe9HDiS46lgp1nHsQgeYrea/RUe+g==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -12808,6 +12814,8 @@ snapshots:
       '@babel/plugin-syntax-flow': 7.27.1(@babel/core@7.27.3)
     transitivePeerDependencies:
       - '@babel/core'
+
+  babel-plugin-transform-inline-environment-variables@0.4.4: {}
 
   balanced-match@1.0.2: {}
 
