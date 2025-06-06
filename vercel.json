@@ -2,8 +2,14 @@
   "version": 2,
   "builds": [
     {
+      "src": "packages/ui/package.json",
+      "use": "@vercel/static-build",
+      "workPath": "packages/ui"
+    },
+    {
       "src": "apps/web/next.config.js",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "workPath": "apps/web"
     }
   ]
 }

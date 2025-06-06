@@ -1,11 +1,19 @@
 const { withTamagui } = require('@tamagui/next-plugin');
+const path = require('path');
 
 const tamaguiOptions = {
-  config: '../../packages/ui/src/tamagui.config.ts', // Adjusted path for being inside apps/web
+  config: path.join(__dirname, '../../packages/ui/src/tamagui.config.ts'),
   components: ['tamagui', '@research-collab/ui'],
   importsWhitelist: ['constants.js', 'colors.js'],
   logTimings: true,
   disableExtraction: process.env.NODE_ENV === 'development',
+  // Recommended settings for monorepos
+  shouldExtract: (path) => {
+    if (path.includes(path.join('packages', 'ui'))) {
+      return true;
+    }
+  },
+  excludeReactNativeWebExports: ['Switch', 'ProgressBar', 'Picker', 'CheckBox', 'ScrollView'],
 };
 
 const withTamaguiPlugin = withTamagui(tamaguiOptions);
