@@ -21,7 +21,10 @@
     "@tamagui/shorthands": "^1.94.3",
     "@tamagui/themes": "^1.94.3",
     "tamagui": "^1.94.3",
-    "babel-plugin-transform-inline-environment-variables": "^0.4.4"
+    "babel-plugin-transform-inline-environment-variables": "^0.4.4",
+    "@babel/preset-env": "^7.24.5",
+    "@babel/preset-react": "^7.24.1",
+    "@babel/preset-typescript": "^7.24.1"
   },
   "devDependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",
