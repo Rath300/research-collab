@@ -1,6 +1,29 @@
 // This file will be used to modify the Next.js config for a minimal deployment
 
-module.exports = {
+const { withTamagui } = require('@tamagui/next-plugin');
+const { join } = require('path');
+
+const bools = {
+  true: true,
+  false: false,
+};
+
+const isProd = process.env.NODE_ENV === 'production';
+
+// Common options for Tamagui
+const tamaguiOptions = {
+  config: './packages/ui/src/tamagui.config.ts',
+  components: ['tamagui', '@research-collab/ui'],
+  importsWhitelist: ['constants.js', 'colors.js'],
+  logTimings: true,
+  disableExtraction: process.env.NODE_ENV === 'development',
+};
+
+// Create the Tamagui plugin
+const withTamaguiPlugin = withTamagui(tamaguiOptions);
+
+/** @type {import('next').NextConfig} */
+let nextConfig = {
   output: 'standalone',
   swcMinify: true,
   eslint: {
@@ -8,6 +31,20 @@ module.exports = {
   },
   typescript: {
     ignoreBuildErrors: true
+  },
+  experimental: {
+    // optimizeCss: true, // Re-enable if needed
+    scrollRestoration: true,
+    // transpilePackages is key for monorepos
+    transpilePackages: [
+      'solito',
+      'react-native-web',
+      'expo-linking',
+      'expo-constants',
+      'expo-modules-core',
+      '@research-collab/ui',
+      '@research-collab/db', // Add your own packages here
+    ],
   },
   webpack: (config, { isServer }) => {
     // Add a rule to handle .node files for Supabase
@@ -50,4 +87,16 @@ module.exports = {
       },
     ];
   }
+};
+
+module.exports = function (name, { defaultConfig }) {
+  let config = {
+    ...defaultConfig,
+    ...nextConfig,
+  };
+
+  // Step 2: Add Tamagui plugin
+  config = withTamaguiPlugin(config);
+
+  return config;
 }; 
