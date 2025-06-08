@@ -25,8 +25,19 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   webpack: (config, { isServer }) => {
-    config.resolve.alias['react-native'] = 'react-native-web';
+    // Ensure alias object exists
+    config.resolve.alias = config.resolve.alias || {};
     
+    // Add the crucial alias
+    config.resolve.alias['react-native'] = 'react-native-web';
+
+    // Safely add client-side-only aliases
+    if (!isServer) {
+      config.resolve.alias['bufferutil'] = false;
+      config.resolve.alias['utf-8-validate'] = false;
+    }
+
+    // Add node-loader for .node files
     config.module.rules.push({
       test: /\.node$/,
       loader: 'node-loader',
@@ -35,13 +46,6 @@ const nextConfig = {
       },
     });
 
-    if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        bufferutil: false,
-        'utf-8-validate': false,
-      };
-    }
     return config;
   },
 };
