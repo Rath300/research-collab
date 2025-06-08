@@ -56,25 +56,6 @@ export async function searchCore(params: CoreSearchParams): Promise<CorePaper[]>
     // or return an empty array.
     throw error;
   }
-}
-
-function mapCoreResultToPaper(result: any): CorePaper | null {
-  if (!result || !result.id) return null;
-
-  // CORE authors are typically an array of strings
-  const authors = Array.isArray(result.authors) ? result.authors.map((name: any) => ({ name: String(name) })) : [];
-
-  return {
-    id: String(result.id),
-    title: result.title || 'No title',
-    authors,
-    abstract: result.abstract || null,
-    yearPublished: result.yearPublished || (result.publishedDate ? new Date(result.publishedDate).getFullYear() : undefined),
-    doi: result.doi || null,
-    downloadUrl: result.downloadUrl || (Array.isArray(result.sourceFulltextUrls) && result.sourceFulltextUrls.length > 0 ? result.sourceFulltextUrls[0] : undefined),
-    sourceFulltextUrls: result.sourceFulltextUrls || [],
-    publisher: result.publisher || null,
-  };
 } 
  
  

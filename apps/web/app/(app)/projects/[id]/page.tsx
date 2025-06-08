@@ -4,12 +4,12 @@ import { api } from '@/lib/trpc';
 import { notFound } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { FiUser, FiLoader } from 'react-icons/fi';
-import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
+import { YStack, Text } from 'tamagui';
 
 interface ProjectPageProps {
   params: {
@@ -59,7 +59,16 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
                             <p className="text-sm text-neutral-400">{collab.status === 'pending' ? 'Sending invite...' : collab.user?.id}</p>
                         </div>
                     </div>
-                    <Badge variant={collab.role === 'owner' ? 'primary' : 'secondary'}>{collab.status === 'pending' ? 'pending' : collab.role}</Badge>
+                    <YStack
+                      paddingHorizontal="$2.5"
+                      paddingVertical="$1"
+                      borderRadius="$10"
+                      backgroundColor={collab.role === 'owner' ? '$blue8' : '$gray8'}
+                    >
+                      <Text fontSize="$2" color="white" fontWeight="bold">
+                        {collab.status === 'pending' ? 'pending' : collab.role}
+                      </Text>
+                    </YStack>
                 </div>
             ))}
         </div>
