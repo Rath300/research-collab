@@ -9,7 +9,7 @@ const tamaguiPlugin = withTamagui({
   debug: false,
   shouldAddDebugShorthands: true,
   shouldDisableAnimationDriver: false,
-  transpilePackages: ['@research-collab/api', '@research-collab/db', 'ui', 'tamagui', 'react-native', 'react-native-web'],
+  transpilePackages: ['@research-collab/api', '@research-collab/db', 'ui', 'tamagui', 'react-native-web'],
 });
 
 const nextConfig = {
@@ -22,6 +22,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   webpack: (config, { isServer }) => {
+    config.resolve.alias['react-native'] = 'react-native-web';
+    
     config.module.rules.push({
       test: /\.node$/,
       loader: 'node-loader',
