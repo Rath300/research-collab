@@ -234,14 +234,16 @@ export const projectRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .output(projectSchema.nullable()) // Project might not exist or user might not have access
+    .output(projectSchema.extend({
+      role: projectCollaboratorRoleSchema,
+    }).nullable()) // Project might not exist or user might not have access
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
-      // First, check if the user is a collaborator on this project
+      // First, check if the user is a collaborator on this project and get their role
       const { data: collaborator, error: collaboratorError } = await ctx.supabase
         .from('project_collaborators')
-        .select('id') // Select minimal data just to check existence
+        .select('role') // Select the role
         .eq('project_id', input.id)
         .eq('user_id', userId)
         .eq('status', 'active') // Ensure the collaboration is active
@@ -258,10 +260,8 @@ export const projectRouter = router({
 
       if (!collaborator) {
         // If user is not an active collaborator, they don't have access
-        // Or, if the project itself doesn't exist, this check will also effectively deny access
         // We could also check project visibility here if public projects should be viewable by anyone
         // For now, strict collaborator access is implemented.
-        // Consider if public projects should bypass this check based on research_posts.visibility
         throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have access to this project or it does not exist.'
@@ -286,7 +286,8 @@ export const projectRouter = router({
         });
       }
       
-      return project; // Returns the project or null if not found (though covered by collaborator check)
+      // Combine project data with the user's role for this project
+      return { ...project, role: collaborator.role };
     }),
 
   /**

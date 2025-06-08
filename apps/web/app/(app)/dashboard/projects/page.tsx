@@ -1,0 +1,67 @@
+'use client';
+
+import React from 'react';
+import { api } from '@/lib/trpc';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { FiLoader, FiPlusCircle, FiHome } from 'react-icons/fi';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+
+export default function MyProjectsPage() {
+  const { data: projects, isLoading, error } = api.project.listMyProjects.useQuery();
+
+  return (
+    <PageContainer title="My Projects">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">My Projects</h1>
+        <Link href="/projects/new" passHref>
+          <Button>
+            <FiPlusCircle className="mr-2" />
+            New Project
+          </Button>
+        </Link>
+      </div>
+
+      {isLoading && (
+        <div className="flex justify-center items-center p-8">
+          <FiLoader className="animate-spin text-accent-purple text-3xl" />
+        </div>
+      )}
+
+      {error && <p className="text-red-500">Error: {error.message}</p>}
+
+      {!isLoading && !error && projects && projects.length === 0 && (
+        <Card className="bg-neutral-900 border-neutral-800 text-center">
+            <CardHeader>
+                <FiHome className="mx-auto text-4xl text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+                <CardTitle className="text-xl text-white">No projects yet</CardTitle>
+                <CardDescription className="text-neutral-400 mt-2">
+                    Get started by creating your first research project.
+                </CardDescription>
+            </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {projects?.map((project) => (
+          <Link key={project.id} href={`/projects/${project.id}`} passHref>
+            <Card className="bg-neutral-900 border-neutral-800 hover:border-accent-purple transition-colors cursor-pointer h-full flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-xl text-white">{project.title}</CardTitle>
+                <div className="text-xs text-white font-bold px-2 py-1 rounded-full bg-blue-500 w-min mt-2">{project.role.toUpperCase()}</div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <CardDescription className="text-neutral-400 line-clamp-3">
+                  {project.content}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </PageContainer>
+  );
+} 

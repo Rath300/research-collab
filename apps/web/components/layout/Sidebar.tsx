@@ -45,6 +45,7 @@ export function Sidebar() {
 
   const mainNavItems = [
     { label: 'Dashboard', href: '/dashboard', icon: <FiGrid /> },
+    { label: 'My Projects', href: '/dashboard/projects', icon: <FiBriefcase /> },
     { label: 'Chats', href: '/chats', icon: <FiMessageSquare /> },
     { label: 'Discover Matches', href: '/match', icon: <FiSearch /> },
     { label: 'My Matches', href: '/matches', icon: <FiHeart /> },

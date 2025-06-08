@@ -9,25 +9,14 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
+import Link from 'next/link';
+
+type Collaborator = NonNullable<ReturnType<typeof api.project.listCollaborators.useQuery>['data']>[number];
 
 interface ProjectPageProps {
   params: {
     id: string;
   };
-}
-
-// NOTE: We'll need to define this type based on what `listCollaborators` returns.
-// This is an assumption based on the tRPC router.
-type Collaborator = {
-    id: string;
-    role: string;
-    status: string;
-    user: {
-        id: string;
-        first_name: string | null;
-        last_name: string | null;
-        avatar_url: string | null;
-    } | null;
 }
 
 const CollaboratorList = ({ projectId }: { projectId: string }) => {
@@ -176,7 +165,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     <div className="p-4 md:p-8 text-white">
       <Card className="bg-neutral-900 border-neutral-800 mb-8">
         <CardHeader>
-            <CardTitle className="text-3xl font-bold">{project.title}</CardTitle>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-3xl font-bold">{project.title}</CardTitle>
+              {(project.role === 'owner' || project.role === 'editor') && (
+                  <Link href={`/projects/${project.id}/edit`} passHref>
+                      <Button variant="outline">Edit Project</Button>
+                  </Link>
+              )}
+            </div>
         </CardHeader>
         <CardContent>
             <p className="mt-2 text-neutral-300">{project.content}</p>
