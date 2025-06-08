@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
-import { YStack, Text } from 'tamagui';
 
 interface ProjectPageProps {
   params: {
@@ -59,16 +58,15 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
                             <p className="text-sm text-neutral-400">{collab.status === 'pending' ? 'Sending invite...' : collab.user?.id}</p>
                         </div>
                     </div>
-                    <YStack
-                      paddingHorizontal="$2.5"
-                      paddingVertical="$1"
-                      borderRadius="$10"
-                      backgroundColor={collab.role === 'owner' ? '$blue8' : '$gray8'}
+                    <div
+                      className={`px-2.5 py-1 rounded-full ${
+                        collab.role === 'owner' ? 'bg-blue-500' : 'bg-gray-600'
+                      }`}
                     >
-                      <Text fontSize="$2" color="white" fontWeight="bold">
-                        {collab.status === 'pending' ? 'pending' : collab.role}
-                      </Text>
-                    </YStack>
+                      <span className="text-xs text-white font-bold">
+                        {collab.status === 'pending' ? 'PENDING' : collab.role.toUpperCase()}
+                      </span>
+                    </div>
                 </div>
             ))}
         </div>
