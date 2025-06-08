@@ -18,28 +18,34 @@ function getBaseUrl() {
 
 export const api: CreateTRPCReact<AppRouter, undefined, undefined> = createTRPCReact<AppRouter, undefined>();
 
-export const trpcClient: TRPCClient<AppRouter> = api.createClient({
-  transformer: superjson,
-  links: [
-    loggerLink({
-      enabled: (opts) => {
-        if (process.env.NODE_ENV === 'development') {
-          return true;
-        }
-        // Log errors in production
-        if (opts.direction === 'down' && opts.result instanceof Error) {
-          return true;
-        }
-        return false;
-      },
-    }),
-    httpBatchLink({
-      url: `${getBaseUrl()}/api/trpc`,
-      headers() {
-        return {
-          // Authorization: getAuthCookie(), // If you need to send auth headers
-        };
-      },
-    }),
-  ],
-}); 
+/*
+ This client is now created and used within the TRPCProvider component.
+ We are keeping the file to export the `api` helper.
+ Leaving this here for reference, but it is no longer used directly by the app.
+
+ export const trpcClient: TRPCClient<AppRouter> = api.createClient({
+   transformer: superjson,
+   links: [
+     loggerLink({
+       enabled: (opts) => {
+         if (process.env.NODE_ENV === 'development') {
+           return true;
+         }
+         // Log errors in production
+         if (opts.direction === 'down' && opts.result instanceof Error) {
+           return true;
+         }
+         return false;
+       },
+     }),
+     httpBatchLink({
+       url: `${getBaseUrl()}/api/trpc`,
+       headers() {
+         return {
+           // Authorization: getAuthCookie(), // If you need to send auth headers
+         };
+       },
+     }),
+   ],
+ }); 
+*/ 
