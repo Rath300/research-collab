@@ -9,10 +9,10 @@ const tamaguiPlugin = withTamagui({
   debug: false,
   shouldAddDebugShorthands: true,
   shouldDisableAnimationDriver: false,
+  transpilePackages: ['@research-collab/api', '@research-collab/db', 'ui', 'tamagui', 'react-native', 'react-native-web'],
 });
 
 const nextConfig = {
-  transpilePackages: ['@research-collab/api', '@research-collab/db', 'ui', 'tamagui', 'react-native'],
   output: 'standalone',
   swcMinify: true,
   eslint: {
