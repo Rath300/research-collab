@@ -15,6 +15,9 @@ const tamaguiPlugin = withTamagui({
 const nextConfig = {
   output: 'standalone',
   swcMinify: true,
+  experimental: {
+    esmExternals: false,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
