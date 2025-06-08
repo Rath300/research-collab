@@ -2,15 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { FiUser, FiLoader, FiAlertCircle, FiSettings } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
 import { getProfile } from '@/lib/api';
-import { ProfileForm } from '@/components/profile/ProfileForm';
 import { type Profile as ProfileType } from '@research-collab/db';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
+
+const ProfileForm = dynamic(() => import('@/components/profile/ProfileForm').then(mod => mod.ProfileForm), {
+  loading: () => (
+    <div className="flex justify-center items-center p-8">
+      <FiLoader className="animate-spin text-accent-purple text-3xl" />
+    </div>
+  ),
+  ssr: false, 
+});
 
 export default function SettingsPage() {
   const router = useRouter();

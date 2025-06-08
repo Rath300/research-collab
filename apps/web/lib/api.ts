@@ -305,7 +305,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
   if (!file) return null;
 
   const fileExt = file.name.split('.').pop();
-  const filePath = `${userId}-${Date.now()}.${fileExt}`;
+  const filePath = `${userId}/avatar.${fileExt}`;
 
     const supabase = getBrowserClient();
   try {
@@ -313,7 +313,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
       .from('avatars')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false, // Typically false to avoid overwriting unless intended
+        upsert: true,
       });
     
     if (uploadError) {

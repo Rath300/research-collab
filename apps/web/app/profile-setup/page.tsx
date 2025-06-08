@@ -3,11 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import { ProfileForm } from '@/components/profile/ProfileForm';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { FiLoader, FiUserCheck } from 'react-icons/fi';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { motion } from 'framer-motion';
+
+const ProfileForm = dynamic(() => import('@/components/profile/ProfileForm').then(mod => mod.ProfileForm), {
+  loading: () => (
+    <div className="flex justify-center items-center p-8">
+      <FiLoader className="animate-spin text-accent-purple text-3xl" />
+    </div>
+  ),
+  ssr: false, // Profile form is client-side heavy, no need for SSR
+});
 
 export default function ProfileSetupPage() {
   const router = useRouter();

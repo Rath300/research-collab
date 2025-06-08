@@ -36,21 +36,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Adjusted matcher to include root, and exclude specific auth utility paths if needed
-  // The previous matcher was very broad, let's refine if specific issues arise.
+  // This matcher ensures the middleware runs on all paths except for static files, images, and API routes.
   matcher: [
-    '/dashboard/:path*',
-    '/settings/:path*',
-    '/profile/:path*',
-    '/projects/:path*',
-    '/research/:path*',
-    '/collaborators/:path*',
-    '/chats/:path*',
-    '/login',
-    '/signup',
-    '/reset-password',
-    '/update-password',
-    '/auth/check-email',
-    // Add other specific protected paths here if not covered by patterns
+    '/((?!api|_next/static|_next/image|favicon.ico).*)'
   ],
 } 

@@ -136,7 +136,6 @@ export function ProjectChatInterface({ projectId, currentUserId }: ProjectChatIn
     { 
       queryKey: ['chat.listMessagesForProject', queryProcedureInput], 
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      initialPageParam: undefined as string | undefined, 
       refetchOnWindowFocus: true,
     }
   );
