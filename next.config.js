@@ -12,6 +12,7 @@ const tamaguiPlugin = withTamagui({
 });
 
 const nextConfig = {
+  transpilePackages: ['@research-collab/api', '@research-collab/db', 'ui'],
   output: 'standalone',
   swcMinify: true,
   eslint: {
