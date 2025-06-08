@@ -75,6 +75,9 @@ importers:
       prettier:
         specifier: ^3.5.3
         version: 3.5.3
+      solito:
+        specifier: ^1.0.44
+        version: 1.1.2
       tailwindcss:
         specifier: ^3.3.0
         version: 3.4.17
@@ -6915,6 +6918,9 @@ packages:
   slice-ansi@4.0.0:
     resolution: {integrity: sha512-qMCMfhY040cVHT43K9BFygqYbUPFZKHOg7K73mtTWJRb8pyP3fzf4Ixd5SzdEJQ6MRUg/WBnOLxghZtKKurENQ==}
     engines: {node: '>=10'}
+
+  solito@1.1.2:
+    resolution: {integrity: sha512-4IYywLa51OmEwjnH5wQUmQM0OZ/kU4Zz8U4RisUILvJgf8qdtaNdZ/itmc9K1CC64G6feoCyq7zxDVZyOk+0mA==}
 
   solito@4.4.1:
     resolution: {integrity: sha512-5+XtaaOjRPV+q6uV9DruD2VRwtPpoLkZevQW3INGgRpsJNjulbd6JKlHoNeFRAvEJLJNU+nKbtv6Tq2pTxu2Aw==}
@@ -16041,6 +16047,8 @@ snapshots:
       ansi-styles: 4.3.0
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
+
+  solito@1.1.2: {}
 
   solito@4.4.1:
     dependencies:
