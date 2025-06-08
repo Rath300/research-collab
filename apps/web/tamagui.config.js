@@ -66,4 +66,17 @@ const config = createTamagui({
   themes: customThemes,
 })
 
+/**
+ * This config is used to transpile the packages that are using Tamagui
+ */
+const tamaguiConfig = {
+  transpilePackages: [
+    '@research-collab/api',
+    '@research-collab/db',
+    'ui',
+  ],
+};
+
+module.exports = tamaguiConfig;
+
 export default config 
