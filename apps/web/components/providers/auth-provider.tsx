@@ -19,6 +19,7 @@ import { getProfile } from '@/lib/api';
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const {
     setUser,
+    setSession,
     setProfile,
     setLoading,
     setHasAttemptedProfileFetch,
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (JSON.stringify(remoteUser) !== JSON.stringify(storeUser)) {
           console.log('[AuthProvider] initializeAuth: Session user differs from store. Updating user to:', remoteUser ? remoteUser.id : 'null');
           setUser(remoteUser);
+          setSession(session);
         } else {
           console.log('[AuthProvider] initializeAuth: Session user matches store user or both are null.');
         }
@@ -129,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (JSON.stringify(listenerUser) !== JSON.stringify(currentStoreUser)) {
           setUser(listenerUser);
+          setSession(session);
         }
 
         if (listenerUser) {
@@ -196,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListenerSubscription?.unsubscribe();
     };
-  }, [setUser, setProfile, setLoading, setHasAttemptedProfileFetch]); // Removed `supabase` from dependency array as it's a stable singleton
+  }, [setUser, setSession, setProfile, setLoading, setHasAttemptedProfileFetch]); // Removed `supabase` from dependency array as it's a stable singleton
 
   return <>{children}</>;
 } 

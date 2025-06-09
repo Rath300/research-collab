@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { ResearchPost, Match, type Profile as DbProfile } from '@research-collab/db';
+import type { Session, User } from '@supabase/supabase-js';
 
 // Define Profile type based on the database schema
 // type ProfileFromDb = Database['public']['Tables']['profiles']['Row'];
 
 export interface AuthState {
-  user: any | null;
+  user: User | null;
+  session: Session | null;
   profile: DbProfile | null;
   isLoading: boolean;
   hasAttemptedProfileFetch: boolean;
-  setUser: (user: any | null) => void;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
   setProfile: (profile: DbProfile | null) => void;
   setLoading: (isLoading: boolean) => void;
   setHasAttemptedProfileFetch: (attempted: boolean) => void;
@@ -63,13 +66,15 @@ interface ResearchState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-  user: null,
-  profile: null,
-  isLoading: true,
+      user: null,
+      session: null,
+      profile: null,
+      isLoading: true,
       hasAttemptedProfileFetch: false,
-  setUser: (user) => set({ user }),
+      setUser: (user) => set({ user }),
+      setSession: (session) => set({ session }),
       setProfile: (profile) => set({ profile, hasAttemptedProfileFetch: true }),
-  setLoading: (isLoading) => set({ isLoading }),
+      setLoading: (isLoading) => set({ isLoading }),
       setHasAttemptedProfileFetch: (attempted) => set({ hasAttemptedProfileFetch: attempted }),
       markTourAsCompletedInStore: () => set((state) => {
         if (state.profile) {
@@ -77,19 +82,21 @@ export const useAuthStore = create<AuthState>()(
         }
         return {};
       }),
-      clearAuth: () => set({ 
-        user: null, 
-        profile: null, 
-        isLoading: false, 
-        hasAttemptedProfileFetch: true, 
+      clearAuth: () => set({
+        user: null,
+        session: null,
+        profile: null,
+        isLoading: false,
+        hasAttemptedProfileFetch: true,
       }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ 
-        user: state.user, 
-        profile: state.profile, 
+      partialize: (state) => ({
+        user: state.user,
+        session: state.session,
+        profile: state.profile,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

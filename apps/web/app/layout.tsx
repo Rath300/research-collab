@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { TRPCProvider } from '@/components/providers/TRPCProvider';
 import { GeistSans } from 'geist/font/sans';
 import { Inter } from 'next/font/google';
 // import { Toaster } from '@/components/ui/toaster'; // Removed for now to avoid import error
@@ -25,9 +26,11 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable} ${inter.variable} font-sans antialiased`}>
       <body className="bg-black text-neutral-100 min-h-screen flex flex-col">
         <AuthProvider>
-          {/* ThemeProvider can be added back here if needed */}
-          <main className="flex-grow">{children}</main>
-          {/* <Toaster /> */}
+          <TRPCProvider>
+            {/* ThemeProvider can be added back here if needed */}
+            <main className="flex-grow">{children}</main>
+            {/* <Toaster /> */}
+          </TRPCProvider>
         </AuthProvider>
       </body>
     </html>
