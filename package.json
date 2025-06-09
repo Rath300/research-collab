@@ -60,5 +60,15 @@
   "bugs": {
     "url": "https://github.com/Rath300/research-collab/issues"
   },
-  "homepage": "https://github.com/Rath300/research-collab#readme"
+  "homepage": "https://github.com/Rath300/research-collab#readme",
+  "dependencies": {
+    "@tamagui/config": "1.94.3",
+    "@tamagui/core": "^1.126.14",
+    "@tamagui/font-inter": "^1.126.14",
+    "@tamagui/shorthands": "^1.126.14",
+    "@tamagui/themes": "^1.126.14",
+    "react-native-reanimated": "^3.18.0",
+    "react-native-svg": "13.9.0",
+    "tamagui": "^1.126.14"
+  }
 }

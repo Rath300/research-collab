@@ -7,6 +7,31 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@tamagui/config':
+        specifier: 1.94.3
+        version: 1.94.3(react-dom@18.2.0(react@18.2.0))(react-native-reanimated@3.18.0(@babel/core@7.27.4)(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+      '@tamagui/core':
+        specifier: ^1.126.14
+        version: 1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+      '@tamagui/font-inter':
+        specifier: ^1.126.14
+        version: 1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+      '@tamagui/shorthands':
+        specifier: ^1.126.14
+        version: 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tamagui/themes':
+        specifier: ^1.126.14
+        version: 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-native-reanimated:
+        specifier: ^3.18.0
+        version: 3.18.0(@babel/core@7.27.4)(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+      react-native-svg:
+        specifier: 13.9.0
+        version: 13.9.0(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+      tamagui:
+        specifier: ^1.126.14
+        version: 1.126.14(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
     devDependencies:
       '@supabase/auth-helpers-nextjs':
         specifier: ^0.10.0
@@ -95,7 +120,7 @@ importers:
         version: link:../../packages/typescript-config
       '@tamagui/next-plugin':
         specifier: ^1.61.0
-        version: 1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.6(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(webpack@5.99.9)
+        version: 1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.6(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))
       '@types/node':
         specifier: ^22.14.0
         version: 22.15.30
@@ -318,7 +343,7 @@ importers:
         version: 13.5.11
       '@tamagui/next-plugin':
         specifier: ^1.126.13
-        version: 1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))
+        version: 1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9)
       '@types/react-joyride':
         specifier: ^2.0.2
         version: 2.0.5(@types/react@18.2.79)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -2566,6 +2591,9 @@ packages:
     peerDependencies:
       react: '*'
 
+  '@tamagui/colors@1.126.14':
+    resolution: {integrity: sha512-4rFxUlsuZOo0fZap9PtAcs+sPzZCJloWhKKZFJw74GC2N4mua++lHQG3D/eRDD2X97Aqn7S76DosrIywrIfc+Q==}
+
   '@tamagui/colors@1.94.3':
     resolution: {integrity: sha512-qY/M0TmNtXcTuhk7cTx1SEokZjHXKDOADSGIrPoRxFjYo8cS79Uc382BlNQEb4nbTk81cDxNeatsAyYlg/G0sw==}
 
@@ -2701,6 +2729,9 @@ packages:
     resolution: {integrity: sha512-cNTtKiE6Bq3TUXUr1C6AdJiojVX+uzKZBb5bd5ftV7AyuhGIJjfFKS2enKYW+gyOezsNh0vwJnTaE3BDoiRkSQ==}
     peerDependencies:
       react: '*'
+
+  '@tamagui/font-inter@1.126.14':
+    resolution: {integrity: sha512-OcuWzF1vOYN7AWkwGsEx/mQwGPqoPyViRfGhpqc3dPqdKI05/x9gw1n1cibuvVZ4+Bw6LBxrV9JjC8RtWaydCA==}
 
   '@tamagui/font-inter@1.94.3':
     resolution: {integrity: sha512-wW8g4rsZQGmI7QbR5444Pr13Q795WQ9nLGbKVbiG1oM4/G5x4MyYuGao/KcQrNjotZN8WHsFOeSselNrSVomjA==}
@@ -3166,6 +3197,9 @@ packages:
     resolution: {integrity: sha512-hLu43mmetEn1xh+Bzy5H6UtuydqAfU82jmsqctFK0+c3NWfV4p35dtn6z/4069KIKHcnM2dOxMjON/BP0i7JEg==}
     peerDependencies:
       react: '*'
+
+  '@tamagui/themes@1.126.14':
+    resolution: {integrity: sha512-37duwJpZUBLWt7qZFIueCraNqm4Fwbh2EDkV72h77k6qxN70qKQ/FAY/73e4q53+VEl3JZCXemkOGsfhfnFXbw==}
 
   '@tamagui/themes@1.94.3':
     resolution: {integrity: sha512-40BMlOeC1a7WSdfL+B5ZcWRyrMsQnTZ6kR8wpI2Z5y+UDaH9bBeIR7+ukNe18gD5UqmZ9XRbRT5rDB+qV/Qg5Q==}
@@ -10265,6 +10299,8 @@ snapshots:
       '@tamagui/use-controllable-state': 1.61.0(react@18.2.0)
       react: 18.2.0
 
+  '@tamagui/colors@1.126.14': {}
+
   '@tamagui/colors@1.94.3': {}
 
   '@tamagui/compose-refs@1.126.14(react@18.2.0)':
@@ -10496,6 +10532,14 @@ snapshots:
       '@tamagui/compose-refs': 1.61.0(react@18.2.0)
       '@tamagui/web': 1.61.0(react@18.2.0)
       react: 18.2.0
+
+  '@tamagui/font-inter@1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@tamagui/core': 1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
+    transitivePeerDependencies:
+      - react
+      - react-dom
+      - react-native
 
   '@tamagui/font-inter@1.94.3(react@18.2.0)':
     dependencies:
@@ -10786,32 +10830,6 @@ snapshots:
       react: 18.2.0
       react-native-svg: 13.9.0(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
 
-  '@tamagui/next-plugin@1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))':
-    dependencies:
-      '@babel/preset-react': 7.27.1(@babel/core@7.27.4)
-      '@tamagui/proxy-worm': 1.126.14
-      '@tamagui/react-native-svg': 1.126.14
-      '@tamagui/static': 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
-      babel-loader: 9.2.1(@babel/core@7.27.4)(webpack@5.99.9(esbuild@0.25.5))
-      browserslist: 4.25.0
-      css-loader: 6.11.0(webpack@5.99.9(esbuild@0.25.5))
-      esbuild-loader: 4.3.0(webpack@5.99.9(esbuild@0.25.5))
-      file-loader: 6.2.0(webpack@5.99.9(esbuild@0.25.5))
-      html-webpack-plugin: 5.6.3(webpack@5.99.9(esbuild@0.25.5))
-      next: 13.5.11(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      tamagui-loader: 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))
-      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.99.9(esbuild@0.25.5)))(webpack@5.99.9(esbuild@0.25.5))
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@rspack/core'
-      - '@swc/helpers'
-      - encoding
-      - react
-      - react-dom
-      - react-native
-      - supports-color
-      - webpack
-
   '@tamagui/next-plugin@1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.11(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9)':
     dependencies:
       '@babel/preset-react': 7.27.1(@babel/core@7.27.4)
@@ -10838,21 +10856,21 @@ snapshots:
       - supports-color
       - webpack
 
-  '@tamagui/next-plugin@1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.6(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(webpack@5.99.9)':
+  '@tamagui/next-plugin@1.126.14(@babel/core@7.27.4)(@swc/helpers@0.5.17)(next@13.5.6(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))':
     dependencies:
       '@babel/preset-react': 7.27.1(@babel/core@7.27.4)
       '@tamagui/proxy-worm': 1.126.14
       '@tamagui/react-native-svg': 1.126.14
       '@tamagui/static': 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
-      babel-loader: 9.2.1(@babel/core@7.27.4)(webpack@5.99.9)
+      babel-loader: 9.2.1(@babel/core@7.27.4)(webpack@5.99.9(esbuild@0.25.5))
       browserslist: 4.25.0
-      css-loader: 6.11.0(webpack@5.99.9)
-      esbuild-loader: 4.3.0(webpack@5.99.9)
-      file-loader: 6.2.0(webpack@5.99.9)
-      html-webpack-plugin: 5.6.3(webpack@5.99.9)
+      css-loader: 6.11.0(webpack@5.99.9(esbuild@0.25.5))
+      esbuild-loader: 4.3.0(webpack@5.99.9(esbuild@0.25.5))
+      file-loader: 6.2.0(webpack@5.99.9(esbuild@0.25.5))
+      html-webpack-plugin: 5.6.3(webpack@5.99.9(esbuild@0.25.5))
       next: 13.5.6(@babel/core@7.27.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      tamagui-loader: 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(webpack@5.99.9)
-      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.99.9))(webpack@5.99.9)
+      tamagui-loader: 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9(esbuild@0.25.5))
+      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.99.9(esbuild@0.25.5)))(webpack@5.99.9(esbuild@0.25.5))
     transitivePeerDependencies:
       - '@babel/core'
       - '@rspack/core'
@@ -11542,6 +11560,17 @@ snapshots:
       '@tamagui/constants': 1.61.0(react@18.2.0)
       '@tamagui/web': 1.61.0(react@18.2.0)
       react: 18.2.0
+
+  '@tamagui/themes@1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@tamagui/colors': 1.126.14
+      '@tamagui/create-theme': 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tamagui/theme-builder': 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tamagui/web': 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      color2k: 2.0.3
+    transitivePeerDependencies:
+      - react
+      - react-dom
 
   '@tamagui/themes@1.94.3':
     dependencies:
@@ -13401,8 +13430,8 @@ snapshots:
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.8.2)
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.31.0)(eslint@8.57.1)
-      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1)
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1)
+      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.57.1)
       eslint-plugin-react: 7.37.5(eslint@8.57.1)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.57.1)
@@ -13425,7 +13454,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0)(eslint@8.57.1):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.1
@@ -13436,21 +13465,22 @@ snapshots:
       tinyglobby: 0.2.14
       unrs-resolver: 1.7.11
     optionalDependencies:
-      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1)
+      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
-      '@typescript-eslint/parser': 8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.8.2)
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1):
+  eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -13461,7 +13491,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2))(eslint@8.57.1))(eslint@8.57.1))(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -13473,7 +13503,7 @@ snapshots:
       string.prototype.trimend: 1.0.9
       tsconfig-paths: 3.15.0
     optionalDependencies:
-      '@typescript-eslint/parser': 8.33.1(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.8.2)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
@@ -16333,26 +16363,6 @@ snapshots:
       - webpack
 
   tamagui-loader@1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)(webpack@5.99.9):
-    dependencies:
-      '@tamagui/cli-color': 1.126.14
-      '@tamagui/core': 1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
-      '@tamagui/static': 1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
-      '@tamagui/web': 1.126.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      esbuild-loader: 4.3.0(webpack@5.99.9)
-      esm-resolve: 1.0.11
-      fs-extra: 11.3.0
-      loader-utils: 3.3.1
-      lodash: 4.17.21
-    transitivePeerDependencies:
-      - '@swc/helpers'
-      - encoding
-      - react
-      - react-dom
-      - react-native
-      - supports-color
-      - webpack
-
-  tamagui-loader@1.126.14(@swc/helpers@0.5.17)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(webpack@5.99.9):
     dependencies:
       '@tamagui/cli-color': 1.126.14
       '@tamagui/core': 1.126.14(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
