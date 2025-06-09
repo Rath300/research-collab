@@ -1,31 +1,17 @@
-import { Card as TamaguiCard, H2, Paragraph, XStack, YStack } from 'tamagui'
+import { YStack, styled } from 'tamagui'
 
-export interface CardProps {
-  title: string
-  description: string
-  footer?: string
-  variant?: 'default' | 'elevated' | 'outlined'
-}
-
-export function Card({ title, description, footer, variant = 'default' }: CardProps) {
-  return (
-    <TamaguiCard
-      elevate
-      bordered={variant === 'outlined'}
-      elevation={variant === 'elevated' ? '$4' : undefined}
-      size="$4"
-      borderRadius="$4"
-      padding="$4"
-    >
-      <YStack space="$2">
-        <H2>{title}</H2>
-        <Paragraph>{description}</Paragraph>
-        {footer && (
-          <XStack marginTop="$2">
-            <Paragraph size="$2" opacity={0.7}>{footer}</Paragraph>
-          </XStack>
-        )}
-      </YStack>
-    </TamaguiCard>
-  )
-}
+export const Card = styled(YStack, {
+  name: 'Card',
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  padding: '$4',
+  
+  // Add a subtle shadow for depth
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 2, // for Android
+});

@@ -1,65 +1,57 @@
 "use client";
 
-import { Button as TamaguiButton, styled } from 'tamagui'
+import { Button as TamaguiButton, styled, withStaticProperties } from 'tamagui'
+import { SizableText } from 'tamagui'
 
-// Define your styled button with variants
-const StyledTamaguiButton = styled(TamaguiButton, {
-  name: 'MyButton', // Optional: good for debugging and theming
+const ButtonFrame = styled(TamaguiButton, {
+  name: 'Button',
+  justifyContent: 'center',
+  alignItems: 'center',
+  flexDirection: 'row',
+  borderRadius: '$3',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+
   variants: {
-    intent: {
-      primary: {
-        backgroundColor: '$blue10', // Example: replace with your theme tokens
-        color: '$blue1',
-        // Add other styles for primary variant
-      },
-      secondary: {
-        backgroundColor: '$gray10', // Example: replace with your theme tokens
-        color: '$gray1',
-        // Add other styles for secondary variant
-      },
-      tertiary: {
-        backgroundColor: 'transparent', // Example: replace with your theme tokens
-        borderColor: '$gray8',
-        borderWidth: 1,
-        color: '$gray12',
-        // Add other styles for tertiary variant
+    size: {
+      '...size': (val, { tokens }) => {
+        return {
+          height: val,
+          paddingHorizontal: tokens.space[val] ?? val,
+        };
       },
     },
-    // You can also define variants for 'size' if needed, mapping your 'small', 'medium', 'large'
-    // to Tamagui's SizableStackProps['size'] or specific height/padding values.
-    // For now, we'll pass Tamagui's size prop directly.
-  } as const, // 'as const' is important for type inference of variants
+  } as const,
 
   defaultVariants: {
-    intent: 'primary',
+    size: '$4',
+  },
+
+  // Add some basic interaction styles
+  '&:hover': {
+    backgroundColor: '$backgroundHover',
+  },
+
+  pressStyle: {
+    backgroundColor: '$backgroundPress',
   },
 });
 
-export interface ButtonProps {
-  text: string
-  onClick?: () => void
-  intent?: 'primary' | 'secondary' | 'tertiary' // Changed from 'variant'
-  size?: 'small' | 'medium' | 'large' // Corresponds to TamaguiButton size prop
-  disabled?: boolean
-}
+const ButtonText = styled(SizableText, {
+  name: 'ButtonText',
+  color: '$color',
+  fontWeight: '600',
+  textAlign: 'center',
+});
 
-export function Button({ 
-  text, 
-  onClick, 
-  intent = 'primary',
-  size = 'medium', // This will be passed to TamaguiButton's size prop
-  disabled = false 
-}: ButtonProps) {
-  return (
-    <StyledTamaguiButton
-      size={size} // Use Tamagui's SizableStackProps['size']
-      intent={intent} // This is your custom variant
-      disabled={disabled}
-      onPress={onClick}
-      // Remove the direct theme prop if variants handle all styling,
-      // or use it if you need to apply a different base theme dynamically
-    >
-      {text}
-    </StyledTamaguiButton>
-  )
-}
+const ButtonIcon = styled(SizableText, {
+  name: 'ButtonIcon',
+  color: '$color',
+  marginRight: '$2', // Add some space between icon and text
+});
+
+export const Button = withStaticProperties(ButtonFrame, {
+  Props: TamaguiButton.Props,
+  Text: ButtonText,
+  Icon: ButtonIcon,
+});
