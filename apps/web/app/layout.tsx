@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} font-sans antialiased`}>
-      <body className="bg-black text-neutral-100 min-h-screen flex flex-col">
+      <body className="bg-[#FAFAFA] text-[#1E1E1E] min-h-screen flex flex-col font-sans">
         <AuthProvider>
           <TRPCProvider>
             {/* ThemeProvider can be added back here if needed */}

@@ -14,6 +14,45 @@ const bodyFont = createFont({
   letterSpacing: { 1: 0 },
 })
 
+// --------------------  Zen-Garden Design Tokens  --------------------
+// Using warm off-white backgrounds, low-contrast text, and muted accent colours.
+
+const zenColors = {
+  background: '#FAFAFA',          // Soft off-white background
+  backgroundHover: '#F9F9F6',     // Slightly darker hover state
+  backgroundPress: '#F0F0EC',     // Pressed/active background
+  color: '#1E1E1E',               // Primary text (dark gray)
+  colorMuted: '#4F4F4F',          // Secondary text
+  colorDisabled: '#A0A0A0',       // Disabled text
+  borderColor: '#EAEAEA',         // Light gray borders
+  accentColor: '#A3BFFA',         // Muted blue accent (buttons, links)
+  accentColorHover: '#8AA6E3',    // Hover state for accent
+  accentColorPress: '#7998D1',    // Pressed state for accent
+};
+
+/**
+ * Build a Tamagui theme from the zenColors map.
+ */
+function createZenTheme() {
+  return {
+    // Map tokens that existing components expect (background*, color, borderColor, etc.)
+    background: zenColors.background,
+    backgroundHover: zenColors.backgroundHover,
+    backgroundPress: zenColors.backgroundPress,
+    color: zenColors.color,
+    colorHover: zenColors.color, // Keep text the same on hover
+    colorFocus: zenColors.color,
+    colorPress: zenColors.color,
+    borderColor: zenColors.borderColor,
+    accentBackground: zenColors.accentColor,
+    accentBackgroundHover: zenColors.accentColorHover,
+    accentBackgroundPress: zenColors.accentColorPress,
+    accentColor: '#FFFFFF', // text on accent surfaces
+  } as const;
+}
+
+const zenLight = createZenTheme();
+
 const config = createTamagui({
   defaultFont: 'body',
   // animations commented out
@@ -23,7 +62,12 @@ const config = createTamagui({
   },
   shorthands,
   tokens,
-  themes: defaultThemes, // Using default themes directly from @tamagui/themes
+  themes: {
+    ...defaultThemes,
+    zen: zenLight,
+  },
+  themeClassNameOnRoot: true, // Ensure theme name is set on root for easier debugging
+  defaultTheme: 'zen',
 })
 
 export type AppConfig = typeof config
