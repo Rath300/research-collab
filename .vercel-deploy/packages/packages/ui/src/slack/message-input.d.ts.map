@@ -1,1 +1,0 @@
-{"version":3,"file":"message-input.d.ts","sourceRoot":"","sources":["message-input.tsx"],"names":[],"mappings":"AAIA,UAAU,iBAAiB;IACzB,SAAS,EAAE,MAAM,CAAC;IAClB,aAAa,EAAE,CAAC,IAAI,EAAE,MAAM,KAAK,OAAO,CAAC,IAAI,CAAC,CAAC;IAC/C,SAAS,EAAE,OAAO,CAAC;CACpB;AAED,wBAAgB,YAAY,CAAC,EAAE,SAAS,EAAE,aAAa,EAAE,SAAS,EAAE,EAAE,iBAAiB,2CAoDtF"}
