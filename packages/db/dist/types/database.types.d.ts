@@ -508,38 +508,47 @@ export type Database = {
             project_chat_messages: {
                 Row: {
                     content: string;
-                    created_at: string | null;
+                    created_at: string;
                     id: string;
+                    message_type: string;
+                    parent_message_id: string | null;
                     project_id: string;
+                    updated_at: string;
                     user_id: string;
                 };
                 Insert: {
                     content: string;
-                    created_at?: string | null;
+                    created_at?: string;
                     id?: string;
+                    message_type?: string;
+                    parent_message_id?: string | null;
                     project_id: string;
+                    updated_at?: string;
                     user_id: string;
                 };
                 Update: {
                     content?: string;
-                    created_at?: string | null;
+                    created_at?: string;
                     id?: string;
+                    message_type?: string;
+                    parent_message_id?: string | null;
                     project_id?: string;
+                    updated_at?: string;
                     user_id?: string;
                 };
                 Relationships: [
                     {
-                        foreignKeyName: "project_chat_messages_project_id_fkey";
-                        columns: ["project_id"];
+                        foreignKeyName: "project_chat_messages_parent_message_id_fkey";
+                        columns: ["parent_message_id"];
                         isOneToOne: false;
-                        referencedRelation: "projects";
+                        referencedRelation: "project_chat_messages";
                         referencedColumns: ["id"];
                     },
                     {
-                        foreignKeyName: "project_chat_messages_user_id_fkey";
-                        columns: ["user_id"];
+                        foreignKeyName: "project_chat_messages_project_id_fkey";
+                        columns: ["project_id"];
                         isOneToOne: false;
-                        referencedRelation: "profiles";
+                        referencedRelation: "research_posts";
                         referencedColumns: ["id"];
                     }
                 ];
@@ -548,22 +557,28 @@ export type Database = {
                 Row: {
                     created_at: string | null;
                     id: string;
+                    invited_by: string | null;
                     project_id: string;
                     role: string;
+                    status: Database["public"]["Enums"]["project_collaborator_status"];
                     user_id: string;
                 };
                 Insert: {
                     created_at?: string | null;
                     id?: string;
+                    invited_by?: string | null;
                     project_id: string;
                     role: string;
+                    status?: Database["public"]["Enums"]["project_collaborator_status"];
                     user_id: string;
                 };
                 Update: {
                     created_at?: string | null;
                     id?: string;
+                    invited_by?: string | null;
                     project_id?: string;
                     role?: string;
+                    status?: Database["public"]["Enums"]["project_collaborator_status"];
                     user_id?: string;
                 };
                 Relationships: [
@@ -732,6 +747,59 @@ export type Database = {
                         columns: ["user_id"];
                         isOneToOne: false;
                         referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            project_tasks: {
+                Row: {
+                    assignee_user_id: string | null;
+                    created_at: string;
+                    description: string | null;
+                    due_date: string | null;
+                    id: string;
+                    order: number | null;
+                    priority: Database["public"]["Enums"]["project_task_priority"] | null;
+                    project_id: string;
+                    reporter_user_id: string;
+                    status: Database["public"]["Enums"]["project_task_status"];
+                    title: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    assignee_user_id?: string | null;
+                    created_at?: string;
+                    description?: string | null;
+                    due_date?: string | null;
+                    id?: string;
+                    order?: number | null;
+                    priority?: Database["public"]["Enums"]["project_task_priority"] | null;
+                    project_id: string;
+                    reporter_user_id: string;
+                    status?: Database["public"]["Enums"]["project_task_status"];
+                    title: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    assignee_user_id?: string | null;
+                    created_at?: string;
+                    description?: string | null;
+                    due_date?: string | null;
+                    id?: string;
+                    order?: number | null;
+                    priority?: Database["public"]["Enums"]["project_task_priority"] | null;
+                    project_id?: string;
+                    reporter_user_id?: string;
+                    status?: Database["public"]["Enums"]["project_task_status"];
+                    title?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "project_tasks_project_id_fkey";
+                        columns: ["project_id"];
+                        isOneToOne: false;
+                        referencedRelation: "research_posts";
                         referencedColumns: ["id"];
                     }
                 ];
@@ -1347,6 +1415,10 @@ export type Database = {
             };
         };
         Enums: {
+            project_collaborator_role: "owner" | "editor" | "viewer";
+            project_collaborator_status: "pending" | "active" | "declined" | "revoked";
+            project_task_priority: "low" | "medium" | "high" | "urgent";
+            project_task_status: "todo" | "in_progress" | "completed" | "archived";
             workspace_document_type: "Text Document" | "Code Notebook" | "Research Proposal" | "Methodology" | "Data Analysis" | "Literature Review" | "Generic Document";
             workspace_role: "owner" | "admin" | "editor" | "commenter" | "viewer";
             workspace_task_status: "todo" | "in_progress" | "review" | "completed" | "archived";
@@ -1407,6 +1479,10 @@ export type CompositeTypes<PublicCompositeTypeNameOrOptions extends keyof Defaul
 export declare const Constants: {
     readonly public: {
         readonly Enums: {
+            readonly project_collaborator_role: readonly ["owner", "editor", "viewer"];
+            readonly project_collaborator_status: readonly ["pending", "active", "declined", "revoked"];
+            readonly project_task_priority: readonly ["low", "medium", "high", "urgent"];
+            readonly project_task_status: readonly ["todo", "in_progress", "completed", "archived"];
             readonly workspace_document_type: readonly ["Text Document", "Code Notebook", "Research Proposal", "Methodology", "Data Analysis", "Literature Review", "Generic Document"];
             readonly workspace_role: readonly ["owner", "admin", "editor", "commenter", "viewer"];
             readonly workspace_task_status: readonly ["todo", "in_progress", "review", "completed", "archived"];

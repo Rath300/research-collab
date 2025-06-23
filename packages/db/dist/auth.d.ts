@@ -26,6 +26,7 @@ export declare function getCurrentUser(): Promise<{
     is_anonymous?: boolean;
     is_sso_user?: boolean;
     factors?: import("@supabase/supabase-js").Factor[];
+    deleted_at?: string;
 } | null>;
 export declare function signIn(email: string, password: string): Promise<import("@supabase/supabase-js").AuthTokenResponsePassword>;
 export declare function signUp(email: string, password: string, userData: {

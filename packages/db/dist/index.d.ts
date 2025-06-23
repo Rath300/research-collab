@@ -257,6 +257,7 @@ export declare const messageSchema: z.ZodObject<{
     is_read?: boolean | undefined;
 }>;
 export type Message = z.infer<typeof messageSchema>;
+export { projectChatMessageSchema, type ProjectChatMessage, projectMessageTypeSchema, type ProjectMessageType } from './schema/chat_message';
 export declare const aiReviewSchema: z.ZodObject<{
     id: z.ZodString;
     created_at: z.ZodOptional<z.ZodString>;
@@ -534,7 +535,7 @@ export declare const workspaceTaskSchema: z.ZodObject<{
     created_at: Date;
     title: string;
     updated_at: Date;
-    status: "todo" | "in_progress" | "review" | "completed" | "archived";
+    status: "todo" | "in_progress" | "completed" | "archived" | "review";
     assigned_to_user_id?: string | null | undefined;
     description?: string | null | undefined;
     due_date?: Date | null | undefined;
@@ -546,7 +547,7 @@ export declare const workspaceTaskSchema: z.ZodObject<{
     assigned_to_user_id?: string | null | undefined;
     created_at?: unknown;
     updated_at?: unknown;
-    status?: "todo" | "in_progress" | "review" | "completed" | "archived" | undefined;
+    status?: "todo" | "in_progress" | "completed" | "archived" | "review" | undefined;
     description?: string | null | undefined;
     due_date?: unknown;
 }>;
@@ -647,11 +648,11 @@ export declare const researchItemSchema: z.ZodObject<{
     title?: string | null | undefined;
     updated_at?: unknown;
     description?: string | null | undefined;
+    order?: number | undefined;
     file_name?: string | null | undefined;
     file_path?: string | null | undefined;
     file_type?: string | null | undefined;
     file_size_bytes?: number | null | undefined;
-    order?: number | undefined;
     url?: string | null | undefined;
 }>;
 export type ResearchItem = z.infer<typeof researchItemSchema>;
@@ -680,4 +681,6 @@ export declare const profileMatchSchema: z.ZodObject<{
     created_at?: Date | undefined;
 }>;
 export type ProfileMatch = z.infer<typeof profileMatchSchema>;
+export * from './schema/task';
+export * from './types';
 //# sourceMappingURL=index.d.ts.map

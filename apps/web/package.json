@@ -68,7 +68,7 @@
     "tailwindcss": "^3.4.3",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-font-inter": "^3.0.1",
-    "tamagui": "1.61.0",
+    "tamagui": "1.94.3",
     "typescript": "^5.8.2",
     "ui": "workspace:*",
     "xml2js": "^0.6.2",
@@ -77,7 +77,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.6",
-    "@tamagui/next-plugin": "^1.126.13",
+    "@tamagui/next-plugin": "^1.94.3",
     "@types/react-joyride": "^2.0.2",
     "@types/xml2js": "^0.4.14",
     "eslint": "^8.30.0",

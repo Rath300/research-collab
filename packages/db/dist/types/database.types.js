@@ -4,6 +4,10 @@ exports.Constants = void 0;
 exports.Constants = {
     public: {
         Enums: {
+            project_collaborator_role: ["owner", "editor", "viewer"],
+            project_collaborator_status: ["pending", "active", "declined", "revoked"],
+            project_task_priority: ["low", "medium", "high", "urgent"],
+            project_task_status: ["todo", "in_progress", "completed", "archived"],
             workspace_document_type: [
                 "Text Document",
                 "Code Notebook",

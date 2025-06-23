@@ -338,19 +338,21 @@ export const projectRouter = router({
 
       const projects = collaborations
         .map(collaboration => {
-          // The joined 'research_posts' table is an array, we take the first element.
-          const projectData = collaboration.research_posts?.[0];
+          // The joined 'research_posts' table can be an object or an array depending on Supabase inference.
+          const postDataRaw = Array.isArray(collaboration.research_posts)
+            ? collaboration.research_posts[0]
+            : collaboration.research_posts;
 
-          if (!projectData) {
+          if (!postDataRaw) {
             return null;
           }
 
           return {
-            ...projectData,
+            ...postDataRaw,
             role: collaboration.role,
             // Handle null from DB to match Zod schema which likely expects undefined
-            visibility: projectData.visibility ?? undefined,
-            tags: projectData.tags ?? undefined,
+            visibility: postDataRaw.visibility ?? undefined,
+            tags: postDataRaw.tags ?? undefined,
           };
         })
         .filter((p): p is NonNullable<typeof p> => p !== null);

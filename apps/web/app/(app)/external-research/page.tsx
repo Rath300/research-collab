@@ -17,7 +17,7 @@ import {
 } from '@/lib/external-apis'; // Adjust path as necessary
 import { FiSearch, FiLoader, FiAlertCircle, FiBookOpen } from 'react-icons/fi';
 import { api } from '@/lib/trpc';
-import { mapCoreResultToPaper } from '@/lib/external-apis/core.service'; // Keep the mapper
+import { mapCoreResultToPaper } from '@/lib/external-apis/core.mapping';
 
 type ApiSource = 'arxiv' | 'semanticScholar' | 'crossref' | 'pubmed' | 'core';
 

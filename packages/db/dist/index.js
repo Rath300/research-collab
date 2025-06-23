@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.profileMatchSchema = exports.researchItemSchema = exports.researchItemTypeSchema = exports.workspaceChatMessageSchema = exports.workspaceFileSchema = exports.workspaceTaskSchema = exports.workspaceDocumentSchema = exports.workspaceDocumentTypeSchema = exports.workspaceMemberSchema = exports.workspaceSchema = exports.workspaceTaskStatusSchema = exports.workspaceRoleSchema = exports.projectCollaboratorSchema = exports.projectCollaboratorStatusSchema = exports.projectCollaboratorRoleSchema = exports.projectFileSchema = exports.userNotificationSchema = exports.researchPostMatchSchema = exports.subscriptionSchema = exports.aiReviewSchema = exports.messageSchema = exports.proofSchema = exports.mentorApplicationSchema = exports.projectSchema = exports.guildSchema = exports.matchSchema = exports.researchPostSchema = exports.profileSchema = exports.supabase = void 0;
+exports.profileMatchSchema = exports.researchItemSchema = exports.researchItemTypeSchema = exports.workspaceChatMessageSchema = exports.workspaceFileSchema = exports.workspaceTaskSchema = exports.workspaceDocumentSchema = exports.workspaceDocumentTypeSchema = exports.workspaceMemberSchema = exports.workspaceSchema = exports.workspaceTaskStatusSchema = exports.workspaceRoleSchema = exports.projectCollaboratorSchema = exports.projectCollaboratorStatusSchema = exports.projectCollaboratorRoleSchema = exports.projectFileSchema = exports.userNotificationSchema = exports.researchPostMatchSchema = exports.subscriptionSchema = exports.aiReviewSchema = exports.projectMessageTypeSchema = exports.projectChatMessageSchema = exports.messageSchema = exports.proofSchema = exports.mentorApplicationSchema = exports.projectSchema = exports.guildSchema = exports.matchSchema = exports.researchPostSchema = exports.profileSchema = exports.supabase = void 0;
 // Supabase client setup with typed data access
 var supabase_js_1 = require("@supabase/supabase-js");
 var zod_1 = require("zod");
@@ -130,6 +130,8 @@ exports.proofSchema = zod_1.z.object({
     blockchain_tx: zod_1.z.string().optional().nullable(),
 });
 // Chat Message Schema
+// Note: This 'messageSchema' seems to be for 1-on-1 direct messages related to a 'match_id'.
+// It's different from ProjectChatMessage which is for project-specific chats.
 exports.messageSchema = zod_1.z.object({
     id: zod_1.z.string().uuid(),
     created_at: zod_1.z.string().datetime().optional(),
@@ -139,6 +141,10 @@ exports.messageSchema = zod_1.z.object({
     content: zod_1.z.string(),
     is_read: zod_1.z.boolean().default(false),
 });
+// Export Project Chat Message Schema and Type
+var chat_message_1 = require("./schema/chat_message");
+Object.defineProperty(exports, "projectChatMessageSchema", { enumerable: true, get: function () { return chat_message_1.projectChatMessageSchema; } });
+Object.defineProperty(exports, "projectMessageTypeSchema", { enumerable: true, get: function () { return chat_message_1.projectMessageTypeSchema; } });
 // AI Review Schema
 exports.aiReviewSchema = zod_1.z.object({
     id: zod_1.z.string().uuid(),
@@ -420,3 +426,5 @@ exports.profileMatchSchema = zod_1.z.object({
     status: zod_1.z.enum(['matched', 'rejected'], { message: "Status must be either 'matched' or 'rejected'." }),
     created_at: zod_1.z.date().optional(), // Will be set by Supabase default
 });
+__exportStar(require("./schema/task"), exports);
+__exportStar(require("./types"), exports); // For database.types.ts 
