@@ -2,15 +2,10 @@
 import { supabase } from '@research-collab/db';
 import type { AppRouter } from './src/router';
 
-// Export the individual API modules
+// Export the individual API modules that actually exist
 export * from './auth';
 export * from './profiles';
 export * from './research-posts';
-export * from './collaborator-matches';
-export * from './guilds';
-export * from './projects';
-export * from './mentors';
-export * from './messages';
 export * from './proofs';
 export * from './ai-reviews';
 export * from './subscriptions';

@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
-import { collaboratorMatchSchema, researchPostSchema, profileSchema } from '@research-collab/db';
+import { matchSchema, researchPostSchema, profileSchema } from '@research-collab/db';
 import { TRPCError } from '@trpc/server';
 
 export const collaborationRouter = router({
   listRequests: protectedProcedure
-    .output(z.array(collaboratorMatchSchema.extend({
+    .output(z.array(matchSchema.extend({
       requester_profile: profileSchema.pick({ id: true, first_name: true, last_name: true, avatar_url: true }).nullable(),
       research_post: researchPostSchema.pick({ id: true, title: true }).nullable(),
     })))
