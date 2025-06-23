@@ -63,6 +63,14 @@
     "dist/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    "**/.vercel*",
+    "**/.vercel*/**",
+    "**/.vercel-deploy*/**",
+    "../.vercel*",
+    "**/temp*/**",
+    "../../clean-repo/**",
+    "../../research-collab-standalone/**"
   ]
 }
