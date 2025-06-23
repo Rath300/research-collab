@@ -4,18 +4,16 @@ import { type NextRequest } from 'next/server';
 import { appRouter } from '@research-collab/api';
 import { createContext } from '@research-collab/api/context';
 
-const handler = (req: NextRequest) =>
+export const handler = (req: NextRequest) =>
   fetchRequestHandler({
     endpoint: '/api/trpc',
     req,
     router: appRouter,
-    createContext: () => createContext(),
+    createContext: (opts) => createContext(opts),
     onError:
       process.env.NODE_ENV === 'development'
         ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
-            );
+            console.error(`❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`);
           }
         : undefined,
   });

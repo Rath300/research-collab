@@ -68,21 +68,5 @@ export function resetSupabaseClient() { // Consider renaming to resetBrowserClie
   browserClientInstance = null;
 }
 
-/**
- * Export the singleton Supabase client instance
- * This ensures only one client instance exists, preventing multiple GoTrueClient warnings
- * Using a getter to make it lazy and avoid creating the client at module load time
- */
-export const supabase = {
-  // Use getters to make all methods lazy
-  get auth() { return getBrowserClient().auth; },
-  get from() { return getBrowserClient().from.bind(getBrowserClient()); },
-  get storage() { return getBrowserClient().storage; },
-  get functions() { return getBrowserClient().functions; },
-  get realtime() { return getBrowserClient().realtime; },
-  get rest() { return getBrowserClient().rest; },
-  get channel() { return getBrowserClient().channel.bind(getBrowserClient()); },
-  get removeChannel() { return getBrowserClient().removeChannel.bind(getBrowserClient()); },
-  get removeAllChannels() { return getBrowserClient().removeAllChannels.bind(getBrowserClient()); },
-  get getChannels() { return getBrowserClient().getChannels.bind(getBrowserClient()); },
-}; 
+// Convenient default export of the singleton Supabase client
+export const supabase = getBrowserClient(); 
