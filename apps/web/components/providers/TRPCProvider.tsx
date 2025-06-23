@@ -24,7 +24,35 @@ function getBaseUrl() {
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuthStore();
   
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Cache for 5 minutes by default
+        staleTime: 5 * 60 * 1000,
+        // Keep data in cache for 10 minutes
+        gcTime: 10 * 60 * 1000,
+        // Retry failed requests up to 2 times
+        retry: 2,
+        // Don't retry on client errors (4xx)
+        retryOnMount: true,
+        // Background refetch when window regains focus
+        refetchOnWindowFocus: false,
+        // Background refetch when component remounts
+        refetchOnMount: true,
+        // Don't refetch when reconnecting to network
+        refetchOnReconnect: 'always',
+        // Error boundary will handle errors
+        throwOnError: false,
+      },
+      mutations: {
+        // Retry mutations once
+        retry: 1,
+        // Throw errors for error boundaries
+        throwOnError: true,
+      },
+    },
+  }));
+  
   const [trpcClient] = useState(() =>
     api.createClient({
       transformer: superjson,
@@ -36,6 +64,10 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
         }),
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          // Enable batching for better performance
+          maxURLLength: 2083,
+          // Batch requests within 10ms
+          maxBatchSize: 10,
           headers() {
             if (!session?.access_token) return {};
             return {
