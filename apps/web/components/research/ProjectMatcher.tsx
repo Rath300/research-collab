@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
-import { Card } from '@/components/ui/Card'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store'
 import { Database } from '@/lib/database.types'
+import { getSupabaseClient } from '@/lib/supabaseClient'
 
 type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -23,10 +23,7 @@ export function ProjectMatcher() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = getSupabaseClient()
 
   const loadNextProject = useCallback(async () => {
     if (!user) return
@@ -154,4 +151,4 @@ export function ProjectMatcher() {
       </div>
     </Card>
   )
-} 
+}

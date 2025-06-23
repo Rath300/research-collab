@@ -53,6 +53,14 @@ export function getBrowserClient(): SupabaseClient<Database> {
 }
 
 /**
+ * Get the singleton Supabase client instance.
+ * This is the recommended way to access the client to avoid multiple instances.
+ */
+export function getSupabaseClient(): SupabaseClient<Database> {
+  return getBrowserClient();
+}
+
+/**
  * Resets the Supabase BROWSER client instance
  * Useful for testing or when auth state changes significantly.
  */
@@ -60,40 +68,21 @@ export function resetSupabaseClient() { // Consider renaming to resetBrowserClie
   browserClientInstance = null;
 }
 
-// /**
-//  * DEPRECATED/REMOVE: If a standard client is needed (e.g., for server-only actions without SSR context),
-//  * create it explicitly where needed, perhaps using a different utility function.
-//  * Creates a new Supabase client instance
-//  * Useful for server-side operations that need isolated clients
-//  */
-// export function createNewClient() {
-//   // ... old implementation using createClient ...
-// } 
-
-function createClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('CRITICAL: Missing Supabase environment variables');
-    throw new Error('CRITICAL: Missing Supabase environment variables');
-  }
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
-}
-
 /**
- * Creates a new Supabase browser client.
- * This function is internal to this module and ensures env vars are present.
+ * Export the singleton Supabase client instance
+ * This ensures only one client instance exists, preventing multiple GoTrueClient warnings
+ * Using a getter to make it lazy and avoid creating the client at module load time
  */
-function createSingletonBrowserClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // This will only be logged on the client, which is fine
-    console.error('CRITICAL: Missing Supabase environment variables');
-    throw new Error('CRITICAL: Missing Supabase environment variables');
-  }
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
-}
-
-/**
- * The singleton instance of the Supabase browser client.
- * This ensures that only one instance of the client exists in the browser,
- * preventing issues like multiple GoTrueClient instances.
- */
-export const supabase = createClient(); 
+export const supabase = {
+  // Use getters to make all methods lazy
+  get auth() { return getBrowserClient().auth; },
+  get from() { return getBrowserClient().from.bind(getBrowserClient()); },
+  get storage() { return getBrowserClient().storage; },
+  get functions() { return getBrowserClient().functions; },
+  get realtime() { return getBrowserClient().realtime; },
+  get rest() { return getBrowserClient().rest; },
+  get channel() { return getBrowserClient().channel.bind(getBrowserClient()); },
+  get removeChannel() { return getBrowserClient().removeChannel.bind(getBrowserClient()); },
+  get removeAllChannels() { return getBrowserClient().removeAllChannels.bind(getBrowserClient()); },
+  get getChannels() { return getBrowserClient().getChannels.bind(getBrowserClient()); },
+}; 
