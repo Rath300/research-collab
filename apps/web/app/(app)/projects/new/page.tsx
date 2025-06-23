@@ -15,7 +15,24 @@ import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperc
 
 const researchPostFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
-  content: z.string().min(20, 'Content must be at least 20 characters').max(15000, 'Content must be less than 15000 characters'),
+  content: z
+    .string()
+    .superRefine((val, ctx) => {
+      // Strip HTML tags and whitespace to validate the **actual text** length
+      const plainText = val.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+      if (plainText.length < 20) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Content must be at least 20 characters',
+        });
+      }
+      if (plainText.length > 15000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Content must be less than 15000 characters',
+        });
+      }
+    }),
   visibility: z.enum(['public', 'private', 'connections']).default('public'),
   tags: z.array(z.string()).optional().default([]),
 });
