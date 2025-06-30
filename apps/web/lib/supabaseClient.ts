@@ -30,42 +30,24 @@ if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
   console.error('Missing Supabase environment variables');
 }
 
-// Singleton instance for the BROWSER client - Explicitly typed
-let browserClientInstance: SupabaseClient<Database> | null = null;
-
-// Function to create the SSR-compatible browser client
-function createSupabaseBrowserClient(): SupabaseClient<Database> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Ensure this runs only client-side or variables are available server-side if needed elsewhere
-    throw new SupabaseError('Missing Supabase environment variables for browser client', 500);
-  }
-  // Use createBrowserClient from @supabase/ssr
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+// Throw an error if the environment variables are not set
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase URL or anonymous key. Check your .env.local file.');
 }
 
-// Export the function to get the singleton browser client instance
-export function getBrowserClient(): SupabaseClient<Database> {
-  // Ensure this function is only called client-side or handled appropriately if called server-side
-  // For server components, different strategies (cookies, server client) are needed.
-  if (browserClientInstance) return browserClientInstance;
-  browserClientInstance = createSupabaseBrowserClient();
-  return browserClientInstance;
-}
-
-/**
- * Get the singleton Supabase client instance.
- * This is the recommended way to access the client to avoid multiple instances.
- */
-export function getSupabaseClient(): SupabaseClient<Database> {
-  return getBrowserClient();
-}
+export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 
 /**
  * Resets the Supabase BROWSER client instance
  * Useful for testing or when auth state changes significantly.
  */
 export function resetSupabaseClient() { // Consider renaming to resetBrowserClient for clarity
-  browserClientInstance = null;
+  // This part of the code should ideally not be reached on the server.
+  // Server-side logic should use a different client (e.g., from @supabase/ssr with cookies).
+  // However, as a safeguard:
+  console.warn(
+    'Supabase client is not initialized for server-side rendering. This may lead to errors. Please use a server-compatible Supabase client for server-side operations.'
+  );
 }
 
 /**
@@ -73,16 +55,16 @@ export function resetSupabaseClient() { // Consider renaming to resetBrowserClie
  * This ensures only one client instance exists, preventing multiple GoTrueClient warnings
  * Using a getter to make it lazy and avoid creating the client at module load time
  */
-export const supabase = {
+export const supabaseClient = {
   // Use getters to make all methods lazy
-  get auth() { return getBrowserClient().auth; },
-  get from() { return getBrowserClient().from.bind(getBrowserClient()); },
-  get storage() { return getBrowserClient().storage; },
-  get functions() { return getBrowserClient().functions; },
-  get realtime() { return getBrowserClient().realtime; },
-  get rest() { return getBrowserClient().rest; },
-  get channel() { return getBrowserClient().channel.bind(getBrowserClient()); },
-  get removeChannel() { return getBrowserClient().removeChannel.bind(getBrowserClient()); },
-  get removeAllChannels() { return getBrowserClient().removeAllChannels.bind(getBrowserClient()); },
-  get getChannels() { return getBrowserClient().getChannels.bind(getBrowserClient()); },
+  get auth() { return supabase.auth; },
+  get from() { return supabase.from.bind(supabase); },
+  get storage() { return supabase.storage; },
+  get functions() { return supabase.functions; },
+  get realtime() { return supabase.realtime; },
+  get rest() { return supabase.rest; },
+  get channel() { return supabase.channel.bind(supabase); },
+  get removeChannel() { return supabase.removeChannel.bind(supabase); },
+  get removeAllChannels() { return supabase.removeAllChannels.bind(supabase); },
+  get getChannels() { return supabase.getChannels.bind(supabase); },
 }; 
