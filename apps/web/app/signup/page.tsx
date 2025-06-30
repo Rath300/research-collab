@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -11,8 +11,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 
 export default function Signup() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +19,6 @@ export default function Signup() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = getBrowserClient();
   const { user, isLoading: authLoading } = useAuthStore();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -41,8 +39,7 @@ export default function Signup() {
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            first_name: firstName,
-            last_name: lastName,
+            full_name: fullName,
           },
         },
       });
@@ -61,7 +58,7 @@ export default function Signup() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-950">
         <span className="text-neutral-400 font-sans animate-pulse">Loading...</span>
@@ -118,93 +115,79 @@ export default function Signup() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label htmlFor="firstName" className="sr-only">
-                    First Name
+                  <label htmlFor="fullName" className="sr-only">
+                    Full Name
                   </label>
                   <Input
-                    id="firstName"
+                    id="fullName"
                     type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     required
-                    placeholder="First name"
+                    placeholder="Full name"
                     className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="lastName" className="sr-only">
-                    Last Name
+                  <label htmlFor="email" className="sr-only">
+                    Email Address
                   </label>
                   <Input
-                    id="lastName"
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
-                    placeholder="Last name"
+                    placeholder="Work email"
                     className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email Address
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="Work email"
-                  className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
-                />
-              </div>
+                <div>
+                  <label htmlFor="password" className="sr-only">
+                    Password
+                  </label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Password (min. 6 characters)"
+                    minLength={6}
+                    className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="Password (min. 6 characters)"
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">
-                  Confirm Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  placeholder="Confirm password"
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
-                />
+                <div>
+                  <label htmlFor="confirmPassword" className="sr-only">
+                    Confirm Password
+                  </label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="Confirm password"
+                    minLength={6}
+                    className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
+                  />
+                </div>
               </div>
 
               <div className="pt-2">
                 <Button
                   type="submit"
                   isLoading={isLoading}
-                  isFullWidth={true}
+                  isFullWidth
                   className="w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors"
                   size="lg"
                 >
-                  Create Account
+                  {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </div>
             </motion.form>
@@ -215,28 +198,16 @@ export default function Signup() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-sm font-sans text-neutral-400">
+              <p className="text-sm text-neutral-400 font-sans">
                 Already have an account?{" "}
-                <Link
-                  href="/login"
-                  className="font-medium text-neutral-300 hover:text-neutral-100 transition-colors"
-                >
-                  Sign in
+                <Link href="/login" className="font-medium text-neutral-300 hover:text-neutral-100 underline underline-offset-4 transition-colors">
+                  Log in
                 </Link>
               </p>
             </motion.div>
           </CardContent>
         </Card>
       </motion.div>
-
-      <motion.footer
-        className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
-      </motion.footer>
     </div>
   );
 } 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { FiLock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function UpdatePasswordPage() {
@@ -17,7 +17,6 @@ export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const supabase = getBrowserClient();
   
   // Check if user is authenticated via reset token or already has a session
   useEffect(() => {
@@ -28,27 +27,21 @@ export default function UpdatePasswordPage() {
       if (sessionError) {
         console.error("Error getting session:", sessionError);
         setError("Could not verify your session. Please try resetting your password again.");
-        // Potentially redirect to login if session check fails badly
-        // router.push('/login'); 
         return;
       }
       
-      // If no session (even after client processed URL hash) and no token in URL (already processed or never there)
-      // This check might be redundant if onAuthStateChange is also redirecting, but good for explicit control.
       if (!data.session && !window.location.hash.includes('access_token')) {
-        // Check if there was a recovery token error in the hash instead
         if (window.location.hash.includes('error_code=401')) {
             setError("Password reset link has expired or is invalid. Please request a new one.");
         } else if (window.location.hash.includes('error')) {
             setError("An error occurred with the password reset link. Please try again.");
         }
-        // Delay redirect to allow user to see error message
         setTimeout(() => router.push('/login'), 3000);
       }
     };
     
     checkSession();
-  }, [router, supabase]); // Added supabase to dependency array
+  }, [router]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +63,6 @@ export default function UpdatePasswordPage() {
       setIsLoading(true);
       setError('');
       
-      // Update password using the new client
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
@@ -199,23 +191,18 @@ export default function UpdatePasswordPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Link 
-                href="/login"
-                className="inline-flex items-center text-sm font-sans text-neutral-400 hover:text-neutral-200 transition-colors"
-              >
-                Return to Login
-              </Link>
+              <p className="text-sm text-neutral-400 font-sans">
+                Remembered your password?{" "}
+                <Link
+                  href="/login"
+                  className="font-medium text-neutral-300 hover:text-neutral-100 underline underline-offset-4 transition-colors"
+                >
+                  Back to Login
+                </Link>
+              </p>
             </motion.div>
         </Card>
       </motion.div>
-      <motion.footer
-        className="absolute bottom-6 text-center w-full text-xs text-neutral-500 font-sans"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
-      </motion.footer>
     </div>
   );
 } 
