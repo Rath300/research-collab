@@ -20,7 +20,7 @@ export const tempProjectRouter = router({
       })
     ))
     .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
 
       type CollaborationWithNestedPostArray = {
         role: "owner" | "editor" | "viewer";

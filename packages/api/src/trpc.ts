@@ -22,13 +22,13 @@ export const publicProcedure = t.procedure;
  * Protected procedure
  */
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session?.user) {
+  if (!ctx.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
   return next({
     ctx: {
       ...ctx,
-      session: { ...ctx.session, user: ctx.session.user },
+      user: ctx.user,
     },
   });
 }); 

@@ -11,7 +11,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
+      const { user } = ctx;
       const { name, description } = input;
 
       if (!user || !user.id) {
@@ -62,7 +62,7 @@ export const workspaceRouter = router({
   getWorkspaceById: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId } = input;
 
       if (!user || !user.id) {
@@ -111,7 +111,7 @@ export const workspaceRouter = router({
 
   listUserWorkspaces: protectedProcedure
     .query(async ({ ctx }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
 
       if (!user || !user.id) {
         throw new Error('User ID not found in session');
@@ -147,7 +147,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId, ...updateData } = input;
 
       if (!user || !user.id) {
@@ -198,7 +198,7 @@ export const workspaceRouter = router({
   deleteWorkspace: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId } = input;
 
       if (!user || !user.id) {
@@ -246,7 +246,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user: inviter } = ctx.session;
+      const { user: inviter } = ctx;
       const { workspaceId, invitedUserId, role } = input;
 
       if (!inviter || !inviter.id) {
@@ -334,7 +334,7 @@ export const workspaceRouter = router({
   listWorkspaceMembers: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { user: requester } = ctx.session;
+      const { user: requester } = ctx;
       const { workspaceId } = input;
 
       // 1. Verify requester is an accepted member of the workspace
@@ -372,7 +372,7 @@ export const workspaceRouter = router({
 
   listPendingInvitationsForUser: protectedProcedure
     .query(async ({ ctx }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       if (!user || !user.id) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -396,7 +396,7 @@ export const workspaceRouter = router({
   acceptWorkspaceInvitation: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId } = input;
 
       if (!user || !user.id) throw new Error('User not authenticated');
@@ -436,7 +436,7 @@ export const workspaceRouter = router({
   declineWorkspaceInvitation: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId } = input;
 
       if (!user || !user.id) throw new Error('User not authenticated');
@@ -477,7 +477,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user: requester } = ctx.session;
+      const { user: requester } = ctx;
       const { workspaceId, memberUserId, newRole } = input;
 
       if (!requester || !requester.id) throw new Error('Requester not authenticated');
@@ -548,7 +548,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user: requester } = ctx.session;
+      const { user: requester } = ctx;
       const { workspaceId, memberUserIdToRemove } = input;
 
       if (!requester || !requester.id) throw new Error('Requester not authenticated');
@@ -652,7 +652,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId, title, documentType, content } = input;
 
       if (!user || !user.id) {
@@ -687,7 +687,7 @@ export const workspaceRouter = router({
   getWorkspaceDocumentById: protectedProcedure
     .input(z.object({ documentId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { documentId } = input;
 
       if (!user || !user.id) {
@@ -715,7 +715,7 @@ export const workspaceRouter = router({
   listWorkspaceDocuments: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { workspaceId } = input;
 
       if (!user || !user.id) {
@@ -772,7 +772,7 @@ export const workspaceRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { documentId, ...updatePayload } = input;
 
       if (!user || !user.id) {
@@ -809,7 +809,7 @@ export const workspaceRouter = router({
   deleteWorkspaceDocument: protectedProcedure
     .input(z.object({ documentId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx.session;
+      const { user } = ctx;
       const { documentId } = input;
 
       if (!user || !user.id) {

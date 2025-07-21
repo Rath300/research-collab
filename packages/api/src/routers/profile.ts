@@ -32,7 +32,7 @@ export const profileRouter = router({
     .input(updateProfileInputSchema)
     .output(profileSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
 
       const profileDataToSave = {
         ...input,

@@ -10,7 +10,7 @@ export const collaborationRouter = router({
       research_post: researchPostSchema.pick({ id: true, title: true }).nullable(),
     })))
     .query(async ({ ctx }) => {
-      const { supabase, session } = ctx;
+      const { supabase, user } = ctx;
       const { data, error } = await supabase
         .from('collaborator_matches')
         .select(`
@@ -18,7 +18,7 @@ export const collaborationRouter = router({
           requester_profile:profiles!collaborator_matches_user_id_fkey(id, first_name, last_name, avatar_url),
           research_post:research_posts!collaborator_matches_research_post_id_fkey(id, title)
         `)
-        .eq('target_user_id', session.user.id)
+        .eq('target_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -35,14 +35,14 @@ export const collaborationRouter = router({
       newStatus: z.enum(['matched', 'rejected']),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { supabase, session } = ctx;
+      const { supabase, user } = ctx;
       const { requestId, newStatus } = input;
 
       const { error } = await supabase
         .from('collaborator_matches')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', requestId)
-        .eq('target_user_id', session.user.id); // Security check: ensure user is the target
+        .eq('target_user_id', user.id); // Security check: ensure user is the target
 
       if (error) {
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to respond to request.', cause: error });

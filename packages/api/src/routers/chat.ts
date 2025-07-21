@@ -13,9 +13,9 @@ export const chatRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { supabase, session } = ctx;
+      const { supabase, user } = ctx;
       const { projectId, content, parentMessageId } = input;
-      const userId = session.user.id;
+      const userId = user.id;
 
       const { data, error } = await supabase
         .from('project_chat_messages')

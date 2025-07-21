@@ -238,7 +238,7 @@ export const projectRouter = router({
       role: projectCollaboratorRoleSchema,
     }).nullable()) // Project might not exist or user might not have access
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
 
       // First, check if the user is a collaborator on this project and get their role
       const { data: collaborator, error: collaboratorError } = await ctx.supabase
@@ -301,7 +301,7 @@ export const projectRouter = router({
       })
     ))
     .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
 
       // This is the shape Supabase actually returns for this specific join
       type CollaborationWithNestedPostArray = {
@@ -467,7 +467,7 @@ export const projectRouter = router({
     .input(inviteCollaboratorInputSchema)
     .output(projectCollaboratorSchema) // Returns the newly created collaborator entry
     .mutation(async ({ ctx, input }) => {
-      const inviterUserId = ctx.session.user.id;
+      const inviterUserId = ctx.user.id;
       const { projectId, inviteeUserId, role } = input;
 
       // 1. Verify the inviter has permission (owner or editor)
@@ -555,7 +555,7 @@ export const projectRouter = router({
     .input(respondToInvitationInputSchema)
     .output(projectCollaboratorSchema) // Returns the updated collaborator entry
     .mutation(async ({ ctx, input }) => {
-      const inviteeUserId = ctx.session.user.id;
+      const inviteeUserId = ctx.user.id;
       const { projectId, status: newStatus } = input;
 
       // 1. Find the pending invitation for this user and project
@@ -619,7 +619,7 @@ export const projectRouter = router({
     .input(updateCollaboratorRoleInputSchema)
     .output(projectCollaboratorSchema) // Returns the updated collaborator entry
     .mutation(async ({ ctx, input }) => {
-      const updaterUserId = ctx.session.user.id;
+      const updaterUserId = ctx.user.id;
       const { projectId, collaboratorUserId, newRole } = input;
 
       // 1. Verify the updater has 'owner' permission for the project
@@ -711,7 +711,7 @@ export const projectRouter = router({
     .input(removeCollaboratorInputSchema)
     .output(z.object({ success: z.boolean(), message: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const removerUserId = ctx.session.user.id;
+      const removerUserId = ctx.user.id;
       const { projectId, collaboratorUserId } = input;
 
       // 1. Verify the remover has 'owner' permission for the project
@@ -812,7 +812,7 @@ export const projectRouter = router({
     .input(listCollaboratorsInputSchema)
     .output(z.array(collaboratorWithProfileSchema))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.session.user.id;
+      const requesterUserId = ctx.user.id;
       const { projectId } = input;
 
       // 1. Verify requester access (same as before)
@@ -932,7 +932,7 @@ export const projectRouter = router({
     .input(addResearchItemInputSchema)
     .output(researchItemSchema) // Returns the newly created research item
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { projectId, type, ...itemData } = input;
 
       // 1. Verify user has 'owner' or 'editor' role for this project
@@ -1026,7 +1026,7 @@ export const projectRouter = router({
     .input(listItemsInputSchema)
     .output(z.array(researchItemSchema)) // Returns an array of research items
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { projectId } = input;
 
       // 1. Verify user is an active collaborator on this project
@@ -1082,7 +1082,7 @@ export const projectRouter = router({
     .input(updateResearchItemInputSchema)
     .output(researchItemSchema) // Returns the updated research item
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { id: itemId, projectId, type, ...updateData } = input;
 
       // 1. Verify user has 'owner' or 'editor' role for this project
@@ -1175,7 +1175,7 @@ export const projectRouter = router({
     .input(deleteItemInputSchema)
     .output(z.object({ success: z.boolean(), message: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { itemId, projectId } = input;
 
       // 1. Verify user has 'owner' or 'editor' role for this project

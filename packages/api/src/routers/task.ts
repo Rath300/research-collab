@@ -61,7 +61,7 @@ export const taskRouter = router({
     .input(createTaskInputSchema)
     .output(projectTaskSchema)
     .mutation(async ({ ctx, input }) => {
-      const reporterUserId = ctx.session.user.id;
+      const reporterUserId = ctx.user.id;
       const { projectId, ...taskData } = input;
 
       // 1. Verify user is an active collaborator on this project (belt and braces for RLS)
@@ -146,7 +146,7 @@ export const taskRouter = router({
     .input(listTasksForProjectInputSchema)
     .output(z.array(projectTaskSchema))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { projectId } = input;
 
       // 1. Verify user is an active collaborator (complementing RLS)
@@ -195,7 +195,7 @@ export const taskRouter = router({
     .input(getTaskByIdInputSchema)
     .output(projectTaskSchema.nullable()) // Task might not exist or user might not have access
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { taskId, projectId } = input;
 
       // 1. Verify user is an active collaborator on the project (complementing RLS)
@@ -254,7 +254,7 @@ export const taskRouter = router({
     .input(updateTaskInputSchema)
     .output(projectTaskSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
+      const userId = ctx.user.id;
       const { taskId, projectId, ...updateData } = input;
 
       // 1. Fetch the existing task to verify it belongs to the project and get current assignee (if any)
@@ -341,7 +341,7 @@ export const taskRouter = router({
     .input(deleteTaskInputSchema)
     .output(z.object({ success: z.boolean(), message: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id; // For logging or future checks, not strictly needed for RLS if RLS is auth.uid() based
+      const userId = ctx.user.id; // For logging or future checks, not strictly needed for RLS if RLS is auth.uid() based
       const { taskId, projectId } = input;
 
       // 1. Verify the task exists and belongs to the project before attempting delete.

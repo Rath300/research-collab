@@ -34,9 +34,10 @@ export async function createContext(opts: CreateNextContextOptions) {
   if (accessToken) {
     await supabase.auth.setSession({ access_token: accessToken, refresh_token: '' });
   }
-  const { data: { session } } = await supabase.auth.getSession();
-  console.log('API context Supabase session:', session);
-  return { supabase, session };
+  // Use getUser for secure, verified user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  console.log('API context Supabase user:', user, userError);
+  return { supabase, user };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>; 
