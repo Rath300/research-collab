@@ -81,6 +81,7 @@ export default function NewProjectPage() {
 
   const createProjectMutation = api.project.create.useMutation({
     onSuccess: (data) => {
+      console.log('[DEBUG] Project created, returned data:', data);
       setCreatedResearchPostId(data.id);
       setPageSuccess('Project details saved! You can now upload associated files below.');
     },
@@ -171,6 +172,7 @@ export default function NewProjectPage() {
       return;
     }
     
+    console.log('[DEBUG] Creating project with tags:', formData.tags);
     createProjectMutation.mutate({
       title: formData.title,
       content: formData.content,

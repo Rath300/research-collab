@@ -54,6 +54,18 @@ export default function MyProjectsPage() {
               <CardHeader>
                 <CardTitle className="text-xl text-white">{project.title}</CardTitle>
                 <div className="text-xs text-white font-bold px-2 py-1 rounded-full bg-blue-500 w-min mt-2">{project.role.toUpperCase()}</div>
+                {project.tags && project.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {project.tags.map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="bg-accent-purple/20 text-accent-purple px-2 py-1 rounded-full text-xs"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="flex-grow">
                 <CardDescription className="text-neutral-400 line-clamp-3">

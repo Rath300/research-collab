@@ -45,6 +45,7 @@ export default function ChatsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isInitializingSession, setIsInitializingSession] = useState(false);
   const [showSidebarOnMobile, setShowSidebarOnMobile] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Minor comment to signify recent review: 2023-10-27
   useEffect(() => {
@@ -334,10 +335,11 @@ export default function ChatsPage() {
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.log(`Subscribed to messages for match ${currentMatchId}!`);
+          setConnectionError(null);
         }
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('Subscription error:', err);
-          setError('Connection issue, real-time updates might be delayed.');
+          setConnectionError('Connection issue, real-time updates might be delayed.');
         }
       });
 
@@ -425,11 +427,30 @@ export default function ChatsPage() {
 
   return (
     <div className="h-screen flex flex-col sm:flex-row bg-black text-neutral-100 overflow-hidden">
+      {/* Error Banner */}
+      {connectionError && (
+        <div className="w-full bg-red-600 text-white text-center py-2 z-50">
+          {connectionError}
+        </div>
+      )}
+      {/* Sidebar always visible on desktop */}
+      <div className="hidden sm:block sm:w-80 md:w-96 h-full">
+        <ChatSidebar
+          conversations={conversations}
+          selectedConversationId={currentMatchId}
+          onSelectConversation={(matchId) => {
+            const convo = conversations.find(c => c.id === matchId);
+            if (convo) handleSelectConversation(matchId, convo.partnerId);
+          }}
+          currentUserId={currentUserId}
+        />
+      </div>
+      {/* Mobile sidebar logic remains unchanged */}
       <AnimatePresence>
-        {(showSidebarOnMobile || (conversations.length === 0 && !selectedConversationPartner && !currentMatchId) ) && (
+        {showSidebarOnMobile && (
           <motion.div 
             key="sidebar"
-            className="fixed inset-0 z-20 sm:static sm:z-auto sm:flex-shrink-0 w-full sm:w-auto"
+            className="fixed inset-0 z-20 sm:hidden"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
@@ -437,7 +458,7 @@ export default function ChatsPage() {
           >
             <ChatSidebar
               conversations={conversations}
-              selectedConversationId={currentMatchId} // Changed to currentMatchId for selection indication
+              selectedConversationId={currentMatchId}
               onSelectConversation={(matchId) => {
                 const convo = conversations.find(c => c.id === matchId);
                 if (convo) handleSelectConversation(matchId, convo.partnerId);
@@ -447,10 +468,7 @@ export default function ChatsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      <div 
-        className={`flex-grow h-full transition-all duration-300 ${ (showSidebarOnMobile || (conversations.length === 0 && !selectedConversationPartner && !currentMatchId)) && 'hidden sm:flex'} flex flex-col`}
-      >
+      <div className="flex-grow h-full flex flex-col">
         {(selectedConversationPartner && currentMatchId) || isLoadingMessages ? (
             <ChatView
                 messages={messages}
@@ -472,13 +490,6 @@ export default function ChatsPage() {
                     </Link>
                 </div>
             )
-        )}
-         {!selectedConversationPartner && !currentMatchId && !isLoadingConversations && conversations.length > 0 && (
-             <div className="h-full flex flex-col items-center justify-center bg-neutral-950 text-neutral-500 p-8">
-                <FiMessageSquare size={64} className="mb-4 text-neutral-700"/>
-                <p className="text-xl font-heading text-neutral-300">Select a conversation</p>
-                <p className="mt-1 text-sm">Choose a chat from the sidebar to start messaging.</p>
-            </div>
         )}
       </div>
     </div>

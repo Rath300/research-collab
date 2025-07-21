@@ -43,6 +43,18 @@ export default function ProjectsPage() {
                         <p className="text-sm text-neutral-400">
                             Role: {project.role} {/* Assuming the procedure returns the user's role */}
                         </p>
+                        {project.tags && project.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {project.tags.map((tag: string) => (
+                              <span
+                                key={tag}
+                                className="bg-accent-purple/20 text-accent-purple px-2 py-1 rounded-full text-xs"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                     </div>
                     <FiChevronRight className="h-5 w-5 text-neutral-500" />
                   </div>
