@@ -20,11 +20,11 @@ import { useAuthStore } from '@/lib/store';
 import { api } from '@/lib/trpc';
 import EditPostModal from './EditPostModal';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface ResearchPostCardProps {
-  post: ResearchPost & { 
+  post: Project & { 
     profiles: Profile;
   };
   onLike?: (postId: string) => void;
@@ -126,7 +126,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
         
         {/* Post content */}
         <div>
-          <Link href={`/research/${id}`}>
+          <Link href={`/project/${id}`}>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400">
               {title}
             </h3>
@@ -136,7 +136,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
           </p>
           {content.length > 300 && (
             <Link 
-              href={`/research/${id}`}
+              href={`/project/${id}`}
               className="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
               Read more
@@ -150,7 +150,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
             {tags.map((tag) => (
               <Link
                 key={tag}
-                href={`/research?tag=${encodeURIComponent(tag)}`}
+                href={`/project?tag=${encodeURIComponent(tag)}`}
                 className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-md flex items-center hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 <FiTag size={12} className="mr-1" />
@@ -173,7 +173,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
             <span>{engagement_count}</span>
           </Button>
           
-          <Link href={`/research/${id}`} passHref>
+          <Link href={`/project/${id}`} passHref>
             <Button 
               variant="ghost" 
               size="sm"
@@ -189,7 +189,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
             size="sm"
             className="text-gray-600 dark:text-gray-400"
             onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/research/${id}`);
+              navigator.clipboard.writeText(`${window.location.origin}/project/${id}`);
             }}
           >
             <FiShare2 size={16} className="mr-1" />

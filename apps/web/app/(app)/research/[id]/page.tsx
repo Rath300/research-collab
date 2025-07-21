@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getResearchPostById, type ResearchPostWithDetails } from '@/lib/api';
+import { getProjectById, type ProjectWithDetails } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
@@ -18,7 +18,7 @@ export default function ResearchPostPage() {
   const postId = params?.id as string;
 
   const { user, isLoading: authLoading } = useAuthStore();
-  const [post, setPost] = useState<ResearchPostWithDetails | null>(null);
+  const [post, setPost] = useState<ProjectWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +30,7 @@ export default function ResearchPostPage() {
         setLoading(true);
         setError(null);
         try {
-          const fetchedPost = await getResearchPostById(postId);
+          const fetchedPost = await getProjectById(postId);
           if (fetchedPost) {
             setPost(fetchedPost);
           } else {

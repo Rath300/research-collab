@@ -8,7 +8,7 @@ import { FiX, FiHash, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import { api } from '@/lib/trpc';
 import { type Database } from '@/lib/database.types';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type Visibility = 'public' | 'private' | 'connections';
 
 function toVisibility(value: string | null | undefined): Visibility {
@@ -19,7 +19,7 @@ function toVisibility(value: string | null | undefined): Visibility {
 }
 
 interface EditPostModalProps {
-  post: ResearchPost;
+  post: Project;
   onClose: () => void;
 }
 

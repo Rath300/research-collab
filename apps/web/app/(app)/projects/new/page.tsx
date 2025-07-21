@@ -13,12 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperclip, FiFilePlus, FiFileText, FiTrash2, FiFile } from 'react-icons/fi';
 
-const researchPostFormSchema = z.object({
+const projectFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   content: z
     .string()
     .superRefine((val, ctx) => {
-      // Strip HTML tags and whitespace to validate the **actual text** length
       const plainText = val.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
       if (plainText.length < 20) {
         ctx.addIssue({
@@ -37,7 +36,7 @@ const researchPostFormSchema = z.object({
   tags: z.array(z.string()).optional().default([]),
 });
 
-type ResearchPostFormData = z.infer<typeof researchPostFormSchema>;
+type ProjectFormData = z.infer<typeof projectFormSchema>;
 
 interface UploadedFileData {
   name: string;
@@ -64,17 +63,17 @@ export default function NewProjectPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuthStore();
   
-  const [formData, setFormData] = useState<ResearchPostFormData>({
+  const [formData, setFormData] = useState<ProjectFormData>({
     title: '',
     content: '',
     visibility: 'public',
     tags: [],
   });
   
-  const [errors, setErrors] = useState<Partial<Record<keyof ResearchPostFormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof ProjectFormData, string>>>({});
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageSuccess, setPageSuccess] = useState<string | null>(null);
-  const [createdResearchPostId, setCreatedResearchPostId] = useState<string | null>(null);
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFileData[]>([]);
   const [isRemovingFile, setIsRemovingFile] = useState<string | null>(null);
@@ -82,7 +81,7 @@ export default function NewProjectPage() {
   const createProjectMutation = api.project.create.useMutation({
     onSuccess: (data) => {
       console.log('[DEBUG] Project created, returned data:', data);
-      setCreatedResearchPostId(data.id);
+      setCreatedProjectId(data.id);
       setPageSuccess('Project details saved! You can now upload associated files below.');
     },
     onError: (error) => {
@@ -107,7 +106,7 @@ export default function NewProjectPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name as keyof ResearchPostFormData]) {
+    if (errors[name as keyof ProjectFormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
@@ -144,12 +143,12 @@ export default function NewProjectPage() {
   };
   
   const validateForm = () => {
-    const result = researchPostFormSchema.safeParse(formData);
+    const result = projectFormSchema.safeParse(formData);
     if (!result.success) {
-      const fieldErrors: Partial<Record<keyof ResearchPostFormData, string>> = {};
+      const fieldErrors: Partial<Record<keyof ProjectFormData, string>> = {};
       result.error.errors.forEach(err => {
         if (err.path[0]) {
-          fieldErrors[err.path[0] as keyof ResearchPostFormData] = err.message;
+          fieldErrors[err.path[0] as keyof ProjectFormData] = err.message;
         }
       });
       setErrors(fieldErrors);
@@ -194,7 +193,7 @@ export default function NewProjectPage() {
   };
 
   const handleFinish = () => {
-    router.push(createdResearchPostId ? `/projects/${createdResearchPostId}` : '/dashboard');
+    router.push(createdProjectId ? `/projects/${createdProjectId}` : '/dashboard');
   };
 
   const commonLabelClass = "block text-sm font-medium text-neutral-300 mb-1.5 font-sans";
@@ -242,7 +241,7 @@ export default function NewProjectPage() {
                     onChange={handleInputChange}
                     placeholder="e.g., 'The Impact of AI on Climate Change'"
                     className={inputBaseClass}
-                    disabled={isSubmitting || !!createdResearchPostId}
+                    disabled={isSubmitting || !!createdProjectId}
                   />
                   {errors.title && <p className="mt-2 text-sm text-red-400">{errors.title}</p>}
                 </div>
@@ -252,7 +251,7 @@ export default function NewProjectPage() {
                     <RichTextEditor 
                         value={formData.content}
                         onChange={handleContentChange}
-                        editable={!isSubmitting && !createdResearchPostId}
+                        editable={!isSubmitting && !createdProjectId}
                     />
                     {errors.content && <p className="mt-2 text-sm text-red-400">{errors.content}</p>}
                 </div>
@@ -263,7 +262,7 @@ export default function NewProjectPage() {
 
               {/* Action Buttons */}
               <div className="flex justify-end pt-4">
-                <Button type="submit" variant="default" disabled={isSubmitting || !!createdResearchPostId}>
+                <Button type="submit" variant="default" disabled={isSubmitting || !!createdProjectId}>
                   {isSubmitting ? (
                     <>
                       <FiLoader className="mr-2 h-4 w-4 animate-spin" />
@@ -285,7 +284,7 @@ export default function NewProjectPage() {
                 </div>
               )}
 
-              {pageSuccess && !createdResearchPostId && (
+              {pageSuccess && !createdProjectId && (
                  <div className="mt-4 flex items-center text-green-400 bg-green-900/20 p-3 rounded-md border border-green-800">
                   <FiCheckCircle className="mr-3 h-5 w-5"/>
                   <span>{pageSuccess}</span>
@@ -295,7 +294,7 @@ export default function NewProjectPage() {
           </CardContent>
         </Card>
 
-        {createdResearchPostId && (
+        {createdProjectId && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -313,7 +312,7 @@ export default function NewProjectPage() {
               </CardHeader>
               <CardContent>
                 <FileUpload 
-                  projectId={createdResearchPostId} 
+                  projectId={createdProjectId} 
                   onUploadComplete={handleFileUploadComplete} 
                 />
                 <div className="mt-6">
