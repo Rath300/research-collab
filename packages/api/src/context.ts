@@ -1,6 +1,6 @@
 import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { cookies } from 'next/headers';
-import { createServerClient } from '@research-collab/db/supabaseClient';
+import { createServerClient } from '@supabase/ssr';
 
 /**
  * Inner context with DB
