@@ -33,6 +33,7 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
+      // supabase is already imported as a singleton
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

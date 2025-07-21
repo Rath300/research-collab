@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { FiLoader, FiUserCheck } from 'react-icons/fi';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { motion } from 'framer-motion';
+import { supabase } from "@/lib/supabaseClient";
 
 const ProfileForm = dynamic(() => import('@/components/profile/ProfileForm').then(mod => mod.ProfileForm), {
   loading: () => (

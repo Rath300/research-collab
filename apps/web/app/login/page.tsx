@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -17,7 +17,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const { user, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
