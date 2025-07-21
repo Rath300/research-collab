@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function ResetPasswordPage() {
@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
