@@ -2,6 +2,7 @@ import { createTRPCReact, httpBatchLink, loggerLink, type CreateTRPCReact } from
 import { type TRPCClient } from '@trpc/client';
 import { type AppRouter } from '@research-collab/api';
 import superjson from 'superjson';
+import { supabase } from '@/lib/supabaseClient';
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') {
@@ -39,11 +40,12 @@ export const trpcClient: TRPCClient<AppRouter> = api.createClient({
       },
     }),
     httpBatchLink({
-      url: `${getBaseUrl()}/api/trpc`,
-      headers() {
-        return {
-          // Authorization: getAuthCookie(), // If you need to send auth headers
-        };
+      url: '/api/trpc',
+      async headers() {
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {};
       },
     }),
   ],

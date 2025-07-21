@@ -9,7 +9,7 @@ export async function createContext(opts: CreateNextContextOptions) {
   // Patch cookies to always return string
   const cookieStore = cookies();
   const cookieMethods = {
-    get: (name: string) => cookieStore.get(name)?.value ?? undefined,
+    get: (name: string) => cookieStore.get?.(name)?.value ?? undefined,
     set: () => {},
     remove: () => {},
   };
@@ -24,20 +24,15 @@ export async function createContext(opts: CreateNextContextOptions) {
       accessToken = authHeader.replace('Bearer ', '');
     }
   } else if (opts.req && typeof opts.req.headers === 'object') {
-    const authHeader = (opts.req.headers['authorization'] || opts.req.headers['Authorization']) as string | undefined;
-    if (authHeader?.startsWith('Bearer ')) {
+    const authHeader = (opts.req.headers as any)['authorization'];
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
       accessToken = authHeader.replace('Bearer ', '');
     }
   }
   if (accessToken) {
     await supabase.auth.setSession({ access_token: accessToken, refresh_token: '' });
   }
-
-  const { data: { session }} = await supabase.auth.getSession();
-  return {
-    session,
-    supabase,
-  };
+  return { supabase };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>; 
