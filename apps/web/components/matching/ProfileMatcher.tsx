@@ -110,22 +110,22 @@ export function ProfileMatcher() {
       if (insertError) throw insertError;
 
       if (decision === 'matched') {
-        const { data: currentUserProfile } = await supabase // Renamed for clarity
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', user.id)
-            .single()
+        const { data: currentUserProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', user.id)
+          .single();
 
         const matcherName = `${currentUserProfile?.first_name || 'Someone'} ${currentUserProfile?.last_name || ''}`.trim();
-        
+
         await supabase
           .from('user_notifications')
           .insert({
             user_id: matcheeProfileId,
-            type: 'new_direct_match', 
+            type: 'new_direct_match',
             content: `${matcherName} is interested in collaborating with you!`,
             sender_id: user.id,
-            link_to: `/profile/${user.id}`
+            link_to: `/chats?userId=${user.id}`
           });
       }
       loadNextProfile();

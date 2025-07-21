@@ -107,23 +107,24 @@ export default function MatchPage() {
       return;
     }
 
-    const newStatus: ProfileMatchStatus = direction === 'right' ? 'matched' : 'rejected';
-
-    try {
-      const { error: insertError } = await supabase
-        .from('profile_matches')
-        .insert({
-          matcher_user_id: user.id,
-          matchee_user_id: swipedUserId,
-          status: newStatus,
-        });
-      if (insertError) {
-        console.error('Error inserting match:', insertError);
-      } else {
-        console.log(`Match (${newStatus}) between ${user.id} and ${swipedUserId} recorded.`);
+    // Always create a 'matched' record on right swipe, allowing instant chat
+    if (direction === 'right') {
+      try {
+        const { error: insertError } = await supabase
+          .from('profile_matches')
+          .insert({
+            matcher_user_id: user.id,
+            matchee_user_id: swipedUserId,
+            status: 'matched',
+          });
+        if (insertError) {
+          console.error('Error inserting match:', insertError);
+        } else {
+          console.log(`Match (matched) between ${user.id} and ${swipedUserId} recorded.`);
+        }
+      } catch (e) {
+        console.error("Supabase error:", e);
       }
-    } catch (e) {
-      console.error("Supabase error:", e);
     }
   };
 

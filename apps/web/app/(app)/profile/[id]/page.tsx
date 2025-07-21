@@ -201,7 +201,6 @@ export default function ProfilePage() {
   
   const handleConnect = async () => {
     if (!user || isOwnProfile || !actualUserId) return;
-    
     setIsMatchLoading(true);
     try {
       const { error: matchError } = await supabase
@@ -211,12 +210,10 @@ export default function ProfilePage() {
           matchee_user_id: actualUserId,
           status: 'matched'
         });
-
       if (matchError) throw matchError;
       setIsMatched(true);
     } catch (err: any) {
-      console.error('Error connecting:', err);
-      setError(err.message || 'Failed to send connection request.');
+      setError(err.message || 'Failed to connect.');
     } finally {
       setIsMatchLoading(false);
     }

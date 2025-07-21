@@ -37,49 +37,26 @@ export default function MatchesPage() {
     setError(null);
 
     try {
-      // Step 1: Get all user IDs the CurrentUser has 'matched'
-      const { data: currentUserLikes, error: currentUserLikesError } = await supabase
+      // Get all users the current user has matched (as matcher or matchee)
+      const { data: matchesData, error: matchesError } = await supabase
         .from('profile_matches')
-        .select('matchee_user_id') // ID of the person CurrentUser liked
-        .eq('matcher_user_id', user.id)
+        .select('matcher_user_id, matchee_user_id, created_at, matcher_profile:matcher_user_id!inner(*), matchee_profile:matchee_user_id!inner(*)')
+        .or(`matcher_user_id.eq.${user.id},matchee_user_id.eq.${user.id}`)
         .eq('status', 'matched');
 
-      if (currentUserLikesError) throw currentUserLikesError;
-      
-      const likedUserIds = currentUserLikes?.map(like => like.matchee_user_id) || [];
+      if (matchesError) throw matchesError;
 
-      if (likedUserIds.length === 0) {
-        setMatchedProfiles([]); // No one CurrentUser likes, so no mutual matches
-        setLoading(false);
-        return;
-      }
-
-      // Step 2: Find among those likedUserIds, who has ALSO 'matched' the CurrentUser
-      const { data: mutualMatchesData, error: mutualMatchesError } = await supabase
-        .from('profile_matches')
-        .select('matcher_profile:matcher_user_id!inner(*), created_at') // Get profile of person who liked CurrentUser
-        .eq('matchee_user_id', user.id) // CurrentUser is the one being liked
-        .eq('status', 'matched')        // Their status towards CurrentUser is 'matched'
-        .in('matcher_user_id', likedUserIds); // And they are one of the people CurrentUser liked
-
-      if (mutualMatchesError) throw mutualMatchesError;
-
-      const mutualProfiles: MatchedProfile[] = mutualMatchesData?.map((match: any) => ({
-        ...(match.matcher_profile as Profile),
-        match_created_at: match.created_at,
-      })) || [];
-
-      mutualProfiles.sort((a, b) => new Date(b.match_created_at).getTime() - new Date(a.match_created_at).getTime());
-      setMatchedProfiles(mutualProfiles);
-
+      // Flatten to unique profiles (other than self)
+      const profiles: MatchedProfile[] = [];
+      (matchesData || []).forEach(match => {
+        const otherProfile = match.matcher_user_id === user.id ? match.matchee_profile : match.matcher_profile;
+        if (otherProfile && otherProfile.id !== user.id) {
+          profiles.push({ ...otherProfile, match_created_at: match.created_at });
+        }
+      });
+      setMatchedProfiles(profiles);
     } catch (err) {
-      console.error("Error fetching matched profiles:", err);
-      const defaultMessage = 'Failed to load your matches.';
-      if (err && typeof err === 'object' && 'message' in err) {
-        setError(String((err as Error).message) || defaultMessage);
-      } else {
-        setError(defaultMessage);
-      }
+      setError(err instanceof Error ? err.message : 'Failed to load matches');
     } finally {
       setLoading(false);
     }
