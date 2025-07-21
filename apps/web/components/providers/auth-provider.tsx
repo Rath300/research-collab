@@ -133,7 +133,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
           if (!isMounted) return;
           console.log('[AuthProvider] onAuthStateChange: Event:', event, 'Session:', session ? session.user.id : 'null');
-          useAuthStore.getState().setLoading(true);
+          // Only set loading for true auth transitions
+          if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'].includes(event)) {
+            useAuthStore.getState().setLoading(true);
+          }
         
         const listenerUser = session?.user ?? null;
         const currentStoreUser = useAuthStore.getState().user;

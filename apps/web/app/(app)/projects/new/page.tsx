@@ -248,8 +248,8 @@ export default function NewProjectPage() {
                 <div>
                     <label htmlFor="content" className={commonLabelClass}>Project Abstract / Summary</label>
                     <RichTextEditor 
-                        initialContent={formData.content}
-                        onUpdate={handleContentChange}
+                        value={formData.content}
+                        onChange={handleContentChange}
                         editable={!isSubmitting && !createdResearchPostId}
                     />
                     {errors.content && <p className="mt-2 text-sm text-red-400">{errors.content}</p>}
