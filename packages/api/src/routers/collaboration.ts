@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
-import { matchSchema, researchPostSchema, profileSchema } from '@research-collab/db';
+import { matchSchema, projectSchema, profileSchema } from '@research-collab/db';
 import { TRPCError } from '@trpc/server';
 
 export const collaborationRouter = router({
   listRequests: protectedProcedure
     .output(z.array(matchSchema.extend({
       requester_profile: profileSchema.pick({ id: true, first_name: true, last_name: true, avatar_url: true }).nullable(),
-      research_post: researchPostSchema.pick({ id: true, title: true }).nullable(),
+      project: projectSchema.pick({ id: true, title: true }).nullable(),
     })))
     .query(async ({ ctx }) => {
       const { supabase, user } = ctx;
@@ -16,7 +16,7 @@ export const collaborationRouter = router({
         .select(`
           *,
           requester_profile:profiles!collaborator_matches_user_id_fkey(id, first_name, last_name, avatar_url),
-          research_post:research_posts!collaborator_matches_research_post_id_fkey(id, title)
+          project:projects!collaborator_matches_research_post_id_fkey(id, title)
         `)
         .eq('target_user_id', user.id)
         .eq('status', 'pending')
