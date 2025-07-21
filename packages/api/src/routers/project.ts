@@ -185,8 +185,8 @@ export const projectRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { supabase, session } = ctx;
-      const userId = session.user.id;
+      const { supabase } = ctx;
+      const userId = ctx.user.id;
 
       const { data, error } = await supabase
         .from('research_posts')
@@ -302,31 +302,17 @@ export const projectRouter = router({
     ))
     .query(async ({ ctx }) => {
       const userId = ctx.user.id;
+      const { supabase } = ctx;
 
-      // This is the shape Supabase actually returns for this specific join
-      type CollaborationWithNestedPostArray = {
-        role: "owner" | "editor" | "viewer";
-        research_posts: {
-          id: string;
-          created_at: string;
-          updated_at: string;
-          user_id: string;
-          title: string;
-          content: string;
-          visibility: "public" | "private" | "connections" | null;
-          tags: string[] | null;
-          is_boosted: boolean;
-          engagement_count: number;
-        }[] | null; // Supabase can return an array for the join
-      };
-
-      const { data, error } = await ctx.supabase
+      // Use correct join hint for projects
+      const { data, error } = await supabase
         .from('project_collaborators')
-        .select('role, research_posts(*)') // Keep the select simple
+        .select('role, projects:projects!project_collaborators_project_id_fkey(*)')
         .eq('user_id', userId)
         .eq('status', 'active');
 
       if (error) {
+        console.error('Supabase error in listMyProjects:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch user projects.',
@@ -334,28 +320,15 @@ export const projectRouter = router({
         });
       }
 
-      const collaborations = data as CollaborationWithNestedPostArray[];
+      if (!data) return [];
 
-      const projects = collaborations
-        .map(collaboration => {
-          // The joined 'research_posts' table can be an object or an array depending on Supabase inference.
-          const postDataRaw = Array.isArray(collaboration.research_posts)
-            ? collaboration.research_posts[0]
-            : collaboration.research_posts;
+      // Type for the joined row
+      type ProjectWithRole = z.infer<typeof projectSchema> & { role: z.infer<typeof projectCollaboratorRoleSchema> };
 
-          if (!postDataRaw) {
-            return null;
-          }
-
-          return {
-            ...postDataRaw,
-            role: collaboration.role,
-            // Handle null from DB to match Zod schema which likely expects undefined
-            visibility: postDataRaw.visibility ?? undefined,
-            tags: postDataRaw.tags ?? undefined,
-          };
-        })
-        .filter((p): p is NonNullable<typeof p> => p !== null);
+      // Flatten the result: each item has { role, projects: { ...project fields... } }
+      const projects: ProjectWithRole[] = data
+        .filter((row: any) => row.projects)
+        .map((row: any) => ({ ...row.projects, role: row.role }));
 
       return projects;
     }),
@@ -375,7 +348,7 @@ export const projectRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { supabase, session } = ctx;
+      const { supabase } = ctx;
       const { id, ...updateData } = input;
 
       // First, verify the user is the owner of the post
@@ -389,7 +362,7 @@ export const projectRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
       }
 
-      if (post.user_id !== session.user.id) {
+      if (post.user_id !== ctx.user.id) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only edit your own posts.' });
       }
       
@@ -418,7 +391,7 @@ export const projectRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { supabase, session } = ctx;
+      const { supabase } = ctx;
       const { id } = input;
 
       // Verify the user is the owner before deleting
@@ -432,7 +405,7 @@ export const projectRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
       }
 
-      if (post.user_id !== session.user.id) {
+      if (post.user_id !== ctx.user.id) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only delete your own posts.' });
       }
 
