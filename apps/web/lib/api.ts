@@ -332,6 +332,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
   }
 };
 
+// All research_posts logic is deprecated. Use projects logic instead.
 // Schema for individual research post with author and files
 const projectFileSchemaForApi = z.object({
   id: z.string().uuid(),

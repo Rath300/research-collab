@@ -553,7 +553,7 @@ export type Database = {
             foreignKeyName: "project_chat_messages_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "research_posts"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -804,7 +804,7 @@ export type Database = {
             foreignKeyName: "project_tasks_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "research_posts"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -945,53 +945,6 @@ export type Database = {
           },
           {
             foreignKeyName: "research_post_matches_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      research_posts: {
-        Row: {
-          content: string
-          created_at: string
-          engagement_count: number | null
-          id: string
-          is_boosted: boolean | null
-          tags: string[] | null
-          title: string
-          updated_at: string
-          user_id: string
-          visibility: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          engagement_count?: number | null
-          id?: string
-          is_boosted?: boolean | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string
-          user_id: string
-          visibility?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          engagement_count?: number | null
-          id?: string
-          is_boosted?: boolean | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-          visibility?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "research_posts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

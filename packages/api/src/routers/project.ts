@@ -188,22 +188,25 @@ export const projectRouter = router({
       const { supabase } = ctx;
       const userId = ctx.user.id;
 
+      // Insert into the projects table (not research_posts)
+      // RLS policy required: WITH CHECK (auth.uid() = user_id OR auth.uid() = leader_id)
       const { data, error } = await supabase
-        .from('research_posts')
+        .from('projects')
         .insert({
-          user_id: userId,
+          leader_id: userId,
           title: input.title,
-          content: input.content,
+          description: input.content,
           tags: input.tags,
-          visibility: input.visibility,
+          is_public: input.visibility === 'public',
         })
         .select()
         .single();
-      
+
       if (error) {
+        console.error('Supabase error in project.create:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create research post.',
+          message: 'Failed to create project.',
           cause: error,
         });
       }
@@ -219,8 +222,8 @@ export const projectRouter = router({
         });
 
       if (collabError) {
-        // If this fails, we should ideally roll back the post creation.
-        // For now, we'll log the error and the post will exist without an owner.
+        // If this fails, we should ideally roll back the project creation.
+        // For now, we'll log the error and the project will exist without an owner.
         console.error('Failed to add owner to new project:', collabError);
         // Depending on desired transactional integrity, you might throw an error here.
       }

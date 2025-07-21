@@ -62,47 +62,47 @@ export interface Database {
           institution?: string | null
         }
       }
-      research_posts: {
-        Row: {
-          id: string
-          created_at: string | null
-          updated_at: string | null
-          title: string
-          content: string
-          user_id: string
-          tags: string[] | null
-          visibility: 'public' | 'private' | 'connections'
-          is_boosted: boolean
-          boost_end_date: string | null
-          engagement_count: number
-        }
-        Insert: {
-          id?: string
-          created_at?: string | null
-          updated_at?: string | null
-          title: string
-          content: string
-          user_id: string
-          tags?: string[] | null
-          visibility?: 'public' | 'private' | 'connections'
-          is_boosted?: boolean
-          boost_end_date?: string | null
-          engagement_count?: number
-        }
-        Update: {
-          id?: string
-          created_at?: string | null
-          updated_at?: string | null
-          title?: string
-          content?: string
-          user_id?: string
-          tags?: string[] | null
-          visibility?: 'public' | 'private' | 'connections'
-          is_boosted?: boolean
-          boost_end_date?: string | null
-          engagement_count?: number
-        }
-      }
+      // research_posts: { // DEPRECATED: Use projects table instead
+      //   Row: {
+      //     id: string
+      //     created_at: string | null
+      //     updated_at: string | null
+      //     title: string
+      //     content: string
+      //     user_id: string
+      //     tags: string[] | null
+      //     visibility: 'public' | 'private' | 'connections'
+      //     is_boosted: boolean
+      //     boost_end_date: string | null
+      //     engagement_count: number
+      //   }
+      //   Insert: {
+      //     id?: string
+      //     created_at?: string | null
+      //     updated_at?: string | null
+      //     title: string
+      //     content: string
+      //     user_id: string
+      //     tags?: string[] | null
+      //     visibility?: 'public' | 'private' | 'connections'
+      //     is_boosted?: boolean
+      //     boost_end_date?: string | null
+      //     engagement_count?: number
+      //   }
+      //   Update: {
+      //     id?: string
+      //     created_at?: string | null
+      //     updated_at?: string | null
+      //     title?: string
+      //     content?: string
+      //     user_id?: string
+      //     tags?: string[] | null
+      //     visibility?: 'public' | 'private' | 'connections'
+      //     is_boosted?: boolean
+      //     boost_end_date?: string | null
+      //     engagement_count?: number
+      //   }
+      // }
       collaborator_matches: {
         Row: {
           id: string

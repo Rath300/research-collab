@@ -53,21 +53,7 @@ export const profileSchema = z.object({
 export type Profile = z.infer<typeof profileSchema>;
 
 // Research Post Schema
-export const researchPostSchema = z.object({
-  id: z.string().uuid(),
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional(),
-  title: z.string().min(5).max(100),
-  content: z.string().min(20),
-  user_id: z.string().uuid(),
-  tags: z.array(z.string()).optional(),
-  visibility: z.enum(['public', 'private', 'connections']).default('public'),
-  is_boosted: z.boolean().default(false),
-  boost_end_date: z.string().datetime().optional().nullable(),
-  engagement_count: z.number().int().default(0),
-});
-
-export type ResearchPost = z.infer<typeof researchPostSchema>;
+// researchPostSchema: z.object({ ... }) // DEPRECATED: Use projectSchema instead
 
 // Collaborator Match Schema
 export const matchSchema = z.object({

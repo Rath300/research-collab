@@ -29,20 +29,7 @@ export const profileSchema = z.object({
 
 export type Profile = z.infer<typeof profileSchema>;
 
-export const researchPostSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  content: z.string().min(10, 'Content must be at least 10 characters'),
-  user_id: z.string().uuid(),
-  tags: z.array(z.string()).nullable(),
-  visibility: z.enum(['public', 'private', 'connections']),
-  is_boosted: z.boolean(),
-  engagement_count: z.number().int(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime()
-});
-
-export type ResearchPost = z.infer<typeof researchPostSchema>;
+// researchPostSchema: z.object({ ... }) // DEPRECATED: Use projectSchema instead
 
 export const matchSchema = z.object({
   id: z.string().uuid(),

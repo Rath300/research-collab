@@ -1,3 +1,4 @@
+// DEPRECATED: All research_posts logic has been migrated to projects. This file is no longer used.
 import { createClient } from './supabaseClient';
 import type { Database } from './types/database.types';
 

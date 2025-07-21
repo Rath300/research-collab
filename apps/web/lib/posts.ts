@@ -1,55 +1,46 @@
 import { getSupabaseClient } from './supabaseClient';
 import { type Database } from '../types/database.types';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
-type InsertResearchPost = Database['public']['Tables']['research_posts']['Insert'];
-type UpdateResearchPost = Database['public']['Tables']['research_posts']['Update'];
+type Project = Database['public']['Tables']['projects']['Row'];
+type InsertProject = Database['public']['Tables']['projects']['Insert'];
+type UpdateProject = Database['public']['Tables']['projects']['Update'];
 
-export async function getResearchPosts(limit = 10, offset = 0, userId?: string): Promise<ResearchPost[]> {
+export async function getProjects(limit = 10, offset = 0, userId?: string): Promise<Project[]> {
   const supabase = getSupabaseClient();
   let query = supabase
-    .from('research_posts')
-    .select('*, profiles:user_id(first_name, last_name, avatar_url, title)')
+    .from('projects')
+    .select('*, profiles:leader_id(first_name, last_name, avatar_url, title)')
     .order('created_at', { ascending: false })
     .limit(limit)
     .range(offset, offset + limit - 1);
-    
-  // If userId is provided, filter by user_id
   if (userId) {
-    query = query.eq('user_id', userId);
+    query = query.eq('leader_id', userId);
   } else {
-    // Otherwise only show public posts
-    query = query.eq('visibility', 'public');
+    query = query.eq('is_public', true);
   }
-  
   const { data, error } = await query;
-  
   if (error) {
-    console.error('Error fetching research posts:', error);
+    console.error('Error fetching projects:', error);
     throw error;
   }
-  
-  return data as ResearchPost[];
+  return data as Project[];
 }
 
-export async function getResearchPost(id: string): Promise<ResearchPost | null> {
+export async function getProject(id: string): Promise<Project | null> {
   const supabase = getSupabaseClient();
-  
   const { data, error } = await supabase
-    .from('research_posts')
-    .select('*, profiles:user_id(first_name, last_name, avatar_url, title)')
+    .from('projects')
+    .select('*, profiles:leader_id(first_name, last_name, avatar_url, title)')
     .eq('id', id)
     .single();
-    
   if (error) {
-    console.error('Error fetching research post:', error);
+    console.error('Error fetching project:', error);
     return null;
   }
-  
-  return data as ResearchPost;
+  return data as Project;
 }
 
-export async function createResearchPost(post: any): Promise<any> {
+export async function createProject(post: any): Promise<any> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('projects')
@@ -69,34 +60,34 @@ export async function createResearchPost(post: any): Promise<any> {
   return data;
 }
 
-export async function updateResearchPost(id: string, post: UpdateResearchPost): Promise<ResearchPost> {
+export async function updateProject(id: string, post: UpdateProject): Promise<Project> {
   const supabase = getSupabaseClient();
   
   const { data, error } = await supabase
-    .from('research_posts')
+    .from('projects')
     .update(post)
     .eq('id', id)
     .select()
     .single();
     
   if (error) {
-    console.error('Error updating research post:', error);
+    console.error('Error updating project:', error);
     throw error;
   }
   
-  return data as ResearchPost;
+  return data as Project;
 }
 
-export async function deleteResearchPost(id: string): Promise<boolean> {
+export async function deleteProject(id: string): Promise<boolean> {
   const supabase = getSupabaseClient();
   
   const { error } = await supabase
-    .from('research_posts')
+    .from('projects')
     .delete()
     .eq('id', id);
     
   if (error) {
-    console.error('Error deleting research post:', error);
+    console.error('Error deleting project:', error);
     throw error;
   }
   
@@ -108,13 +99,13 @@ export async function incrementEngagement(id: string): Promise<void> {
   
   // First get the current engagement count
   const { data, error: fetchError } = await supabase
-    .from('research_posts')
+    .from('projects')
     .select('engagement_count')
     .eq('id', id)
     .single();
     
   if (fetchError) {
-    console.error('Error fetching research post engagement:', fetchError);
+    console.error('Error fetching project engagement:', fetchError);
     throw fetchError;
   }
   
@@ -122,12 +113,12 @@ export async function incrementEngagement(id: string): Promise<void> {
   
   // Then update with incremented count
   const { error: updateError } = await supabase
-    .from('research_posts')
+    .from('projects')
     .update({ engagement_count: currentEngagement + 1 })
     .eq('id', id);
     
   if (updateError) {
-    console.error('Error updating research post engagement:', updateError);
+    console.error('Error updating project engagement:', updateError);
     throw updateError;
   }
 } 
