@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { PageContainer } from '@/components/layout/PageContainer'; // Assuming this exists and is styled for dark theme
 import { Avatar } from '@/components/ui/Avatar';
@@ -23,7 +23,7 @@ const HomeButton = () => (
 );
 
 export default function ResearchPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const [posts, setPosts] = useState<ResearchPostWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

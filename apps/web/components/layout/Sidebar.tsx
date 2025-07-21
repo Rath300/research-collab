@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUIStore, useAuthStore } from '@/lib/store';
-import { getBrowserClient } from '@/lib/supabaseClient'; // Import Supabase client
+import { supabase } from '@/lib/supabaseClient';
 import { Sidebar as ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { 
   FiGrid, // For Dashboard icon (square grid)
@@ -60,7 +60,7 @@ export function Sidebar() {
   const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) && href !== '/') || (href === '/settings' && pathname?.startsWith('/settings'));
 
   const handleSignOut = async () => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {

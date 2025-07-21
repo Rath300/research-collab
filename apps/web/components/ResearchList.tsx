@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import Link from 'next/link';
 import { FiCalendar, FiClock, FiUsers } from "react-icons/fi";
 import { type ResearchPost as Project } from '@research-collab/db';
@@ -14,7 +14,7 @@ export default function ResearchList({ userId }: ResearchListProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
 
   useEffect(() => {
     const getProjects = async () => {
@@ -116,27 +116,4 @@ export default function ResearchList({ userId }: ResearchListProps) {
   return (
     <div className="space-y-4">
       {projects.map((project) => (
-        <Link href={`/projects/${project.id}`} key={project.id}>
-          <div className="netflix-card hover:border-researchbee-yellow transition-all">
-            <div className="flex justify-between">
-              <h3 className="text-xl font-bold">{project.title}</h3>
-              <span className={`netflix-pill ${getStatusColor(project.visibility)}`}>
-                {project.visibility}
-              </span>
-            </div>
-            
-            <p className="text-researchbee-light-gray mt-2 line-clamp-2">
-              {project.content}
-            </p>
-            
-            <div className="flex justify-between items-center mt-4 text-sm text-researchbee-light-gray">
-              <span>Created: {formatDate(project.created_at)}</span>
-              <span><FiUsers className="inline mr-1" /> {project.engagement_count || 0}</span>
-              {project.is_boosted && <span className="text-yellow-500">Boosted</span>}
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-} 
+        <Link href={`/projects/${project.id}`

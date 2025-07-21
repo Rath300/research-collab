@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { titleCase } from '@/lib/utils';
 import { Database } from '@/lib/database.types';
 import { cn } from '@/lib/utils';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -88,7 +88,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
   const pathname = usePathname();
   const router = useRouter();
   const { unreadMessages } = useChatStore();
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
 
   const displayName = profile?.first_name 
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 

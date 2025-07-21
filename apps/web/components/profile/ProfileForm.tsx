@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { getBrowserClient } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -50,7 +50,7 @@ const formatJsonString = (jsonString: string | null | undefined): string => {
 
 export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) {
   const router = useRouter()
-  const supabase = getBrowserClient()
+  // supabase is already imported as a singleton
   const { user, profile: authProfile, setProfile } = useAuthStore()
 
   const [loading, setLoading] = useState(false)

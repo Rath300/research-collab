@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TinderCard from 'react-tinder-card';
 import { motion } from 'framer-motion';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -22,7 +22,7 @@ interface PotentialMatch extends Profile {
 }
 
 export default function MatchPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { user } = useAuthStore();
   const router = useRouter();
 

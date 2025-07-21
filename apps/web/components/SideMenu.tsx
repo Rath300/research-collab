@@ -13,7 +13,7 @@ import { NotificationBell } from "./notifications/NotificationBell";
 import { Avatar } from '@/components/ui/Avatar';
 import { getConversations, type ConversationListItem } from '@/lib/api';
 import { Input } from '@/components/ui/Input';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SideMenu() {
@@ -81,8 +81,8 @@ export default function SideMenu() {
   useEffect(() => {
     if (!user) return;
 
-    const client = getBrowserClient();
-    const channel = client
+    // supabase is already imported as a singleton
+    const channel = supabase
       .channel('public:messages:user-' + user.id)
       .on(
         'postgres_changes',
@@ -111,7 +111,7 @@ export default function SideMenu() {
 
     return () => {
       if (channel) {
-        client.removeChannel(channel);
+        supabase.removeChannel(channel);
         console.log('Unsubscribed from messages channel');
       }
     };

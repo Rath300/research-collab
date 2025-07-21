@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input'; // Assuming Input component exist
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Corrected path
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 // import { Database } from '@/lib/database.types'; // Comment out or remove local Database type import
 import { type Profile as DbProfile } from '@research-collab/db'; // Ensure DbProfile is imported
 import { titleCase } from '@/lib/utils';
@@ -24,7 +24,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: DashboardHeaderProps) {
   const router = useRouter();
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { clearAuth } = useAuthStore(); // Get clearAuth from the store
 
   const handleLogout = async () => {

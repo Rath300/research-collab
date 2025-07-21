@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

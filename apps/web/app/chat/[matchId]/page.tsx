@@ -9,7 +9,7 @@ import { getProfile } from '@/lib/api';
 import { type Profile as DbProfile } from '@research-collab/db'; // Corrected import for Profile type
 import { FiLoader, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
 import { Button } from '@/components/ui/Button';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function ChatPage() {
       setLoadingRecipient(true);
       setError(null);
       try {
-        const supabase = getBrowserClient();
+        // supabase is already imported as a singleton
         // 1. Get the match details to find the other user's ID
         const { data: matchData, error: matchError } = await supabase
           .from('matches')

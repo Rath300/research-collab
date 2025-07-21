@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
@@ -102,7 +102,7 @@ const HomeButton = () => (
 );
 
 export default function TrendingPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [hotTopics, setHotTopics] = useState<HotTopic[]>([]);
   const [loading, setLoading] = useState(true);

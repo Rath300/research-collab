@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatView, type ChatPartner } from '@/components/chat/ChatView';
 import { type Message as ChatMessageType } from '@/components/chat/ChatMessage';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { type Database } from '@/lib/database.types';
 import { FiLoader, FiAlertCircle } from 'react-icons/fi';
@@ -29,7 +29,7 @@ interface DisplayConversation {
 }
 
 export default function ChatsPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { user, profile: currentUserProfile, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();

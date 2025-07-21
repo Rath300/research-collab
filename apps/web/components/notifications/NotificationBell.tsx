@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useAuthStore } from '@/lib/store';
 import { type Tables } from '@/types/database.types';
 import { NotificationItem } from './NotificationItem';
@@ -9,7 +9,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export function NotificationBell() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Tables<'user_notifications'>[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

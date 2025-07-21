@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -51,7 +51,7 @@ const NotificationIcon = ({ type }: { type: string | null }) => {
 };
 
 export default function NotificationsPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);

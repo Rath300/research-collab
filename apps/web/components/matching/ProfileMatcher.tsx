@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getBrowserClient } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -13,7 +13,7 @@ import { type Database } from '@/types/database.types'
 type DisplayProfile = Partial<Database['public']['Tables']['profiles']['Row']>;
 
 export function ProfileMatcher() {
-  const supabase = getBrowserClient()
+  // supabase is already imported as a singleton
   const { user } = useAuthStore()
   const [currentProfile, setCurrentProfile] = useState<DisplayProfile | null>(null)
   const [loading, setLoading] = useState(true)

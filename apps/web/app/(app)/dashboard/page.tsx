@@ -35,7 +35,7 @@ import {
 } from 'react-icons/fi';
 import { useAuthStore, type AuthState } from '@/lib/store';
 import { Database } from '@/lib/database.types';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { ResearchPostCard } from '@/components/research/ResearchPostCard';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -235,7 +235,7 @@ export default function DashboardPage() {
   const [recentNotifications, setRecentNotifications] = useState<UserNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   
   const loadDashboardData = useCallback(async () => {
     if (!user) {

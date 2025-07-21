@@ -24,7 +24,7 @@ import {
 } from '@research-collab/db';
 
 // Import the shared SSR client
-import { getBrowserClient } from '@/lib/supabaseClient'; 
+import { supabase } from '@/lib/supabaseClient'; 
 
 // import { generateContentHash } from './utils'; // Not used in simplified version
 
@@ -69,7 +69,7 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -95,7 +95,7 @@ export const getProfile = async (id: string): Promise<DbProfile | null> => {
 
 // Use Partial<DbProfile> for updateData input. Stricter Zod schema for input can be made if needed.
 export const updateProfile = async (userId: string, updateData: Partial<DbProfile>): Promise<DbProfile | null> => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   // Zod schema for what parts of DbProfile are updatable by the client
   const updatableProfileFieldsSchema = importedProfileSchema.partial().omit({
     id: true, 
@@ -154,7 +154,7 @@ export const profiles = {
   // search: ... (can be re-added later)
   update: updateProfile,
   async create(insertData: Omit<DbProfile, 'id' | 'updated_at' | 'user_id'>): Promise<DbProfile | null> { // Refined Omit type for create
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
     // Schema for creatable fields, omitting auto-generated/auth-linked ones
     const creatableProfileSchema = importedProfileSchema.omit({
       id: true, 
@@ -201,7 +201,7 @@ export const profiles = {
 export type MessageInsert = Omit<DbMessageType, 'id' | 'created_at' | 'is_read'>;
 
 export const getMessagesForMatch = async (matchId: string): Promise<DbMessageType[]> => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   try {
     const { data, error } = await supabase
       .from('messages')
@@ -232,7 +232,7 @@ export const getMessagesForMatch = async (matchId: string): Promise<DbMessageTyp
 };
 
 export const sendMessage = async (payload: MessageInsert): Promise<DbMessageType | null> => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   // Validate payload before sending to Supabase
   const validatedPayload = importedMessageSchema.omit({ id: true, created_at: true, is_read: true }).parse(payload);
     
@@ -262,7 +262,7 @@ export const setupMessageListener = (
   matchId: string, 
   callback: (newMessage: DbMessageType) => void
 ): (() => void) => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   const channel = supabase
     .channel(`messages-match-${matchId}`)
       .on(
@@ -307,7 +307,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
   const fileExt = file.name.split('.').pop();
   const filePath = `${userId}/avatar.${fileExt}`;
 
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   try {
     const { data: uploadResult, error: uploadError } = await supabase.storage
       .from('avatars')
@@ -373,7 +373,7 @@ const researchPostWithDetailsSchema = z.object({
 export type ResearchPostWithDetails = z.infer<typeof researchPostWithDetailsSchema>;
 
 export const getResearchPostById = async (postId: string): Promise<ResearchPostWithDetails | null> => {
-    const supabase = getBrowserClient();
+    // supabase is already imported as a singleton
   try {
     const { data: postData, error: postError } = await supabase
       .from('research_posts')
@@ -476,7 +476,7 @@ export type ConversationListItem = z.infer<typeof conversationListItemSchema>;
 
 // API function to fetch conversations for the current user
 export const getConversations = async (): Promise<ConversationListItem[]> => {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) return [];
 
@@ -571,7 +571,7 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
 
 // API function to mark messages as read for a given match and user
 export const markMessagesAsRead = async (matchId: string, currentUserId: string): Promise<void> => {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   try {
     const { error } = await supabase
       .from('messages')
@@ -597,7 +597,7 @@ export const markMessagesAsRead = async (matchId: string, currentUserId: string)
 // No more functions or exports beyond this point to ensure no duplicates. 
 
 export const setProfileTourCompleted = async (userId: string): Promise<DbProfile | null> => {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   try {
     const { data, error } = await supabase
       .from('profiles')

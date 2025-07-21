@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/lib/store';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Input as CustomInput } from '@/components/ui/Input';
@@ -15,7 +15,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
 export default function AccountSettingsPage() {
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { user, profile, setProfile, setLoading: setAuthLoading } = useAuthStore();
 
   const [firstName, setFirstName] = useState('');

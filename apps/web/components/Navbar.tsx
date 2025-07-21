@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FiUser, FiMenu, FiX, FiBell, FiSearch } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { getBrowserClient } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuthStore } from '@/lib/store';
 
 interface NavbarProps {
@@ -14,7 +14,7 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   const { profile } = useAuthStore();
 
   const handleSignOut = async () => {

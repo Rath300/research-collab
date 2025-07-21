@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { getBrowserClient } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/lib/store'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -25,7 +25,7 @@ interface MessageListProps {
 }
 
 export function MessageList({ otherUserId }: MessageListProps) {
-  const supabase = getBrowserClient()
+  // supabase is already imported as a singleton
   const { user } = useAuthStore()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')

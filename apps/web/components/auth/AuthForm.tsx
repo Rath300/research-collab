@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getBrowserClient } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -13,7 +13,7 @@ interface AuthFormProps {
 
 export function AuthForm({ view }: AuthFormProps) {
   const router = useRouter()
-  const supabase = getBrowserClient()
+  // supabase is already imported as a singleton
   const { theme } = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

@@ -24,7 +24,7 @@ import {
   FiMessageSquare
 } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store';
-import { getBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/database.types';
 import { cn } from '@/lib/utils';
 
@@ -76,7 +76,7 @@ export default function ProfilePage() {
   const isOwnProfile = user?.id === userId || (userId === 'me' && user);
   const actualUserId = userId === 'me' ? user?.id : userId;
 
-  const supabase = getBrowserClient();
+  // supabase is already imported as a singleton
   
   const loadProfileData = useCallback(async () => {
     if (!actualUserId) {
