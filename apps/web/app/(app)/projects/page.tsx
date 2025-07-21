@@ -4,11 +4,13 @@ import { api } from '@/lib/trpc';
 import Link from 'next/link';
 import { FiLoader, FiChevronRight, FiBriefcase } from 'react-icons/fi';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { useAuthStore } from '@/lib/store';
 
 export default function ProjectsPage() {
+  const { isLoading: authLoading, session } = useAuthStore();
   // Assuming a tRPC procedure `listMyProjects` exists to get all projects for the current user.
   // We may need to create this procedure if it doesn't exist.
-  const { data: projects, isLoading, error } = api.project.listMyProjects.useQuery();
+  const { data: projects, isLoading, error } = api.project.listMyProjects.useQuery(undefined, { enabled: !authLoading && !!session });
 
   if (isLoading) {
     return <div className="p-8"><FiLoader className="animate-spin text-2xl" /></div>;

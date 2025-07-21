@@ -7,9 +7,11 @@ import { FiLoader, FiPlusCircle, FiHome } from 'react-icons/fi';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/lib/store';
 
 export default function MyProjectsPage() {
-  const { data: projects, isLoading, error } = api.project.listMyProjects.useQuery();
+  const { isLoading: authLoading, session } = useAuthStore();
+  const { data: projects, isLoading, error } = api.project.listMyProjects.useQuery(undefined, { enabled: !authLoading && !!session });
 
   return (
     <PageContainer title="My Projects">
