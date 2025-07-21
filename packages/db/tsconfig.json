@@ -1,0 +1,12 @@
+{
+  "extends": "../typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "rootDir": ".",
+    "composite": true
+  },
+  "include": ["*.ts", "types/**/*.ts", "schema/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+} 

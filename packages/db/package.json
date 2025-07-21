@@ -1,0 +1,49 @@
+{
+  "name": "@research-collab/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./supabaseClient": {
+      "import": "./dist/supabaseClient.js",
+      "types": "./dist/supabaseClient.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth.js",
+      "types": "./dist/auth.d.ts"
+    },
+    "./posts": {
+      "import": "./dist/posts.js",
+      "types": "./dist/posts.d.ts"
+    },
+    "./types/database.types": {
+      "types": "./dist/types/database.types.d.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.40.0",
+    "@supabase/ssr": "^0.3.0",
+    "next": "^13.5.11",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@research-collab/eslint-config": "workspace:*",
+    "@research-collab/typescript-config": "workspace:*",
+    "typescript": "^5.8.2"
+  }
+} 
