@@ -365,6 +365,9 @@ importers:
       '@supabase/auth-helpers-nextjs':
         specifier: ^0.8.7
         version: 0.8.7(@supabase/supabase-js@2.50.0)
+      '@supabase/ssr':
+        specifier: ^0.3.0
+        version: 0.3.0(@supabase/supabase-js@2.50.0)
       '@supabase/supabase-js':
         specifier: ^2.38.4
         version: 2.50.0

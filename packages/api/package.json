@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.8.7",
+    "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.38.4",
     "@trpc/client": "^10.43.0",
     "@trpc/server": "^10.43.0",
