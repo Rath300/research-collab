@@ -33,9 +33,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let authListenerSubscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
+    let fallbackTimeout: NodeJS.Timeout | null = null;
     
     const mainAuthSetup = async () => {
       if (!isMounted) return;
+
+      // Fallback: after 2 seconds, force loading to false if still loading
+      fallbackTimeout = setTimeout(() => {
+        if (isMounted && useAuthStore.getState().isLoading) {
+          setLoading(false);
+          setHasAttemptedProfileFetch(true);
+          console.warn('[AuthProvider] Fallback: Forced loading=false after timeout.');
+        }
+      }, 2000);
 
       if (!useAuthStore.persist.hasHydrated()) {
         console.log('[AuthProvider] Store not yet rehydrated. Waiting for rehydration...');
@@ -196,6 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     return () => {
       isMounted = false;
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
       console.log('[AuthProvider] Effect CLEANUP. Unsubscribing from onAuthStateChange.');
       authListenerSubscription?.unsubscribe();
     };
