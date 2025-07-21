@@ -5,25 +5,39 @@ import { createServerClient } from '@supabase/ssr';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-/**
- * Inner context with DB
- */
-export async function createContextInner(supabaseClient: ReturnType<typeof createServerClient>) {
-  const { data: { session }} = await supabaseClient.auth.getSession();
-  console.log('Supabase session in context:', session);
+export async function createContext(opts: CreateNextContextOptions) {
+  // Patch cookies to always return string
+  const cookieStore = cookies();
+  const cookieMethods = {
+    get: (name: string) => cookieStore.get(name)?.value ?? undefined,
+    set: () => {},
+    remove: () => {},
+  };
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, { cookies: cookieMethods });
+
+  // Patch: If Authorization header is present, set the access token
+  let accessToken: string | undefined;
+  if (opts.req && typeof opts.req.headers?.get === 'function') {
+    const authHeader = opts.req.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      accessToken = authHeader.replace('Bearer ', '');
+    }
+  } else if (opts.req && typeof opts.req.headers === 'object') {
+    const authHeader = (opts.req.headers['authorization'] || opts.req.headers['Authorization']) as string | undefined;
+    if (authHeader?.startsWith('Bearer ')) {
+      accessToken = authHeader.replace('Bearer ', '');
+    }
+  }
+  if (accessToken) {
+    await supabase.auth.setSession({ access_token: accessToken, refresh_token: '' });
+  }
+
+  const { data: { session }} = await supabase.auth.getSession();
   return {
     session,
-    supabase: supabaseClient,
+    supabase,
   };
 }
 
-/**
- * Context for API routes
- */
-export async function createContext(opts: CreateNextContextOptions) {
-  const cookieStore = cookies();
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, { cookies: cookieStore });
-  return await createContextInner(supabase);
-}
-
-export type Context = Awaited<ReturnType<typeof createContextInner>>; 
+export type Context = Awaited<ReturnType<typeof createContext>>; 
