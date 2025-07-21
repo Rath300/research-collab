@@ -20,11 +20,13 @@ export async function createContext(opts: CreateNextContextOptions) {
   let accessToken: string | undefined;
   if (opts.req && typeof opts.req.headers?.get === 'function') {
     const authHeader = opts.req.headers.get('authorization');
+    console.log('API context Authorization header:', authHeader);
     if (authHeader?.startsWith('Bearer ')) {
       accessToken = authHeader.replace('Bearer ', '');
     }
   } else if (opts.req && typeof opts.req.headers === 'object') {
     const authHeader = (opts.req.headers as any)['authorization'];
+    console.log('API context Authorization header:', authHeader);
     if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
       accessToken = authHeader.replace('Bearer ', '');
     }
@@ -32,7 +34,9 @@ export async function createContext(opts: CreateNextContextOptions) {
   if (accessToken) {
     await supabase.auth.setSession({ access_token: accessToken, refresh_token: '' });
   }
-  return { supabase };
+  const { data: { session } } = await supabase.auth.getSession();
+  console.log('API context Supabase session:', session);
+  return { supabase, session };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>; 
