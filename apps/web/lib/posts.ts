@@ -49,21 +49,24 @@ export async function getResearchPost(id: string): Promise<ResearchPost | null> 
   return data as ResearchPost;
 }
 
-export async function createResearchPost(post: InsertResearchPost): Promise<ResearchPost> {
+export async function createResearchPost(post: any): Promise<any> {
   const supabase = getSupabaseClient();
-  
   const { data, error } = await supabase
-    .from('research_posts')
-    .insert(post)
+    .from('projects')
+    .insert({
+      leader_id: post.leader_id || post.user_id,
+      title: post.title,
+      description: post.content,
+      tags: post.tags,
+      is_public: post.visibility === 'public',
+    })
     .select()
     .single();
-    
   if (error) {
-    console.error('Error creating research post:', error);
+    console.error('Error creating project:', error);
     throw error;
   }
-  
-  return data as ResearchPost;
+  return data;
 }
 
 export async function updateResearchPost(id: string, post: UpdateResearchPost): Promise<ResearchPost> {

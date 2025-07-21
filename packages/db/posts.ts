@@ -51,12 +51,17 @@ export async function getResearchPost(id: string) {
     .single();
 }
 
-export async function createResearchPost(post: ResearchPostInsert) {
+export async function createResearchPost(post: any) {
   const supabase = createClient();
-  
   return supabase
-    .from('research_posts')
-    .insert(post)
+    .from('projects')
+    .insert({
+      leader_id: post.leader_id || post.user_id,
+      title: post.title,
+      description: post.content,
+      tags: post.tags,
+      is_public: post.visibility === 'public',
+    })
     .select()
     .single();
 }

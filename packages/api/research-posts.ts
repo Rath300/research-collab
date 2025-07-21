@@ -193,25 +193,23 @@ export function useInfiniteResearchPosts(
  */
 export function useCreateResearchPost() {
   const queryClient = useQueryClient();
-  
   return useMutation({
-    mutationFn: async (post: Omit<ResearchPost, 'id' | 'created_at' | 'updated_at'>) => {
-      // Validate with Zod schema
-      const validated = researchPostSchema
-        .omit({ id: true, created_at: true, updated_at: true })
-        .parse(post);
-      
+    mutationFn: async (post: any) => {
       const { data, error } = await supabase
-        .from('research_posts')
-        .insert(validated)
+        .from('projects')
+        .insert({
+          leader_id: post.leader_id || post.user_id,
+          title: post.title,
+          description: post.content,
+          tags: post.tags,
+          is_public: post.visibility === 'public',
+        })
         .select()
         .single();
-      
       if (error) throw error;
-      return data as ResearchPost;
+      return data;
     },
     onSuccess: () => {
-      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: postKeys.lists() });
     },
   });
