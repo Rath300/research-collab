@@ -258,7 +258,7 @@ export default function DashboardPage() {
       };
 
       const promises = {
-        postCount: supabase.from('research_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        postCount: supabase.from('projects').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         matchCount: supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
         messageCount: supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
         activeProjectsCount: getActiveProjectsCount(),

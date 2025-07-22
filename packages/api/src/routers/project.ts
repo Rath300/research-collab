@@ -179,7 +179,7 @@ export const projectRouter = router({
     .input(
       z.object({
         title: z.string().min(1).max(255),
-        content: z.string().min(1),
+        description: z.string().min(1),
         tags: z.array(z.string()).optional(),
         visibility: z.enum(['public', 'private', 'connections']).default('public'),
       })
@@ -188,14 +188,13 @@ export const projectRouter = router({
       const { supabase } = ctx;
       const userId = ctx.user.id;
 
-      // Insert into the projects table (not research_posts)
-      // RLS policy required: WITH CHECK (auth.uid() = user_id OR auth.uid() = leader_id)
+      // Insert into the projects table
       const { data, error } = await supabase
         .from('projects')
         .insert({
           leader_id: userId,
           title: input.title,
-          description: input.content,
+          description: input.description,
           tags: input.tags,
           is_public: input.visibility === 'public',
         })
@@ -211,21 +210,18 @@ export const projectRouter = router({
         });
       }
 
-      // Also add the creator as the 'owner' in project_collaborators
+      // Add the creator as the 'owner' in project_collaborators
       const { error: collabError } = await supabase
         .from('project_collaborators')
         .insert({
-            project_id: data.id,
-            user_id: userId,
-            role: 'owner',
-            status: 'active',
+          project_id: data.id,
+          user_id: userId,
+          role: 'owner',
+          status: 'active',
         });
 
       if (collabError) {
-        // If this fails, we should ideally roll back the project creation.
-        // For now, we'll log the error and the project will exist without an owner.
         console.error('Failed to add owner to new project:', collabError);
-        // Depending on desired transactional integrity, you might throw an error here.
       }
 
       return data;

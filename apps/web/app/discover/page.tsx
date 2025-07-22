@@ -24,17 +24,15 @@ export default function DiscoverPage() {
     try {
       let query = supabase
         .from('projects')
-        .select(
-          `
+        .select(`
           *,
-          profiles!user_id (
+          profiles:leader_id (
             first_name,
             last_name,
             institution,
             avatar_url
           )
-        `
-        )
+        `)
         .eq('visibility', 'public')
         .limit(20);
 
