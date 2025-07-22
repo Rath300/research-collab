@@ -15,20 +15,20 @@ import { FiX, FiUpload, FiSave, FiCheckCircle, FiAlertCircle, FiLoader, FiPaperc
 
 const projectFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
-  content: z
+  description: z
     .string()
     .superRefine((val, ctx) => {
       const plainText = val.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
       if (plainText.length < 20) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Content must be at least 20 characters',
+          message: 'Description must be at least 20 characters',
         });
       }
       if (plainText.length > 15000) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Content must be less than 15000 characters',
+          message: 'Description must be less than 15000 characters',
         });
       }
     }),
@@ -65,7 +65,7 @@ export default function NewProjectPage() {
   
   const [formData, setFormData] = useState<ProjectFormData>({
     title: '',
-    content: '',
+    description: '',
     visibility: 'public',
     tags: [],
   });
@@ -112,9 +112,9 @@ export default function NewProjectPage() {
   };
 
   const handleContentChange = (richText: string) => {
-    setFormData(prev => ({ ...prev, content: richText }));
-    if (errors.content) {
-      setErrors(prev => ({ ...prev, content: undefined }));
+    setFormData(prev => ({ ...prev, description: richText }));
+    if (errors.description) {
+      setErrors(prev => ({ ...prev, description: undefined }));
     }
   };
 
@@ -174,7 +174,8 @@ export default function NewProjectPage() {
     console.log('[DEBUG] Creating project with tags:', formData.tags);
     createProjectMutation.mutate({
       title: formData.title,
-      content: formData.content,
+      content: undefined, // Remove content
+      description: formData.description,
       visibility: formData.visibility,
       tags: formData.tags || [],
     });
@@ -249,11 +250,11 @@ export default function NewProjectPage() {
                 <div>
                     <label htmlFor="content" className={commonLabelClass}>Project Abstract / Summary</label>
                     <RichTextEditor 
-                        value={formData.content}
+                        value={formData.description}
                         onChange={handleContentChange}
                         editable={!isSubmitting && !createdProjectId}
                     />
-                    {errors.content && <p className="mt-2 text-sm text-red-400">{errors.content}</p>}
+                    {errors.description && <p className="mt-2 text-sm text-red-400">{errors.description}</p>}
                 </div>
                 
                 {/* ... other form fields like visibility and tags ... */}
