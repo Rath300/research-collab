@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { type ResearchPost, type Profile } from '@research-collab/db';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { FiSearch, FiTrendingUp, FiClock, FiAlertCircle, FiLoader, FiUser } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
+import { type Database } from '@/lib/database.types';
 
-interface Project extends ResearchPost {
-  profiles?: Partial<Profile> | null;
-}
+type Project = Database['public']['Tables']['projects']['Row'];
 
 export default function DiscoverPage() {
   // supabase is already imported as a singleton
@@ -25,7 +23,7 @@ export default function DiscoverPage() {
     setError(null);
     try {
       let query = supabase
-        .from('research_posts')
+        .from('projects')
         .select(
           `
           *,
@@ -135,8 +133,8 @@ export default function DiscoverPage() {
                     <h2 className="text-xl font-heading text-neutral-100 mb-2 truncate group-hover:text-accent-purple transition-colors" title={project.title}>
                       {project.title}
                     </h2>
-                    <p className="text-neutral-400 text-sm mb-3 line-clamp-3 font-sans" title={project.content || undefined}>
-                      {project.content || 'No description available.'}
+                    <p className="text-neutral-400 text-sm mb-3 line-clamp-3 font-sans" title={project.description || undefined}>
+                      {project.description || 'No description available.'}
                     </p>
                     
                     <div className="flex items-center mb-4 font-sans">

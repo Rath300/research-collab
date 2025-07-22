@@ -5,25 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store'
-import { Database } from '@/lib/database.types'
-import { getSupabaseClient } from '@/lib/supabaseClient'
+import { type Database } from '@/lib/database.types';
+import { supabase } from '@/lib/supabaseClient';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
-type Profile = Database['public']['Tables']['profiles']['Row'];
-
-// Extend ResearchPost to include the joined profiles data
-interface ProjectWithProfile extends ResearchPost {
-  profiles?: Partial<Profile> | null; // Profiles from the join
-}
+type Project = Database['public']['Tables']['projects']['Row'];
 
 export function ProjectMatcher() {
   const router = useRouter()
   const { user } = useAuthStore()
-  const [currentProject, setCurrentProject] = useState<ProjectWithProfile | null>(null)
+  const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const supabase = getSupabaseClient()
 
   const loadNextProject = useCallback(async () => {
     if (!user) return
@@ -33,20 +25,9 @@ export function ProjectMatcher() {
       setError(null)
 
       const { data: project, error: projectError } = await supabase
-        .from('research_posts')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            first_name,
-            last_name,
-            avatar_url,
-            title,
-            institution
-          )
-        `)
-        .neq('user_id', user.id)
-        .eq('visibility', 'public')
+        .from('projects')
+        .select('*')
+        .neq('leader_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .single()
@@ -64,7 +45,7 @@ export function ProjectMatcher() {
     } finally {
       setIsLoading(false)
     }
-  }, [user, supabase])
+  }, [user])
 
   const handleMatch = async () => {
     if (!user || !currentProject) return
@@ -74,7 +55,7 @@ export function ProjectMatcher() {
         .from('profile_matches')
         .insert({
           matcher_user_id: user.id,
-          matchee_user_id: currentProject.user_id,
+          matchee_user_id: currentProject.leader_id,
           status: 'matched'
         })
 
@@ -126,16 +107,16 @@ export function ProjectMatcher() {
       <div className="space-y-6">
         <div>
           <h3 className="text-xl font-semibold mb-2">{currentProject.title}</h3>
-          <p className="text-gray-600 dark:text-gray-300">{currentProject.content}</p>
+          <p className="text-gray-600 dark:text-gray-300">{currentProject.description}</p>
         </div>
 
         <div className="flex items-center space-x-4">
           <div>
             <p className="font-medium">
-              {currentProject.profiles?.first_name} {currentProject.profiles?.last_name}
+              {currentProject.title}
             </p>
             <p className="text-sm text-gray-500">
-              {currentProject.profiles?.title} at {currentProject.profiles?.institution}
+              {currentProject.description}
             </p>
           </div>
         </div>
