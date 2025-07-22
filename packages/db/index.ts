@@ -85,14 +85,11 @@ export const projectSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
-  title: z.string().min(5).max(100),
-  content: z.string().min(20), // Renamed from description
-  user_id: z.string().uuid(),    // Renamed from leader_id
-  tags: z.array(z.string()).optional().nullable(), // Ensure nullable matches DB type (string[] | null)
-  visibility: z.enum(['public', 'private', 'connections']).default('public'), // Added from research_posts
-  is_boosted: z.boolean().default(false), // Added from research_posts
-  engagement_count: z.number().int().default(0), // Added from research_posts
-  // Removed: guild_id, status (not in research_posts table)
+  title: z.string().min(1).max(100),
+  description: z.string().min(1),
+  leader_id: z.string().uuid(),
+  tags: z.array(z.string()).optional().nullable(),
+  is_public: z.boolean().optional(),
 });
 
 export type Project = z.infer<typeof projectSchema>; // This type now represents a research_post
