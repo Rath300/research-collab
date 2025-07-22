@@ -257,7 +257,35 @@ export default function NewProjectPage() {
                     {errors.description && <p className="mt-2 text-sm text-red-400">{errors.description}</p>}
                 </div>
                 
-                {/* ... other form fields like visibility and tags ... */}
+                <div>
+                  <label htmlFor="tags" className={commonLabelClass}>Tags</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {(formData.tags || []).map(tag => (
+                      <span key={tag} className={tagItemClass}>
+                        {tag}
+                        <button
+                          type="button"
+                          className={tagRemoveButtonClass}
+                          onClick={() => handleTagRemove(tag)}
+                          aria-label={`Remove tag ${tag}`}
+                        >
+                          <FiX />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <Input
+                    id="tags"
+                    name="tags"
+                    value={currentTag}
+                    onChange={handleTagInputChange}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Add a tag and press Enter"
+                    className={inputBaseClass}
+                    disabled={isSubmitting || !!createdProjectId}
+                  />
+                  {errors.tags && <p className="mt-2 text-sm text-red-400">{errors.tags}</p>}
+                </div>
 
               </div>
 
