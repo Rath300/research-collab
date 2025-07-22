@@ -14,7 +14,7 @@ type Project = Database['public']['Tables']['projects']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface TrendingProject extends Project {
-  profiles: Profile | null;
+  profiles?: Profile | null;
 }
 
 interface HotTopic {
@@ -86,7 +86,6 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
       </div>
       <div className="bg-neutral-800/30 px-5 py-3 border-t border-neutral-800 flex items-center justify-between text-neutral-500">
         <div className="flex items-center gap-3">
-            <button className="hover:text-accent-purple transition-colors flex items-center"><FiThumbsUp size={16} className="mr-1" /> <span className="text-xs">{post.engagement_count || 0}</span></button>
             <button className="hover:text-accent-purple transition-colors flex items-center"><FiMessageSquare size={16} className="mr-1" /> <span className="text-xs">{/* count */}</span></button>
         </div>
         <button className="hover:text-accent-purple transition-colors"><FiBookmark size={16} /></button>
@@ -122,7 +121,7 @@ export default function TrendingPage() {
     try {
       const { data: fetchedProjects, error: projectsError } = await supabase
         .from('projects')
-        .select('*, profiles (*), engagement_count')
+        .select('*, profiles:leader_id(*)')
         .order('created_at', { ascending: false })
         .limit(30);
 
@@ -154,6 +153,10 @@ export default function TrendingPage() {
   useEffect(() => {
     loadTrendingData();
   }, [loadTrendingData]);
+
+  const validProjects = posts.filter(
+    (project) => project.profiles && typeof project.profiles === 'object' && 'first_name' in project.profiles
+  );
 
   return (
     <PageContainer title="Trending" className="bg-black min-h-screen text-neutral-100 font-sans">
@@ -227,9 +230,13 @@ export default function TrendingPage() {
               initial="hidden"
               animate="visible"
             >
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+              {validProjects.map((post) => {
+                const authorName =
+                  post.profiles && typeof post.profiles === 'object' && 'first_name' in post.profiles
+                    ? post.profiles.first_name
+                    : 'Anonymous';
+                return <PostCard key={post.id} post={post} />;
+              })}
             </motion.div>
           )}
 

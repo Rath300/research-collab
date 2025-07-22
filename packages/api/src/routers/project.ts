@@ -235,21 +235,21 @@ export const projectRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .output(projectSchema.extend({
       role: projectCollaboratorRoleSchema,
-    }).nullable()) // Project might not exist or user might not have access
+    }).nullable())
     .query(async ({ ctx, input }) => {
       const userId = ctx.user.id;
 
       // First, check if the user is a collaborator on this project and get their role
       const { data: collaborator, error: collaboratorError } = await ctx.supabase
         .from('project_collaborators')
-        .select('role') // Select the role
+        .select('role')
         .eq('project_id', input.id)
         .eq('user_id', userId)
-        .eq('status', 'active') // Ensure the collaboration is active
+        .eq('status', 'active')
         .maybeSingle();
 
       if (collaboratorError) {
-        console.error("Error checking project collaboration:", collaboratorError);
+        console.error('Error checking project collaboration:', collaboratorError);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to verify project access.',
@@ -258,35 +258,55 @@ export const projectRouter = router({
       }
 
       if (!collaborator) {
-        // If user is not an active collaborator, they don't have access
-        // We could also check project visibility here if public projects should be viewable by anyone
-        // For now, strict collaborator access is implemented.
         throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have access to this project or it does not exist.'
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this project or it does not exist.'
         });
       }
 
       // If collaborator check passes, fetch the project details
       const { data: project, error: projectError } = await ctx.supabase
         .from('projects')
-        .select('*') // Select all columns from projectSchema
+        .select('*')
         .eq('id', input.id)
         .single();
 
       if (projectError) {
-        // This could happen if the project was deleted between collaborator check and this query
-        // Or other DB errors
-        console.error("Error fetching project by ID:", projectError);
+        console.error('Error fetching project by ID:', projectError);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch project details.',
           cause: projectError,
         });
       }
-      
-      // Combine project data with the user's role for this project
-      return { ...project, role: collaborator.role };
+
+      if (!project) {
+        console.warn('No project found for id', input.id);
+        return null;
+      }
+
+      // Only include fields that exist in the schema
+      const {
+        id,
+        title,
+        description,
+        leader_id,
+        tags,
+        is_public,
+        created_at,
+        updated_at,
+      } = project;
+      return {
+        id,
+        title,
+        description,
+        leader_id,
+        tags,
+        is_public,
+        created_at,
+        updated_at,
+        role: collaborator.role,
+      };
     }),
 
   /**
@@ -321,13 +341,37 @@ export const projectRouter = router({
 
       if (!data) return [];
 
-      // Type for the joined row
-      type ProjectWithRole = z.infer<typeof projectSchema> & { role: z.infer<typeof projectCollaboratorRoleSchema> };
-
       // Flatten the result: each item has { role, projects: { ...project fields... } }
-      const projects: ProjectWithRole[] = data
-        .filter((row: any) => row.projects)
-        .map((row: any) => ({ ...row.projects, role: row.role }));
+      const projects = data
+        .filter((row: any) => row.projects && typeof row.projects === 'object' && row.projects.id)
+        .map((row: any) => {
+          // Only include fields that exist in the schema
+          const {
+            id,
+            title,
+            description,
+            leader_id,
+            tags,
+            is_public,
+            created_at,
+            updated_at,
+          } = row.projects;
+          return {
+            id,
+            title,
+            description,
+            leader_id,
+            tags,
+            is_public,
+            created_at,
+            updated_at,
+            role: row.role,
+          };
+        });
+
+      if (projects.length === 0) {
+        console.warn('No valid projects found for user', userId, 'Raw data:', data);
+      }
 
       return projects;
     }),

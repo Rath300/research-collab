@@ -92,33 +92,4 @@ export async function deleteProject(id: string): Promise<boolean> {
   }
   
   return true;
-}
-
-export async function incrementEngagement(id: string): Promise<void> {
-  const supabase = getSupabaseClient();
-  
-  // First get the current engagement count
-  const { data, error: fetchError } = await supabase
-    .from('projects')
-    .select('engagement_count')
-    .eq('id', id)
-    .single();
-    
-  if (fetchError) {
-    console.error('Error fetching project engagement:', fetchError);
-    throw fetchError;
-  }
-  
-  const currentEngagement = data.engagement_count || 0;
-  
-  // Then update with incremented count
-  const { error: updateError } = await supabase
-    .from('projects')
-    .update({ engagement_count: currentEngagement + 1 })
-    .eq('id', id);
-    
-  if (updateError) {
-    console.error('Error updating project engagement:', updateError);
-    throw updateError;
-  }
 } 
