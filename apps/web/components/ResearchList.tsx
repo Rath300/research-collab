@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from "@/lib/supabaseClient";
 import Link from 'next/link';
 import { FiCalendar, FiClock, FiUsers } from "react-icons/fi";
-import { type ResearchPost as Project } from '@research-collab/db';
+import { type Database } from '@/lib/database.types';
+type Project = Database['public']['Tables']['projects']['Row'];
+import { getProjects } from '@/lib/posts';
 
 interface ResearchListProps {
   userId: string;
@@ -17,69 +19,17 @@ export default function ResearchList({ userId }: ResearchListProps) {
   // supabase is already imported as a singleton
 
   useEffect(() => {
-    const getProjects = async () => {
+    const fetchProjects = async () => {
       try {
-        // In a real application, you would fetch projects from Supabase
-        // const { data, error } = await supabase
-        //   .from('projects')
-        //   .select('*')
-        //   .eq('user_id', userId)
-        //   .order('created_at', { ascending: false });
-        
-        // if (error) throw error;
-        // setProjects(data || []);
-
-        // Using mock data for now, updated to ResearchPost schema
-        const mockProjects: Project[] = [
-          {
-            id: '1',
-            title: 'Quantum Computing Applications in Healthcare',
-            content: 'Exploring how quantum computing can revolutionize medical diagnostics and treatment planning',
-            user_id: userId,
-            visibility: 'public',
-            is_boosted: false,
-            engagement_count: 10,
-            created_at: '2024-01-10T10:00:00Z',
-            updated_at: '2024-01-10T10:00:00Z',
-            tags: ['quantum', 'healthcare']
-          },
-          {
-            id: '2',
-            title: 'Machine Learning for Climate Prediction',
-            content: 'Using neural networks to improve long-term climate forecasting models',
-            user_id: userId,
-            visibility: 'public',
-            is_boosted: true,
-            boost_end_date: '2024-12-31T23:59:59Z',
-            engagement_count: 25,
-            created_at: '2024-03-20T12:00:00Z',
-            updated_at: '2024-03-22T14:30:00Z',
-            tags: ['ml', 'climate']
-          },
-          {
-            id: '3',
-            title: 'Blockchain in Academic Publishing',
-            content: 'Implementing blockchain technology to ensure research integrity and transparent peer review',
-            user_id: userId,
-            visibility: 'private',
-            is_boosted: false,
-            engagement_count: 5,
-            created_at: '2024-02-05T09:00:00Z',
-            updated_at: '2024-02-06T11:00:00Z',
-            tags: ['blockchain', 'publishing']
-          },
-        ];
-
-        setProjects(mockProjects);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-        setError("An error occurred while fetching projects.");
+        const projects = await getProjects(20, 0, userId);
+        setProjects(projects);
+      } catch (err) {
+        setError('Failed to load projects');
+      } finally {
         setIsLoading(false);
       }
     };
-
-    getProjects();
+    fetchProjects();
   }, [userId]);
 
   if (isLoading) {
@@ -116,4 +66,28 @@ export default function ResearchList({ userId }: ResearchListProps) {
   return (
     <div className="space-y-4">
       {projects.map((project) => (
-        <Link href={`/projects/${project.id}`
+        <Link href={`/projects/${project.id}`} key={project.id} className="block p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+          <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+          <p className="text-gray-800 mb-4">{project.description}</p>
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <FiCalendar className="mr-1" />
+            {formatDate(project.created_at)}
+            <span className="mx-1">•</span>
+            <FiClock className="mr-1" />
+            {project.duration}
+            <span className="mx-1">•</span>
+            <FiUsers className="mr-1" />
+            {project.participants}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {project.tags.map((tag, index) => (
+              <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
