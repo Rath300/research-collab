@@ -8,6 +8,7 @@ import { PageContainer } from '@/components/layout/PageContainer'; // Assuming t
 import { Avatar } from '@/components/ui/Avatar';
 import { FiLoader, FiAlertCircle, FiUser, FiTag, FiExternalLink, FiHome } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
+import { getProjects } from '@/lib/posts';
 
 type Project = Database['public']['Tables']['projects']['Row'];
 

@@ -38,6 +38,7 @@ import { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabaseClient';
 import { ResearchPostCard } from '@/components/research/ResearchPostCard';
 import { Avatar } from '@/components/ui/Avatar';
+import { getProjects } from '@/lib/posts';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type BaseProfileMatch = Database['public']['Tables']['profile_matches']['Row'];
@@ -258,7 +259,7 @@ export default function DashboardPage() {
       };
 
       const promises = {
-        postCount: supabase.from('projects').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        postCount: supabase.from('projects').select('id', { count: 'exact', head: true }).eq('leader_id', userId),
         matchCount: supabase.from('profile_matches').select('id', { count: 'exact', head: true }).eq('matcher_user_id', userId).eq('status', 'matched'),
         messageCount: supabase.from('messages').select('id', { count: 'exact', head: true }).or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
         activeProjectsCount: getActiveProjectsCount(),
