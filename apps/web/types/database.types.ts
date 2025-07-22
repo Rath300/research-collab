@@ -294,7 +294,7 @@ export type Database = {
             foreignKeyName: "post_comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "research_posts"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -330,7 +330,7 @@ export type Database = {
             foreignKeyName: "post_likes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "research_posts"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -705,7 +705,7 @@ export type Database = {
             foreignKeyName: "project_files_research_post_id_fkey"
             columns: ["research_post_id"]
             isOneToOne: false
-            referencedRelation: "research_posts"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -909,48 +909,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      research_post_matches: {
-        Row: {
-          created_at: string
-          id: string
-          research_post_id: string
-          status: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          research_post_id: string
-          status?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          research_post_id?: string
-          status?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "research_post_matches_research_post_id_fkey"
-            columns: ["research_post_id"]
-            isOneToOne: false
-            referencedRelation: "research_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "research_post_matches_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       research_projects: {
         Row: {

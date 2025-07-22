@@ -15,32 +15,27 @@ export const tempProjectRouter = router({
    */
   listMyProjects: protectedProcedure
     .output(z.array(
-      projectSchema.extend({
-        role: projectCollaboratorRoleSchema,
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string().optional(),
+        visibility: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        created_at: z.string(),
+        updated_at: z.string(),
+        role: z.union([
+          z.literal('owner'),
+          z.literal('editor'),
+          z.literal('viewer'),
+        ]),
       })
     ))
     .query(async ({ ctx }) => {
       const userId = ctx.user.id;
 
-      type CollaborationWithNestedPostArray = {
-        role: "owner" | "editor" | "viewer";
-        research_posts: {
-          id: string;
-          created_at: string;
-          updated_at: string;
-          user_id: string;
-          title: string;
-          content: string;
-          visibility: "public" | "private" | "connections" | null;
-          tags: string[] | null;
-          is_boosted: boolean;
-          engagement_count: number;
-        }[] | null;
-      };
-
       const { data, error } = await ctx.supabase
         .from('project_collaborators')
-        .select('role, research_posts(*)')
+        .select('role, project(*)')
         .eq('user_id', userId)
         .eq('status', 'active');
 
@@ -52,25 +47,25 @@ export const tempProjectRouter = router({
         });
       }
 
-      const collaborations = data as CollaborationWithNestedPostArray[];
+      const collaborations = data as { role: "owner" | "editor" | "viewer"; project: z.infer<typeof projectSchema> }[];
 
       const projects = collaborations
         .map(collaboration => {
-          const postDataRaw = Array.isArray(collaboration.research_posts)
-            ? collaboration.research_posts[0]
-            : collaboration.research_posts;
+          const projectDataRaw = collaboration.project;
 
-          if (!postDataRaw) {
+          if (!projectDataRaw) {
             return null;
           }
 
           return {
-            ...postDataRaw,
+            id: projectDataRaw.id,
+            name: projectDataRaw.name,
+            description: projectDataRaw.description ?? undefined,
+            visibility: projectDataRaw.visibility ?? undefined,
+            tags: projectDataRaw.tags ?? undefined,
+            created_at: projectDataRaw.created_at ? new Date(projectDataRaw.created_at) : undefined,
+            updated_at: projectDataRaw.updated_at ? new Date(projectDataRaw.updated_at) : undefined,
             role: collaboration.role,
-            created_at: new Date(postDataRaw.created_at),
-            updated_at: new Date(postDataRaw.updated_at),
-            visibility: postDataRaw.visibility ?? undefined,
-            tags: postDataRaw.tags ?? undefined,
           };
         })
         .filter((p): p is NonNullable<typeof p> => p !== null);

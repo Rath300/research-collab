@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { FiUploadCloud } from 'react-icons/fi';
 
 interface FileUploadProps {
-  researchPostId: string
+  projectId: string
   onUploadComplete?: (fileData: { name: string; path: string; type: string; size: number }) => void;
 }
 
@@ -13,7 +13,7 @@ interface FileUploadProps {
 const labelButtonClasses = 
   "inline-flex items-center justify-center rounded-md text-sm font-sans font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:pointer-events-none disabled:opacity-50 border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-neutral-100 h-10 px-4 py-2 cursor-pointer";
 
-export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps) {
+export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
 
       const fileExt = file.name.split('.').pop()
       const randomFileName = `${Math.random().toString(36).slice(2)}.${fileExt}`;
-      const filePath = `research-posts/${researchPostId}/${user.id}/${randomFileName}`;
+      const filePath = `projects/${projectId}/${user.id}/${randomFileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('project_files')
@@ -53,7 +53,7 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
 
       // Record file in database
       const fileMetadata = {
-          research_post_id: researchPostId,
+          project_id: projectId,
           uploader_id: user.id,
           file_name: file.name,
           file_path: filePath,
@@ -92,14 +92,14 @@ export function FileUpload({ researchPostId, onUploadComplete }: FileUploadProps
     <div className="space-y-3 p-4 border border-neutral-700 rounded-lg bg-neutral-800/30">
       <div className="flex items-center gap-3">
       <label
-        htmlFor={`file-upload-${researchPostId}`}
+        htmlFor={`file-upload-${projectId}`}
           className={`${labelButtonClasses} ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
           <FiUploadCloud className="mr-2 h-4 w-4" />
           {uploading ? 'Uploading...' : (selectedFileName ? 'Change File' : 'Choose File')}
         </label>
         <input
-          id={`file-upload-${researchPostId}`}
+          id={`file-upload-${projectId}`}
           type="file"
           className="hidden"
           onChange={handleFileSelect}

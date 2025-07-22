@@ -39,7 +39,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
   const {
     id,
     title,
-    content,
+    description,
     created_at,
     tags,
     is_boosted,
@@ -74,9 +74,9 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
   };
 
   // Truncate content if it's too long
-  const truncatedContent = content.length > 300
-    ? `${content.substring(0, 300)}...`
-    : content;
+  const truncatedContent = description.length > 300
+    ? `${description.substring(0, 300)}...`
+    : description;
 
   return (
     <Card className="mb-4 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -134,7 +134,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
           <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
             {truncatedContent}
           </p>
-          {content.length > 300 && (
+          {description.length > 300 && (
             <Link 
               href={`/project/${id}`}
               className="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"

@@ -36,15 +36,16 @@ CREATE TABLE public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE public.research_posts (
+CREATE TABLE public.projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  collaborators UUID[],
   tags TEXT[],
-  visibility TEXT NOT NULL CHECK (visibility IN ('public', 'private', 'connections')) DEFAULT 'public',
-  is_boosted BOOLEAN DEFAULT false,
-  engagement_count INTEGER DEFAULT 0,
+  status TEXT NOT NULL CHECK (status IN ('active', 'completed', 'cancelled')) DEFAULT 'active',
+  start_date TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  end_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
@@ -69,7 +70,8 @@ CREATE TABLE public.messages (
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_research_posts_user_id ON public.research_posts(user_id);
+CREATE INDEX idx_profiles_id ON public.profiles(id);
+CREATE INDEX idx_projects_owner_id ON public.projects(owner_id);
 CREATE INDEX idx_matches_user_id_1 ON public.matches(user_id_1);
 CREATE INDEX idx_matches_user_id_2 ON public.matches(user_id_2);
 CREATE INDEX idx_messages_match_id ON public.messages(match_id);
@@ -78,7 +80,7 @@ CREATE INDEX idx_messages_receiver_id ON public.messages(receiver_id);
 
 -- Set up Row Level Security (RLS) policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.research_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
@@ -89,21 +91,18 @@ CREATE POLICY "Public profiles are viewable by everyone"
 CREATE POLICY "Users can update own profile" 
   ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- Research posts policies
-CREATE POLICY "Public posts are viewable by everyone" 
-  ON public.research_posts FOR SELECT USING (visibility = 'public');
+-- Projects policies
+CREATE POLICY "Public projects are viewable by everyone" 
+  ON public.projects FOR SELECT USING (true);
 
-CREATE POLICY "Private posts are viewable by the owner" 
-  ON public.research_posts FOR SELECT USING (auth.uid() = user_id AND visibility = 'private');
+CREATE POLICY "Users can create their own projects" 
+  ON public.projects FOR INSERT WITH CHECK (auth.uid() = owner_id);
 
-CREATE POLICY "Users can create their own posts" 
-  ON public.research_posts FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own projects" 
+  ON public.projects FOR UPDATE USING (auth.uid() = owner_id);
 
-CREATE POLICY "Users can update their own posts" 
-  ON public.research_posts FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own posts" 
-  ON public.research_posts FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own projects" 
+  ON public.projects FOR DELETE USING (auth.uid() = owner_id);
 
 -- Matches policies
 CREATE POLICY "Users can view their own matches" 
@@ -206,14 +205,13 @@ We've included several utility modules to simplify common operations:
 - `signUp(email, password, userData)`: Sign up a new user and create their profile
 - `signOut()`: Sign out the current user
 
-### Research Posts (`lib/posts.ts`)
+### Projects (`lib/projects.ts`)
 
-- `getResearchPosts(limit, offset, userId)`: Get research posts with pagination
-- `getResearchPost(id)`: Get a single research post by ID
-- `createResearchPost(post)`: Create a new research post
-- `updateResearchPost(id, post)`: Update an existing research post
-- `deleteResearchPost(id)`: Delete a research post
-- `incrementEngagement(id)`: Increment the engagement counter for a post
+- `getProjects(limit, offset, userId)`: Get projects with pagination
+- `getProject(id)`: Get a single project by ID
+- `createProject(project)`: Create a new project
+- `updateProject(id, project)`: Update an existing project
+- `deleteProject(id)`: Delete a project
 
 ### Matches (`lib/matches.ts`)
 

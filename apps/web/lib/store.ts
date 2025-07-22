@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ResearchPost, Match, type Profile as DbProfile } from '@research-collab/db';
+import { Project, Match, type Profile as DbProfile } from '@research-collab/db';
 import type { Session, User } from '@supabase/supabase-js';
 
 // Define Profile type based on the database schema
@@ -53,14 +53,14 @@ interface UIState {
 }
 
 interface ResearchState {
-  posts: ResearchPost[];
+  projects: Project[];
   isLoading: boolean;
   hasMore: boolean;
-  setPosts: (posts: ResearchPost[]) => void;
-  appendPosts: (posts: ResearchPost[]) => void;
+  setProjects: (projects: Project[]) => void;
+  appendProjects: (projects: Project[]) => void;
   setLoading: (isLoading: boolean) => void;
   setHasMore: (hasMore: boolean) => void;
-  resetPosts: () => void;
+  resetProjects: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -168,14 +168,14 @@ export const useUIStore = create<UIState>((set) => ({
 }));
 
 export const useResearchStore = create<ResearchState>((set) => ({
-  posts: [],
+  projects: [],
   isLoading: false,
   hasMore: true,
-  setPosts: (posts) => set({ posts }),
-  appendPosts: (posts) => set((state) => ({
-    posts: [...state.posts, ...posts],
+  setProjects: (projects) => set({ projects }),
+  appendProjects: (projects) => set((state) => ({
+    projects: [...state.projects, ...projects],
   })),
   setLoading: (isLoading) => set({ isLoading }),
   setHasMore: (hasMore) => set({ hasMore }),
-  resetPosts: () => set({ posts: [], isLoading: false, hasMore: true }),
+  resetProjects: () => set({ projects: [], isLoading: false, hasMore: true }),
 })); 

@@ -10,10 +10,10 @@ import { Avatar } from '@/components/ui/Avatar';
 import { FiLoader, FiAlertCircle, FiUser, FiTag, FiThumbsUp, FiMessageSquare, FiBookmark, FiBarChart2, FiZap, FiHome } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
-interface TrendingPost extends ResearchPost {
+interface TrendingProject extends Project {
   profiles: Profile | null;
 }
 
@@ -27,7 +27,7 @@ const postCardItemVariants = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4 } }
 };
 
-const PostCard = ({ post }: { post: TrendingPost }) => {
+const PostCard = ({ post }: { post: TrendingProject }) => {
   const calculatedAuthorName = (post.profiles?.first_name && post.profiles?.last_name 
     ? `${post.profiles.first_name} ${post.profiles.last_name}` 
     : post.profiles?.first_name)
@@ -35,9 +35,9 @@ const PostCard = ({ post }: { post: TrendingPost }) => {
   const authorName = calculatedAuthorName.trim() || 'Anonymous';
 
   const postDate = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'some time ago';
-  const truncatedContent = post.content && post.content.length > 150 
-    ? `${post.content.substring(0, 150)}...` 
-    : post.content;
+  const truncatedContent = post.description && post.description.length > 150 
+    ? `${post.description.substring(0, 150)}...` 
+    : post.description;
 
   return (
     <motion.div 
@@ -59,7 +59,7 @@ const PostCard = ({ post }: { post: TrendingPost }) => {
             </div>
         </div>
 
-        <Link href={`/research/${post.id}`} className="block mb-2">
+        <Link href={`/projects/${post.id}`} className="block mb-2">
           <h3 className="text-lg font-heading text-neutral-100 hover:text-accent-purple transition-colors duration-150 line-clamp-2">
             {post.title}
           </h3>
@@ -103,7 +103,7 @@ const HomeButton = () => (
 
 export default function TrendingPage() {
   // supabase is already imported as a singleton
-  const [posts, setPosts] = useState<TrendingPost[]>([]);
+  const [posts, setPosts] = useState<TrendingProject[]>([]);
   const [hotTopics, setHotTopics] = useState<HotTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,19 +120,19 @@ export default function TrendingPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data: fetchedPosts, error: postsError } = await supabase
-        .from('research_posts')
+      const { data: fetchedProjects, error: projectsError } = await supabase
+        .from('projects')
         .select('*, profiles (*), engagement_count')
         .order('created_at', { ascending: false })
         .limit(30);
 
-      if (postsError) throw postsError;
-      const currentPosts = (fetchedPosts as TrendingPost[] | null) || [];
-      setPosts(currentPosts.slice(0, 15));
+      if (projectsError) throw projectsError;
+      const currentProjects = (fetchedProjects as TrendingProject[] | null) || [];
+      setPosts(currentProjects.slice(0, 15));
 
       const tagCounts: Record<string, number> = {};
-      currentPosts.forEach(post => {
-        post.tags?.forEach(tag => {
+      currentProjects.forEach(project => {
+        project.tags?.forEach(tag => {
           tagCounts[tag] = (tagCounts[tag] || 0) + 1;
         });
       });

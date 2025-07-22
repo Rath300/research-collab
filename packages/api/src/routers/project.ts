@@ -269,7 +269,7 @@ export const projectRouter = router({
 
       // If collaborator check passes, fetch the project details
       const { data: project, error: projectError } = await ctx.supabase
-        .from('research_posts')
+        .from('projects')
         .select('*') // Select all columns from projectSchema
         .eq('id', input.id)
         .single();
@@ -341,7 +341,7 @@ export const projectRouter = router({
       z.object({
         id: z.string(),
         title: z.string().min(1).max(255).optional(),
-        content: z.string().min(1).optional(),
+        description: z.string().min(1).optional(),
         tags: z.array(z.string()).optional(),
         visibility: z.enum(['public', 'private', 'connections']).optional(),
       })
@@ -351,29 +351,29 @@ export const projectRouter = router({
       const { id, ...updateData } = input;
 
       // First, verify the user is the owner of the post
-      const { data: post, error: fetchError } = await supabase
-        .from('research_posts')
-        .select('user_id')
+      const { data: project, error: fetchError } = await supabase
+        .from('projects')
+        .select('leader_id')
         .eq('id', id)
         .single();
 
-      if (fetchError || !post) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
+      if (fetchError || !project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found.' });
       }
 
-      if (post.user_id !== ctx.user.id) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only edit your own posts.' });
+      if (project.leader_id !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only edit your own projects.' });
       }
       
       const { error: updateError } = await supabase
-        .from('research_posts')
+        .from('projects')
         .update(updateData)
         .eq('id', id);
 
       if (updateError) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update post.',
+          message: 'Failed to update project.',
           cause: updateError,
         });
       }
@@ -394,29 +394,29 @@ export const projectRouter = router({
       const { id } = input;
 
       // Verify the user is the owner before deleting
-      const { data: post, error: fetchError } = await supabase
-        .from('research_posts')
-        .select('user_id')
+      const { data: project, error: fetchError } = await supabase
+        .from('projects')
+        .select('leader_id')
         .eq('id', id)
         .single();
 
-      if (fetchError || !post) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found.' });
+      if (fetchError || !project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found.' });
       }
 
-      if (post.user_id !== ctx.user.id) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only delete your own posts.' });
+      if (project.leader_id !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only delete your own projects.' });
       }
 
       const { error: deleteError } = await supabase
-        .from('research_posts')
+        .from('projects')
         .delete()
         .eq('id', id);
 
       if (deleteError) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete post.',
+          message: 'Failed to delete project.',
           cause: deleteError,
         });
       }

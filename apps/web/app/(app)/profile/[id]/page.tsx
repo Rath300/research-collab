@@ -28,10 +28,10 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/lib/database.types';
 import { cn } from '@/lib/utils';
 
-type ResearchPost = Database['public']['Tables']['research_posts']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
-interface ResearchPostWithProfile extends ResearchPost {
+interface ProjectWithProfile extends Project {
   profiles: Profile;
 }
 
@@ -65,7 +65,7 @@ export default function ProfilePage() {
   const { user } = useAuthStore();
   
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [posts, setPosts] = useState<ResearchPostWithProfile[]>([]);
+  const [projects, setProjects] = useState<ProjectWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
@@ -89,14 +89,14 @@ export default function ProfilePage() {
     setIsLoading(true);
     setError('');
     setProfile(null);
-    setPosts([]);
+    setProjects([]);
 
     try {
       const profileQuery = supabase.from('profiles').select('*').eq('id', actualUserId).single();
-      const postsQuery = supabase.from('research_posts').select('*, profiles:user_id(*)').eq('user_id', actualUserId).order('created_at', { ascending: false });
+      const projectsQuery = supabase.from('projects').select('*, profiles:leader_id(*)').eq('leader_id', actualUserId).order('created_at', { ascending: false });
       
       // Explicitly define the type for the array elements if needed, or let map infer.
-      const queries: any[] = [profileQuery, postsQuery];
+      const queries: any[] = [profileQuery, projectsQuery];
       let fetchMatchStatus = false;
 
       if (user && !isOwnProfile) {
@@ -109,7 +109,7 @@ export default function ProfilePage() {
       const results = await Promise.allSettled(queries);
 
       let fetchedProfile: Profile | null = null;
-      let fetchedPosts: ResearchPostWithProfile[] = [];
+      let fetchedProjects: ProjectWithProfile[] = [];
       let combinedErrorMessages = [];
 
       const profileResult = results[0];
@@ -140,15 +140,15 @@ export default function ProfilePage() {
         console.error('Error fetching profile:', profileResult.status === 'rejected' ? profileResult.reason : profileResult.value?.error);
       }
 
-      const postsResult = results[1];
-      if (postsResult.status === 'fulfilled' && postsResult.value && !postsResult.value.error) {
-        fetchedPosts = (postsResult.value.data as ResearchPostWithProfile[]) || [];
+      const projectsResult = results[1];
+      if (projectsResult.status === 'fulfilled' && projectsResult.value && !projectsResult.value.error) {
+        fetchedProjects = (projectsResult.value.data as ProjectWithProfile[]) || [];
       } else {
-        const errorMsg = postsResult.status === 'rejected' 
-          ? postsResult.reason?.message 
-          : postsResult.value?.error?.message;
-        combinedErrorMessages.push(`Posts: ${errorMsg || 'Failed to load'}`);
-        console.error('Error fetching posts:', postsResult.status === 'rejected' ? postsResult.reason : postsResult.value?.error);
+        const errorMsg = projectsResult.status === 'rejected' 
+          ? projectsResult.reason?.message 
+          : projectsResult.value?.error?.message;
+        combinedErrorMessages.push(`Projects: ${errorMsg || 'Failed to load'}`);
+        console.error('Error fetching projects:', projectsResult.status === 'rejected' ? projectsResult.reason : projectsResult.value?.error);
       }
 
       if (fetchMatchStatus && results[2]) {
@@ -169,7 +169,7 @@ export default function ProfilePage() {
       }
       
       setProfile(fetchedProfile);
-      setPosts(fetchedPosts);
+      setProjects(fetchedProjects);
 
       if (combinedErrorMessages.length > 0) {
         setError(combinedErrorMessages.join('; '));
@@ -179,7 +179,7 @@ export default function ProfilePage() {
       console.error('Critical error in loadProfileData:', err);
       setError(err.message || 'An unexpected error occurred while loading profile data.');
       setProfile(null);
-      setPosts([]);
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }
@@ -334,9 +334,9 @@ export default function ProfilePage() {
           <div className="mt-8">
             {activeTab === 'posts' && (
               <div className="space-y-6">
-                {posts.length > 0 ? (
-                  posts.map((post) => (
-                    <ResearchPostCard key={post.id} post={post} />
+                {projects.length > 0 ? (
+                  projects.map((project) => (
+                    <ResearchPostCard key={project.id} post={project} />
                   ))
                 ) : (
                   <div className="text-center py-12">
