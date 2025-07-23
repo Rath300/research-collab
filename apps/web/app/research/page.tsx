@@ -32,7 +32,7 @@ export default function ResearchPage() {
     try {
       const { data, error: projectsError } = await supabase
         .from('projects')
-        .select('*, profiles:leader_id(*)')
+        .select('*')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(20);
