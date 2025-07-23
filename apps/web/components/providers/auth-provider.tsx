@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let lastSessionId: string | null = null;
+    let lastUserId: string | null = null;
     let authListenerSubscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
     let fallbackTimeout: NodeJS.Timeout | null = null;
     
@@ -43,7 +45,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return session.data.session;
     };
-
     const mainAuthSetup = async () => {
       if (!isMounted) return;
 
@@ -112,13 +113,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authListenerSubscription = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (!isMounted) return;
+          const sessionId = session?.access_token || null;
+          const userId = session?.user?.id || null;
+          if (event === 'SIGNED_IN' && sessionId === lastSessionId && userId === lastUserId) {
+            console.log('[AuthProvider] Duplicate SIGNED_IN event ignored for session:', sessionId, 'user:', userId);
+            return;
+          }
+          if (sessionId === lastSessionId && userId === lastUserId) {
+            console.log('[AuthProvider] Duplicate auth event ignored for session:', sessionId, 'user:', userId);
+            return;
+          }
+          lastSessionId = sessionId;
+          lastUserId = userId;
           console.log('[AuthProvider] onAuthStateChange: Event:', event, 'Session:', session ? session.user.id : 'null');
           setLoading(true);
           const listenerUser = session?.user ?? null;
           setUser(listenerUser);
           setSession(session);
 
-          // Always force profile fetch on auth events
+          // Only fetch profile if user actually changed
           if (listenerUser) {
             try {
               const profileData = await getProfile(listenerUser.id);
