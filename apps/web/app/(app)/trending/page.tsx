@@ -121,7 +121,7 @@ export default function TrendingPage() {
     try {
       const { data: fetchedProjects, error: projectsError } = await supabase
         .from('projects')
-        .select('*, profiles:leader_id(*)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(30);
 

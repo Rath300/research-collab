@@ -93,7 +93,7 @@ export default function ProfilePage() {
 
     try {
       const profileQuery = supabase.from('profiles').select('*').eq('id', actualUserId).single();
-      const projectsQuery = supabase.from('projects').select('*, profiles:leader_id(*)').eq('leader_id', actualUserId).order('created_at', { ascending: false });
+      const projectsQuery = supabase.from('projects').select('*').eq('leader_id', actualUserId).order('created_at', { ascending: false });
       
       // Explicitly define the type for the array elements if needed, or let map infer.
       const queries: any[] = [profileQuery, projectsQuery];
