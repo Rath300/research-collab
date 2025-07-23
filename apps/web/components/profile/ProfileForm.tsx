@@ -174,6 +174,12 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       return;
     }
 
+    // Validate required fields
+    if (!formData.bio || formData.bio.trim().length === 0) {
+      setError('Bio is required.');
+      return;
+    }
+
     try {
       let newAvatarUrl = avatarPreview;
       if (avatarFile) {
@@ -312,8 +318,8 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       </div>
 
       <div>
-        <label htmlFor="bio" className={commonLabelClass}>Bio</label>
-        <Textarea id="bio" name="bio" value={formData.bio} onChange={handleInputChange} className={`${commonInputClass} min-h-[100px]`} placeholder="Tell us a bit about yourself, your research, and what you're passionate about." />
+        <label htmlFor="bio" className={commonLabelClass}>Bio <span className="text-red-500">*</span></label>
+        <Textarea id="bio" name="bio" value={formData.bio} onChange={handleInputChange} className={`${commonInputClass} min-h-[100px]`} placeholder="Tell us a bit about yourself, your research, and what you're passionate about." minLength={1} required />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

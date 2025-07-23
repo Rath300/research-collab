@@ -6,7 +6,7 @@ export const profileSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   avatar_url: z.string().url().nullable(),
-  bio: z.string().max(500, 'Bio must be less than 500 characters').nullable(),
+  bio: z.string().min(1, 'Bio is required').max(500, 'Bio must be less than 500 characters'),
   title: z.string().nullable(),
   institution: z.string().nullable(),
   location: z.string().nullable(),
