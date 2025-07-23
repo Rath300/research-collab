@@ -84,24 +84,24 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
     const currentProfileSource = initialData || authProfile;
     if (currentProfileSource) {
         setFormData({
-            full_name: currentProfileSource.full_name || '',
-            title: currentProfileSource.title || '',
-            bio: currentProfileSource.bio || '',
-            institution: currentProfileSource.institution || '',
-            research_interests: currentProfileSource.interests || [], 
-            skills: currentProfileSource.skills || [],
-            looking_for: currentProfileSource.looking_for || [],
-            collaboration_pitch: currentProfileSource.collaboration_pitch || '',
-            location: currentProfileSource.location || '',
-            field_of_study: currentProfileSource.field_of_study || '',
-            availability: currentProfileSource.availability || 'full-time',
-            availability_hours: currentProfileSource.availability_hours || 0,
-            project_preference: currentProfileSource.project_preference || '',
-            visibility: currentProfileSource.visibility || 'public',
-            website: currentProfileSource.website || '',
-            education_json: formatJsonString(currentProfileSource.education as string),
+            full_name: currentProfileSource?.full_name || '',
+            title: currentProfileSource?.title || '',
+            bio: currentProfileSource?.bio || '',
+            institution: currentProfileSource?.institution || '',
+            research_interests: currentProfileSource?.interests || [], 
+            skills: currentProfileSource?.skills || [],
+            looking_for: currentProfileSource?.looking_for || [],
+            collaboration_pitch: currentProfileSource?.collaboration_pitch || '',
+            location: currentProfileSource?.location || '',
+            field_of_study: currentProfileSource?.field_of_study || '',
+            availability: currentProfileSource?.availability || 'full-time',
+            availability_hours: currentProfileSource?.availability_hours || 0,
+            project_preference: currentProfileSource?.project_preference || '',
+            visibility: currentProfileSource?.visibility || 'public',
+            website: currentProfileSource?.website || '',
+            education_json: formatJsonString(currentProfileSource?.education as string),
         });
-        if (currentProfileSource.avatar_url) {
+        if (currentProfileSource?.avatar_url) {
             setAvatarPreview(currentProfileSource.avatar_url);
         }
     }
@@ -218,7 +218,19 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         avatar_url: newAvatarUrl,
       };
 
-      updateProfileMutation.mutate(profileDataToSave);
+      // Clean payload: remove undefined, ensure correct types
+      const cleanProfileDataToSave: Record<string, any> = {};
+      Object.entries(profileDataToSave).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          cleanProfileDataToSave[key] = value;
+        } else if (key === 'education') {
+          cleanProfileDataToSave[key] = value && Array.isArray(value) ? value : null;
+        } else if (value !== undefined) {
+          cleanProfileDataToSave[key] = value;
+        }
+      });
+
+      updateProfileMutation.mutate(cleanProfileDataToSave);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');

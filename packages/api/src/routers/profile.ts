@@ -48,6 +48,7 @@ export const profileRouter = router({
         .single();
       
       if (error) {
+        console.error('Supabase error in profile.update:', error, 'Payload:', profileDataToSave);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update profile.',
@@ -59,7 +60,7 @@ export const profileRouter = router({
 
       if (!validation.success) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: 'BAD_REQUEST',
           message: 'Updated profile data from database is invalid.',
           cause: validation.error,
         });
