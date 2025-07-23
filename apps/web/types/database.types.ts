@@ -908,7 +908,14 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_leader_id_fkey",
+            columns: ["leader_id"],
+            referencedRelation: "profiles",
+            referencedColumns: ["id"]
+          }
+        ]
       }
       research_projects: {
         Row: {
