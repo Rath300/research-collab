@@ -1,3 +1,16 @@
+// WARNING: This is the ONLY place the Supabase client should be created for browser code.
+// Do NOT use createClient or createBrowserClient anywhere else in the browser.
+// If you see multiple GoTrueClient warnings, check for duplicate imports or hot reload issues.
+
+// Runtime check (dev only): Warn if this file is imported more than once
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  if ((window as any).__SUPABASE_CLIENT_IMPORTED__) {
+    // eslint-disable-next-line no-console
+    console.warn('[supabaseClient.ts] This file was imported more than once! This can cause multiple GoTrueClient warnings.');
+  }
+  (window as any).__SUPABASE_CLIENT_IMPORTED__ = true;
+}
+
 // Use the SSR version for the browser client
 // import { createClient } from '@supabase/supabase-js';
 import { createBrowserClient } from '@supabase/ssr';
@@ -55,14 +68,22 @@ export function resetSupabaseClient() { // Consider renaming to resetBrowserClie
  * This ensures only one client instance exists, preventing multiple GoTrueClient warnings
  * Using a getter to make it lazy and avoid creating the client at module load time
  */
-export const supabaseClient = {
-  // Use getters to make all methods lazy
+export const supabaseClient: {
+  readonly auth: typeof supabase.auth;
+  readonly from: typeof supabase.from;
+  readonly storage: typeof supabase.storage;
+  readonly functions: typeof supabase.functions;
+  readonly realtime: typeof supabase.realtime;
+  readonly channel: typeof supabase.channel;
+  readonly removeChannel: typeof supabase.removeChannel;
+  readonly removeAllChannels: typeof supabase.removeAllChannels;
+  readonly getChannels: typeof supabase.getChannels;
+} = {
   get auth() { return supabase.auth; },
   get from() { return supabase.from.bind(supabase); },
   get storage() { return supabase.storage; },
   get functions() { return supabase.functions; },
   get realtime() { return supabase.realtime; },
-  get rest() { return supabase.rest; },
   get channel() { return supabase.channel.bind(supabase); },
   get removeChannel() { return supabase.removeChannel.bind(supabase); },
   get removeAllChannels() { return supabase.removeAllChannels.bind(supabase); },

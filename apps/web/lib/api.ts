@@ -24,7 +24,7 @@ import {
 } from '@research-collab/db';
 
 // Import the shared SSR client
-import { supabase } from '@/lib/supabaseClient'; 
+import { supabaseClient } from '@/lib/supabaseClient'; 
 
 // import { generateContentHash } from './utils'; // Not used in simplified version
 
@@ -69,20 +69,16 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type ProfileDbUpdatePayload = Database['public']['Tables']['profiles']['Update'];
 
 export const getProfile = async (id: string): Promise<DbProfile | null> => {
-    // supabase is already imported as a singleton
   try {
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await supabaseClient.from('profiles')
       .select('*')
       .eq('id', id)
       .single();
-      
     if (error) {
       if (error.code === 'PGRST116') return null; // Not found
       throw new SupabaseError(`Error fetching profile: ${error.message}`, (error as PostgrestError).code ? parseInt((error as PostgrestError).code) : 500, (error as PostgrestError).code);
     }
-    // Validate data against Zod schema before returning
-    return importedProfileSchema.parse(data) as DbProfile | null; 
+    return importedProfileSchema.parse(data) as DbProfile | null;
   } catch (error: any) {
     console.error('Error in getProfile:', error);
     if (error instanceof SupabaseError) throw error;
@@ -125,7 +121,7 @@ export const updateProfile = async (userId: string, updateData: Partial<DbProfil
   payload.updated_at = new Date().toISOString();
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('profiles')
       .update(payload)
       .eq('id', userId)
@@ -171,7 +167,7 @@ export const profiles = {
     const validatedInsertData = creatableProfileSchema.parse(insertData);
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('profiles')
         // The payload to insert should match Database['public']['Tables']['profiles']['Insert']
         // `validatedInsertData` should conform to this after parsing. Supabase client handles this.
@@ -203,7 +199,7 @@ export type MessageInsert = Omit<DbMessageType, 'id' | 'created_at' | 'is_read'>
 export const getMessagesForMatch = async (matchId: string): Promise<DbMessageType[]> => {
     // supabase is already imported as a singleton
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('messages')
       .select(`
         *,
@@ -237,7 +233,7 @@ export const sendMessage = async (payload: MessageInsert): Promise<DbMessageType
   const validatedPayload = importedMessageSchema.omit({ id: true, created_at: true, is_read: true }).parse(payload);
     
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('messages')
       .insert(validatedPayload as DbMessageType) // Cast to MessageType after Zod validation to satisfy Supabase types
       .select('*') // Select all fields of the newly created message
@@ -263,7 +259,7 @@ export const setupMessageListener = (
   callback: (newMessage: DbMessageType) => void
 ): (() => void) => {
     // supabase is already imported as a singleton
-  const channel = supabase
+  const channel = supabaseClient
     .channel(`messages-match-${matchId}`)
       .on(
         'postgres_changes',
@@ -295,7 +291,7 @@ export const setupMessageListener = (
 
     return () => {
     if (channel) {
-      supabase.removeChannel(channel);
+      supabaseClient.removeChannel(channel);
       // console.log(`Unsubscribed from messages for match ${matchId}`);
     }
   };
@@ -309,7 +305,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
 
     // supabase is already imported as a singleton
   try {
-    const { data: uploadResult, error: uploadError } = await supabase.storage
+    const { data: uploadResult, error: uploadError } = await supabaseClient.storage
       .from('avatars')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -323,7 +319,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<{ path: 
       throw new SupabaseError('Avatar upload failed to return a path.', 500);
     }
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(uploadResult.path);
+    const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(uploadResult.path);
     return { path: uploadResult.path, url: urlData.publicUrl };
   } catch (error) {
     console.error('Error uploading avatar in API wrapper:', error);
@@ -350,12 +346,12 @@ export type ConversationListItem = z.infer<typeof conversationListItemSchema>;
 // API function to fetch conversations for the current user
 export const getConversations = async (): Promise<ConversationListItem[]> => {
   // supabase is already imported as a singleton
-  const user = (await supabase.auth.getUser()).data.user;
+  const user = (await supabaseClient.auth.getUser()).data.user;
   if (!user) return [];
 
   try {
     // 1. Fetch matches for the current user where status is 'matched'
-    const { data: matchesData, error: matchesError } = await supabase
+    const { data: matchesData, error: matchesError } = await supabaseClient
       .from('matches')
       .select('id, user_id_1, user_id_2')
       .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
@@ -370,7 +366,7 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
       const otherUserId = match.user_id_1 === user.id ? match.user_id_2 : match.user_id_1;
 
       // 2. Fetch profile of the other user
-      const { data: otherUserProfile, error: profileError } = await supabase
+      const { data: otherUserProfile, error: profileError } = await supabaseClient
         .from('profiles')
         .select('id, first_name, last_name, avatar_url')
         .eq('id', otherUserId)
@@ -383,7 +379,7 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
       }
 
       // 3. Fetch the last message for the conversation
-      const { data: lastMessageData, error: lastMessageError } = await supabase
+      const { data: lastMessageData, error: lastMessageError } = await supabaseClient
         .from('messages')
         .select('content, created_at, sender_id')
         .eq('match_id', match.id)
@@ -397,7 +393,7 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
       }
       
       // 4. Fetch unread message count for the current user in this conversation
-      const { count: unreadCount, error: unreadError } = await supabase
+      const { count: unreadCount, error: unreadError } = await supabaseClient
         .from('messages')
         .select('id', { count: 'exact', head: true })
         .eq('match_id', match.id)
@@ -446,7 +442,7 @@ export const getConversations = async (): Promise<ConversationListItem[]> => {
 export const markMessagesAsRead = async (matchId: string, currentUserId: string): Promise<void> => {
   // supabase is already imported as a singleton
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('messages')
       .update({ is_read: true, updated_at: new Date().toISOString() }) // Also update updated_at for the message
       .eq('match_id', matchId)
@@ -472,7 +468,7 @@ export const markMessagesAsRead = async (matchId: string, currentUserId: string)
 export const setProfileTourCompleted = async (userId: string): Promise<DbProfile | null> => {
   // supabase is already imported as a singleton
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('profiles')
       .update({ has_completed_tour: true, updated_at: new Date().toISOString() })
       .eq('id', userId)
