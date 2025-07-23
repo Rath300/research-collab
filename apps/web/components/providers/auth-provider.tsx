@@ -35,6 +35,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let authListenerSubscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
     let fallbackTimeout: NodeJS.Timeout | null = null;
     
+    const fetchSessionWithRetry = async (retries = 1) => {
+      let session = await supabase.auth.getSession();
+      if (!session.data.session && retries > 0) {
+        await new Promise(res => setTimeout(res, 100));
+        session = await supabase.auth.getSession();
+      }
+      return session.data.session;
+    };
+
     const mainAuthSetup = async () => {
       if (!isMounted) return;
 
@@ -59,30 +68,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Always force profile fetch after rehydration
       console.log('[AuthProvider] initializeAuth: START');
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const session = await fetchSessionWithRetry(1);
         if (!isMounted) return;
         console.log(`[AuthProvider] initializeAuth: Explicit getSession complete. Session: ${session ? session.user.id : 'null'}`);
 
-        if (sessionError) {
-          console.error('[AuthProvider] initializeAuth: Error fetching session:', sessionError);
-          useAuthStore.getState().clearAuth();
-          setLoading(false);
-          setHasAttemptedProfileFetch(true);
-          return;
-        }
+        if (session) {
+          const remoteUser = session?.user ?? null;
+          setUser(remoteUser);
+          setSession(session);
 
-        const remoteUser = session?.user ?? null;
-        setUser(remoteUser);
-        setSession(session);
-
-        if (remoteUser) {
-          try {
-            const profileData = await getProfile(remoteUser.id);
-            if (!isMounted) return;
-            setProfile(profileData);
-          } catch (error) {
-            if (!isMounted) return;
-            console.error('[AuthProvider] initializeAuth: Error fetching profile:', error);
+          if (remoteUser) {
+            try {
+              const profileData = await getProfile(remoteUser.id);
+              if (!isMounted) return;
+              setProfile(profileData);
+            } catch (error) {
+              if (!isMounted) return;
+              console.error('[AuthProvider] initializeAuth: Error fetching profile:', error);
+              setProfile(null);
+            }
+          } else {
             setProfile(null);
           }
         } else {
@@ -104,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Setup onAuthStateChange listener
       console.log('[AuthProvider] Setting up onAuthStateChange listener...');
-      const { data: listenerData } = supabase.auth.onAuthStateChange(
+      authListenerSubscription = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (!isMounted) return;
           console.log('[AuthProvider] onAuthStateChange: Event:', event, 'Session:', session ? session.user.id : 'null');
@@ -131,10 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setHasAttemptedProfileFetch(true);
           console.log('[AuthProvider] onAuthStateChange: END. isLoading:', useAuthStore.getState().isLoading, 'hasAttemptedProfileFetch:', useAuthStore.getState().hasAttemptedProfileFetch);
         }
-      );
-      if (listenerData) {
-        authListenerSubscription = listenerData.subscription;
-      }
+      ).data.subscription;
     };
 
     mainAuthSetup().catch(error => {
