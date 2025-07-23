@@ -39,6 +39,8 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
     ? `${post.description.substring(0, 150)}...` 
     : post.description;
 
+  const usernameTag = post.profiles?.first_name || post.profiles?.email || 'Unknown';
+
   return (
     <motion.div 
       className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-neutral-700/80"
@@ -71,16 +73,11 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
             </p>
         )}
 
-        {post.tags && post.tags.length > 0 && (
+        {usernameTag && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {post.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="bg-accent-purple/10 text-accent-purple px-2.5 py-1 rounded-full text-xs font-medium"
-              >
-                <FiTag className="inline mr-1 -mt-px h-3 w-3"/> {tag}
-              </span>
-            ))}
+            <span className="bg-accent-purple/10 text-accent-purple px-2.5 py-1 rounded-full text-xs font-medium">
+              <FiTag className="inline mr-1 -mt-px h-3 w-3"/> {usernameTag}
+            </span>
           </div>
         )}
       </div>

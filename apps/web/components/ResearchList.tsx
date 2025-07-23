@@ -77,11 +77,9 @@ export default function ResearchList({ userId }: ResearchListProps) {
             {project.duration}
           </div>
           <div className="flex flex-wrap gap-2">
-            {(project.tags || []).filter((tag): tag is string => typeof tag === 'string' && tag !== null && tag !== undefined).map((tag, index) => (
-              <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {tag}
-              </span>
-            ))}
+            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+              {'Unknown'}
+            </span>
           </div>
         </Link>
       ))}

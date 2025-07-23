@@ -94,6 +94,8 @@ export default function ResearchPage() {
                 ? `${project.description.substring(0, 200)}...` 
                 : project.description;
 
+              const usernameTag = project.profiles?.first_name || project.profiles?.email || 'Unknown';
+
               return (
                 <div key={project.id} className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-neutral-700">
                   <div className="p-5 sm:p-6">
@@ -123,16 +125,11 @@ export default function ResearchPage() {
                         </p>
                     )}
 
-                    {project.tags && project.tags.length > 0 && (
+                    {usernameTag && (
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {project.tags.map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="bg-accent-purple/20 text-accent-purple px-2.5 py-1 rounded-full text-xs font-medium"
-                          >
-                            <FiTag className="inline mr-1 -mt-px"/> {tag}
-                          </span>
-                        ))}
+                        <span className="bg-accent-purple/20 text-accent-purple px-2.5 py-1 rounded-full text-xs font-medium">
+                          <FiTag className="inline mr-1 -mt-px"/> {usernameTag}
+                        </span>
                       </div>
                     )}
                   </div>
