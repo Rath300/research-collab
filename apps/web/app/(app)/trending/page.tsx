@@ -47,14 +47,14 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
       <div className="p-5">
         <div className="flex items-center mb-3">
             <Avatar 
-                src={post.profiles?.avatar_url} 
+                src={post.profiles?.avatar_url || undefined} 
                 alt={authorName} 
                 size="md"
                 fallback={<FiUser className="h-5 w-5 text-accent-purple" />}
                 className="mr-3 flex-shrink-0"
             />
             <div>
-                <p className="text-sm font-medium text-neutral-200 line-clamp-1">{authorName}</p>
+                <p className="text-sm font-medium text-neutral-200 line-clamp-1">{authorName || 'Unknown Author'}</p>
                 <p className="text-xs text-neutral-500">{post.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
             </div>
         </div>
@@ -230,13 +230,7 @@ export default function TrendingPage() {
               initial="hidden"
               animate="visible"
             >
-              {validProjects.map((post) => {
-                const authorName =
-                  post.profiles && typeof post.profiles === 'object' && 'first_name' in post.profiles
-                    ? post.profiles.first_name
-                    : 'Anonymous';
-                return <PostCard key={post.id} post={post} />;
-              })}
+              {posts.map((post) => <PostCard key={post.id} post={post} />)}
             </motion.div>
           )}
 

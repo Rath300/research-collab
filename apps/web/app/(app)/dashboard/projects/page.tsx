@@ -31,7 +31,7 @@ export default function MyProjectsPage() {
         </div>
       )}
 
-      {error && <p className="text-red-500">Error: {error.message}</p>}
+      {error && <p className="text-red-500">Error: {error.message || 'Failed to load projects.'}</p>}
 
       {!isLoading && !error && projects && projects.length === 0 && (
         <Card className="bg-neutral-900 border-neutral-800 text-center">
@@ -53,7 +53,7 @@ export default function MyProjectsPage() {
             <Card className="bg-neutral-900 border-neutral-800 hover:border-accent-purple transition-colors cursor-pointer h-full flex flex-col">
               <CardHeader>
                 <CardTitle className="text-xl text-white">{project.title}</CardTitle>
-                <div className="text-xs text-white font-bold px-2 py-1 rounded-full bg-blue-500 w-min mt-2">{project.role.toUpperCase()}</div>
+                <div className="text-xs text-white font-bold px-2 py-1 rounded-full bg-blue-500 w-min mt-2">{project.role?.toUpperCase() || ''}</div>
                 {project.tags && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {project.tags.map((tag: string) => (
@@ -69,7 +69,7 @@ export default function MyProjectsPage() {
               </CardHeader>
               <CardContent className="flex-grow">
                 <CardDescription className="text-neutral-400 line-clamp-3">
-                  {project.content}
+                  {project.description || 'No description available.'}
                 </CardDescription>
               </CardContent>
             </Card>

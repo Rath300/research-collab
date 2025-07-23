@@ -68,19 +68,16 @@ export default function ResearchList({ userId }: ResearchListProps) {
       {projects.map((project) => (
         <Link href={`/projects/${project.id}`} key={project.id} className="block p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-          <p className="text-gray-800 mb-4">{project.description}</p>
+          <p className="text-gray-800 mb-4">{project.description || 'No description available.'}</p>
           <div className="flex items-center text-sm text-gray-600 mb-4">
             <FiCalendar className="mr-1" />
             {formatDate(project.created_at)}
             <span className="mx-1">•</span>
             <FiClock className="mr-1" />
             {project.duration}
-            <span className="mx-1">•</span>
-            <FiUsers className="mr-1" />
-            {project.participants}
           </div>
           <div className="flex flex-wrap gap-2">
-            {project.tags.map((tag, index) => (
+            {(project.tags || []).filter((tag): tag is string => typeof tag === 'string' && tag !== null && tag !== undefined).map((tag, index) => (
               <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                 {tag}
               </span>

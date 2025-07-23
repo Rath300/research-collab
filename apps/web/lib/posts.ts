@@ -1,4 +1,4 @@
-import { getSupabaseClient } from './supabaseClient';
+import { supabaseClient } from './supabaseClient';
 import { type Database } from '../types/database.types';
 
 type Project = Database['public']['Tables']['projects']['Row'];
@@ -6,10 +6,10 @@ type InsertProject = Database['public']['Tables']['projects']['Insert'];
 type UpdateProject = Database['public']['Tables']['projects']['Update'];
 
 export async function getProjects(limit = 10, offset = 0, userId?: string): Promise<Project[]> {
-  const supabase = getSupabaseClient();
+  const supabase = supabaseClient;
   let query = supabase
     .from('projects')
-    .select('*, profiles:leader_id(first_name, last_name, avatar_url, title)')
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(limit)
     .range(offset, offset + limit - 1);
@@ -27,7 +27,7 @@ export async function getProjects(limit = 10, offset = 0, userId?: string): Prom
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-  const supabase = getSupabaseClient();
+  const supabase = supabaseClient;
   const { data, error } = await supabase
     .from('projects')
     .select('*, profiles:leader_id(first_name, last_name, avatar_url, title)')
@@ -41,7 +41,7 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function createProject(post: any): Promise<any> {
-  const supabase = getSupabaseClient();
+  const supabase = supabaseClient;
   const { data, error } = await supabase
     .from('projects')
     .insert({
@@ -61,7 +61,7 @@ export async function createProject(post: any): Promise<any> {
 }
 
 export async function updateProject(id: string, post: UpdateProject): Promise<Project> {
-  const supabase = getSupabaseClient();
+  const supabase = supabaseClient;
   
   const { data, error } = await supabase
     .from('projects')
@@ -79,7 +79,7 @@ export async function updateProject(id: string, post: UpdateProject): Promise<Pr
 }
 
 export async function deleteProject(id: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
+  const supabase = supabaseClient;
   
   const { error } = await supabase
     .from('projects')

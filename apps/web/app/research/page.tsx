@@ -99,14 +99,14 @@ export default function ResearchPage() {
                   <div className="p-5 sm:p-6">
                     <div className="flex items-center mb-3">
                         <Avatar 
-                            src={project.profiles?.avatar_url} 
-                            alt={authorName} 
+                            src={project.profiles?.avatar_url || undefined} 
+                            alt={authorName || 'Unknown Author'} 
                             size="md"
-                            fallback={<FiUser className="h-5 w-5 text-accent-purple" />}
+                            fallback={<FiUser className="text-accent-purple" />} 
                             className="mr-3"
                         />
                         <div>
-                            <p className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">{authorName}</p>
+                            <p className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">{authorName || 'Unknown Author'}</p>
                             <p className="text-xs text-neutral-500">{project.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
           </div>
         </div>
