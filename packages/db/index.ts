@@ -34,19 +34,26 @@ export const profileSchema = z.object({
     }
     return null; // Return null if the input is not a string or Date, or if parsing fails
   }, z.date().optional().nullable()),
-  first_name: z.string().min(1, 'First name is required').max(255).optional().nullable(),
-  last_name: z.string().min(1, 'Last name is required').max(255).optional().nullable(),
-  email: z.string().email().optional().nullable(),
-  avatar_url: z.string().url().optional().nullable(),
+  full_name: z.string().max(255).optional().nullable(),
+  first_name: z.string().max(255).optional().nullable(),
+  last_name: z.string().max(255).optional().nullable(),
+  title: z.string().max(255).optional().nullable(),
+  email: z.preprocess((val) => val === '' ? null : val, z.string().email().optional().nullable()),
+  avatar_url: z.preprocess((val) => val === '' ? null : val, z.string().url().optional().nullable()),
   institution: z.string().max(255).optional().nullable(),
   bio: z.string().max(2000).optional().nullable(),
-  website: z.string().url().optional().nullable(),
+  website: z.preprocess((val) => val === '' ? null : val, z.string().url().optional().nullable()),
   skills: z.array(z.string()).optional().nullable(),
   interests: z.array(z.string()).optional().nullable(),
+  looking_for: z.array(z.string()).optional().nullable(),
   collaboration_pitch: z.string().max(1000, "Collaboration pitch must be 1000 characters or less.").optional().nullable(),
   location: z.string().max(255).optional().nullable(),
   field_of_study: z.string().max(255).optional().nullable(),
   availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
+  availability_hours: z.number().optional().nullable(),
+  project_preference: z.string().optional().nullable(),
+  visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
+  education: z.any().optional().nullable(), // JSONB field in database
   has_completed_tour: z.boolean().optional().default(false),
 });
 
