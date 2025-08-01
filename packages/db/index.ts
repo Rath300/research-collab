@@ -90,8 +90,20 @@ export type Guild = z.infer<typeof guildSchema>;
 // Project Schema (aligned with actual projects table in database)
 export const projectSchema = z.object({
   id: z.string().uuid(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
   title: z.string().min(1).max(255),
   description: z.string().min(1),
   leader_id: z.string().uuid(),
@@ -104,7 +116,13 @@ export const projectSchema = z.object({
   duration: z.enum(['short_term', 'medium_term', 'long_term']).optional(),
   commitment_hours: z.number().min(1).max(40).optional(),
   location: z.string().optional(),
-  deadline: z.date().optional(),
+  deadline: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
   links: z.array(z.string()).optional(),
 });
 

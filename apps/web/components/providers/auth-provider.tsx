@@ -80,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (remoteUser) {
             try {
+              // Use getProfile but it should handle the null case properly
               const profileData = await getProfile(remoteUser.id);
               if (!isMounted) return;
               setProfile(profileData);

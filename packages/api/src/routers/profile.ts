@@ -28,6 +28,39 @@ const updateProfileInputSchema = z.object({
 });
 
 export const profileRouter = router({
+  getById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .output(profileSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      const { data, error } = await ctx.supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', input.id)
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        console.error('Supabase error in profile.getById:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch profile.',
+          cause: error,
+        });
+      }
+      
+      const validation = profileSchema.safeParse(data);
+      if (!validation.success) {
+        console.error('Profile validation failed:', validation.error, 'Data:', data);
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Profile data from database is invalid.',
+          cause: validation.error,
+        });
+      }
+      
+      return validation.data;
+    }),
+
   update: protectedProcedure
     .input(updateProfileInputSchema)
     .output(profileSchema)
