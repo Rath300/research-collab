@@ -4,7 +4,7 @@ import {
   protectedProcedure,
   // publicProcedure, // Add if public procedures are needed later
 } from '../trpc';
-import { projectSchema, projectCollaboratorSchema, researchItemSchema, researchItemTypeSchema } from '@research-collab/db'; // Assuming these are the correct schema exports
+import { projectSchema, projectCollaboratorSchema, researchItemSchema, researchItemTypeSchema, projectFileSchema } from '@research-collab/db'; // Assuming these are the correct schema exports
 import { TRPCError } from '@trpc/server';
 import { projectCollaboratorRoleSchema, projectCollaboratorStatusSchema, profileSchema } from '@research-collab/db';
 
@@ -847,10 +847,218 @@ export const projectRouter = router({
       return { success: true, message: 'Collaborator removed successfully.' };
     }),
 
-  // Future procedures for research item management:
-  // addItem: protectedProcedure...
-  // listItems: protectedProcedure...
-  // ...etc.
+  // File Management Procedures
+
+  uploadFile: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      fileName: z.string().min(1).max(255),
+      filePath: z.string(),
+      fileType: z.string(),
+      fileSize: z.number().positive(),
+      description: z.string().max(500).optional(),
+    }))
+    .output(projectFileSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError) {
+        console.error('Error checking project collaboration:', collaboratorError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to verify project access.',
+          cause: collaboratorError,
+        });
+      }
+
+      if (!collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to upload files to this project.',
+        });
+      }
+
+      // Insert file record
+      const { data: fileRecord, error: insertError } = await ctx.supabase
+        .from('project_files')
+        .insert({
+          project_id: input.projectId,
+          uploader_id: userId,
+          file_name: input.fileName,
+          file_path: input.filePath,
+          file_type: input.fileType,
+          file_size: input.fileSize,
+          description: input.description,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error recording file upload:', insertError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to record file upload.',
+          cause: insertError,
+        });
+      }
+
+      const validation = projectFileSchema.safeParse(fileRecord);
+      if (!validation.success) {
+        console.error('File validation failed:', validation.error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'File data validation failed.',
+          cause: validation.error,
+        });
+      }
+
+      return validation.data;
+    }),
+
+  listFiles: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .output(z.array(projectFileSchema.extend({
+      uploader_name: z.string().optional(),
+    })))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to view files for this project.',
+        });
+      }
+
+      // Fetch files with uploader info
+      const { data: files, error: filesError } = await ctx.supabase
+        .from('project_files')
+        .select(`
+          *,
+          profiles!project_files_uploader_id_fkey(first_name, last_name)
+        `)
+        .eq('project_id', input.projectId)
+        .order('created_at', { ascending: false });
+
+      if (filesError) {
+        console.error('Error fetching project files:', filesError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch project files.',
+          cause: filesError,
+        });
+      }
+
+      return (files || []).map((file: any) => {
+        const uploader = file.profiles;
+        const uploaderName = uploader 
+          ? `${uploader.first_name || ''} ${uploader.last_name || ''}`.trim() || 'Anonymous'
+          : 'Unknown';
+
+        return {
+          ...file,
+          uploader_name: uploaderName,
+        };
+      });
+    }),
+
+  deleteFile: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      fileId: z.string().uuid(),
+    }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user has permission (owner/editor or file uploader)
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this project.',
+        });
+      }
+
+      // Check if user uploaded the file or has admin rights
+      const { data: file, error: fileError } = await ctx.supabase
+        .from('project_files')
+        .select('uploader_id, file_path')
+        .eq('id', input.fileId)
+        .eq('project_id', input.projectId)
+        .single();
+
+      if (fileError || !file) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'File not found.',
+        });
+      }
+
+      const canDelete = file.uploader_id === userId || 
+                       collaborator.role === 'owner' || 
+                       collaborator.role === 'editor';
+
+      if (!canDelete) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to delete this file.',
+        });
+      }
+
+      // Delete from storage
+      const { error: storageError } = await ctx.supabase.storage
+        .from('project_files')
+        .remove([file.file_path]);
+
+      if (storageError) {
+        console.warn('Failed to delete file from storage:', storageError);
+      }
+
+      // Delete from database
+      const { error: deleteError } = await ctx.supabase
+        .from('project_files')
+        .delete()
+        .eq('id', input.fileId);
+
+      if (deleteError) {
+        console.error('Error deleting file record:', deleteError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete file.',
+          cause: deleteError,
+        });
+      }
+
+      return { success: true };
+    }),
+
+  // Research Item Management Procedures
 
   /**
    * Lists all active collaborators for a given project.

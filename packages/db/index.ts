@@ -231,18 +231,30 @@ export const userNotificationSchema = z.object({
 
 export type UserNotification = z.infer<typeof userNotificationSchema>;
 
-// Project File Schema (for files attached to research posts)
+// Project File Schema (for files attached to projects)
 export const projectFileSchema = z.object({
   id: z.string().uuid(),
-  research_post_id: z.string().uuid(), // Foreign key to research_posts table
+  project_id: z.string().uuid(), // Foreign key to projects table
   uploader_id: z.string().uuid(), // User who uploaded the file
   file_name: z.string().min(1).max(255),
-  file_path: z.string(), // Path to the file in Supabase storage (e.g., 'project-files/research_post_id/file_name.pdf')
+  file_path: z.string(), // Path to the file in Supabase storage (e.g., 'project-files/project_id/file_name.pdf')
   file_type: z.string(), // MIME type (e.g., 'application/pdf', 'image/png')
   file_size: z.number().int().positive(), // File size in bytes
   description: z.string().max(500).optional().nullable(), // Optional description of the file
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
 });
 
 export type ProjectFile = z.infer<typeof projectFileSchema>;

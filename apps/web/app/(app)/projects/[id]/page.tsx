@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { FileManager } from '@/components/project/FileManager';
 
 type Collaborator = NonNullable<ReturnType<typeof api.project.listCollaborators.useQuery>['data']>[number];
 
@@ -175,7 +176,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
         </CardHeader>
         <CardContent>
-            <p className="mt-2 text-neutral-300">{project.content}</p>
+            <p className="mt-2 text-neutral-300">{project.description}</p>
         </CardContent>
       </Card>
       
@@ -188,14 +189,18 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </CardContent>
       </Card>
 
-      <Card className="bg-neutral-900 border-neutral-800">
-        <CardHeader>
-            <CardTitle className="text-2xl font-bold">Invite a Collaborator</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <InviteCollaboratorForm projectId={projectId} />
-        </CardContent>
-      </Card>
+      {(project.role === 'owner' || project.role === 'editor') && (
+        <Card className="bg-neutral-900 border-neutral-800 mb-8">
+          <CardHeader>
+              <CardTitle className="text-2xl font-bold">Invite a Collaborator</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <InviteCollaboratorForm projectId={projectId} />
+          </CardContent>
+        </Card>
+      )}
+
+      <FileManager projectId={projectId} userRole={project.role} />
     </div>
   );
 }

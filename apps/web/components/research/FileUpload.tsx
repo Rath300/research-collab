@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { FiUploadCloud } from 'react-icons/fi';
+import { api } from '@/lib/trpc';
 
 interface FileUploadProps {
   projectId: string
@@ -17,6 +18,9 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  
+  const uploadFileMutation = api.project.uploadFile.useMutation();
+  const utils = api.useUtils();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -51,24 +55,17 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
 
       if (uploadError) throw uploadError;
 
-      // Record file in database
-      const fileMetadata = {
-          project_id: projectId,
-          uploader_id: user.id,
-          file_name: file.name,
-          file_path: filePath,
-          file_type: file.type,
-          file_size: file.size,
-      };
-      const { error: dbError } = await supabase
-        .from('project_files')
-        .insert(fileMetadata);
+      // Record file in database via TRPC
+      await uploadFileMutation.mutateAsync({
+        projectId,
+        fileName: file.name,
+        filePath,
+        fileType: file.type,
+        fileSize: file.size,
+      });
 
-      if (dbError) {
-        // Attempt to clean up the orphaned file in storage
-        await supabase.storage.from('project_files').remove([filePath]);
-        throw dbError;
-      }
+      // Invalidate file list to refresh UI
+      utils.project.listFiles.invalidate({ projectId });
       
       if (onUploadComplete) {
         onUploadComplete({ 
