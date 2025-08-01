@@ -167,7 +167,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!user) {
       setError('Not authenticated');
@@ -236,7 +236,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
       updateProfileMutation.reset();
     }
-  }
+  };
 
   const TagInput: React.FC<{
     label: string;
