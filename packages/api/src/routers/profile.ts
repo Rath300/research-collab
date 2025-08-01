@@ -20,7 +20,7 @@ const updateProfileInputSchema = z.object({
     field_of_study: z.string().optional().nullable(),
     availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
     availability_hours: z.number().optional().nullable(),
-    project_preference: z.string().optional().nullable(),
+    project_preference: z.enum(['remote', 'local', 'hybrid']).optional().nullable(),
     visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
     website: z.string().optional().nullable(),
 

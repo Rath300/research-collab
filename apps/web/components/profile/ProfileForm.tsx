@@ -27,7 +27,7 @@ interface ProfileFormData {
   field_of_study: string;
   availability: 'full-time' | 'part-time' | 'weekends' | 'not-available';
   availability_hours: number | string;
-  project_preference: string;
+  project_preference: 'remote' | 'local' | 'hybrid';
   visibility: 'public' | 'private' | 'connections';
   website: string;
 
@@ -62,7 +62,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
     field_of_study: initialData?.field_of_study || authProfile?.field_of_study || '',
     availability: initialData?.availability || authProfile?.availability || 'full-time',
     availability_hours: initialData?.availability_hours || authProfile?.availability_hours || 0,
-    project_preference: initialData?.project_preference || authProfile?.project_preference || '',
+    project_preference: initialData?.project_preference || authProfile?.project_preference || 'remote',
     visibility: initialData?.visibility || authProfile?.visibility || 'public',
     website: initialData?.website || authProfile?.website || '',
 
@@ -88,7 +88,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
             field_of_study: currentProfileSource?.field_of_study || '',
             availability: currentProfileSource?.availability || 'full-time',
             availability_hours: currentProfileSource?.availability_hours || 0,
-            project_preference: currentProfileSource?.project_preference || '',
+            project_preference: currentProfileSource?.project_preference || 'remote',
             visibility: currentProfileSource?.visibility || 'public',
             website: currentProfileSource?.website || '',
       
@@ -364,10 +364,17 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
           <label htmlFor="availability_hours" className={commonLabelClass}>Weekly Availability (Hours)</label>
           <Input id="availability_hours" name="availability_hours" type="number" value={formData.availability_hours} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., 10" min="0" />
         </div>
-         <div>
-          <label htmlFor="project_preference" className={commonLabelClass}>Project Preference</label>
-          <Input id="project_preference" name="project_preference" type="text" value={formData.project_preference} onChange={handleInputChange} className={commonInputClass} placeholder="e.g., Short-term, Long-term, Specific topics" />
-        </div>
+               <div>
+        <label htmlFor="project_preference" className={commonLabelClass}>Project Preference</label>
+        <Select value={formData.project_preference} onValueChange={(value) => handleSelectChange('project_preference', value)}>
+          <SelectTrigger className={commonInputClass} id="project_preference"><SelectValue placeholder="Select project preference" /></SelectTrigger>
+          <SelectContent className="bg-neutral-800 border-neutral-700 text-neutral-100">
+            <SelectItem value="remote">Remote</SelectItem>
+            <SelectItem value="local">Local</SelectItem>
+            <SelectItem value="hybrid">Hybrid</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       </div>
 
       <TagInput 
