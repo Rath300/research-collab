@@ -23,7 +23,7 @@ const updateProfileInputSchema = z.object({
     project_preference: z.string().optional().nullable(),
     visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
     website: z.string().optional().nullable(),
-    education: z.any().optional().nullable(), // Zod's `any` is suitable here since it's JSON
+    education: z.any().optional().nullable(), // JSONB field in database
     avatar_url: z.string().optional().nullable(),
 });
 
@@ -34,16 +34,21 @@ export const profileRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
 
+      // Prepare data for update, excluding id and user_id which shouldn't be changed
       const profileDataToSave = {
         ...input,
-        id: userId,
-        user_id: userId,
         updated_at: new Date().toISOString(),
       };
 
+      // Remove undefined values to avoid database issues
+      const cleanedData = Object.fromEntries(
+        Object.entries(profileDataToSave).filter(([_, value]) => value !== undefined)
+      );
+
       const { data: updatedProfile, error } = await ctx.supabase
         .from('profiles')
-        .upsert(profileDataToSave)
+        .update(cleanedData)
+        .eq('user_id', userId)
         .select('*')
         .single();
       
