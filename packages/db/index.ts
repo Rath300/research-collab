@@ -53,13 +53,7 @@ export const profileSchema = z.object({
   availability_hours: z.number().optional().nullable(),
   project_preference: z.string().optional().nullable(),
   visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
-  education: z.preprocess((val) => {
-    // Handle empty strings, arrays, and objects for education field
-    if (val === '' || val === null || val === undefined) return null;
-    if (Array.isArray(val) && val.length === 0) return null;
-    if (typeof val === 'object' && Object.keys(val).length === 0) return null;
-    return val;
-  }, z.any().optional().nullable()), // JSONB field in database
+
   has_completed_tour: z.boolean().optional().default(false),
 });
 

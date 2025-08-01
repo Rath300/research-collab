@@ -23,7 +23,7 @@ const updateProfileInputSchema = z.object({
     project_preference: z.string().optional().nullable(),
     visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
     website: z.string().optional().nullable(),
-    education: z.any().optional().nullable(), // JSONB field in database
+
     avatar_url: z.string().optional().nullable(),
 });
 

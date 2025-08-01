@@ -30,7 +30,7 @@ interface ProfileFormData {
   project_preference: string;
   visibility: 'public' | 'private' | 'connections';
   website: string;
-  education_json: string;
+
 }
 
 interface ProfileFormProps {
@@ -38,15 +38,7 @@ interface ProfileFormProps {
   onProfileUpdate?: () => void;
 }
 
-const formatJsonString = (jsonString: string | null | undefined): string => {
-  if (!jsonString) return '[]';
-  try {
-    const parsed = JSON.parse(jsonString);
-    return JSON.stringify(parsed, null, 2);
-  } catch (e) {
-    return jsonString;
-  }
-};
+
 
 export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) {
   const router = useRouter()
@@ -73,7 +65,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
     project_preference: initialData?.project_preference || authProfile?.project_preference || '',
     visibility: initialData?.visibility || authProfile?.visibility || 'public',
     website: initialData?.website || authProfile?.website || '',
-    education_json: formatJsonString(initialData?.education as string || authProfile?.education as string),
+
   }))
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -99,7 +91,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
             project_preference: currentProfileSource?.project_preference || '',
             visibility: currentProfileSource?.visibility || 'public',
             website: currentProfileSource?.website || '',
-            education_json: formatJsonString(currentProfileSource?.education as string),
+      
         });
         if (currentProfileSource?.avatar_url) {
             setAvatarPreview(currentProfileSource.avatar_url);
@@ -187,12 +179,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         newAvatarUrl = uploadResult?.url ?? newAvatarUrl;
       }
       
-      let educationDataToSave: any = null;
-      try {
-        educationDataToSave = formData.education_json ? JSON.parse(formData.education_json) : null;
-      } catch (jsonError) {
-        throw new Error('Education data is not valid JSON.');
-      }
+
 
       const nameParts = formData.full_name.trim().split(/\s+/);
 
@@ -214,7 +201,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         project_preference: formData.project_preference,
         visibility: formData.visibility as Profile['visibility'],
         website: formData.website,
-        education: educationDataToSave,
+
         avatar_url: newAvatarUrl,
       };
 
@@ -223,8 +210,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
       Object.entries(profileDataToSave).forEach(([key, value]) => {
         if (Array.isArray(value)) {
           cleanProfileDataToSave[key] = value;
-        } else if (key === 'education') {
-          cleanProfileDataToSave[key] = value && Array.isArray(value) ? value : null;
+
         } else if (value !== undefined) {
           cleanProfileDataToSave[key] = value;
         }
@@ -406,18 +392,7 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
         placeholder="Add what you're seeking (e.g., Co-author, Data Sharing)"
       />
 
-      <div>
-        <label htmlFor="education_json" className={commonLabelClass}>Education History (JSON format)</label>
-        <Textarea 
-          id="education_json" 
-          name="education_json" 
-          value={formData.education_json} 
-          onChange={handleInputChange} 
-          className={`${commonInputClass} min-h-[120px] font-mono text-sm`}
-          placeholder={'Example: [\n  {\n    "institution": "University of Science",\n    "degree": "PhD in Physics",\n    "year": 2020\n  }\n]'}
-        />
-        <p className="text-xs text-neutral-500 mt-1">Enter as a JSON array of objects. Each object should have institution, degree, and year.</p>
-      </div>
+
 
       <div>
         <label htmlFor="visibility" className={commonLabelClass}>Profile Visibility</label>
