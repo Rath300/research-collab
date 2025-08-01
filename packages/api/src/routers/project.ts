@@ -4,7 +4,7 @@ import {
   protectedProcedure,
   // publicProcedure, // Add if public procedures are needed later
 } from '../trpc';
-import { projectSchema, projectCollaboratorSchema, researchItemSchema, researchItemTypeSchema, projectFileSchema } from '@research-collab/db'; // Assuming these are the correct schema exports
+import { projectSchema, projectCollaboratorSchema, researchItemSchema, researchItemTypeSchema, projectFileSchema, projectTaskSchema, projectNoteSchema } from '@research-collab/db'; // Assuming these are the correct schema exports
 import { TRPCError } from '@trpc/server';
 import { projectCollaboratorRoleSchema, projectCollaboratorStatusSchema, profileSchema } from '@research-collab/db';
 
@@ -1051,6 +1051,580 @@ export const projectRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to delete file.',
+          cause: deleteError,
+        });
+      }
+
+      return { success: true };
+    }),
+
+  // Task Management Procedures
+
+  createTask: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      title: z.string().min(1).max(255),
+      description: z.string().max(1000).optional(),
+      assignedTo: z.string().uuid().optional(),
+      priority: z.enum(['low', 'medium', 'high']).default('medium'),
+      dueDate: z.date().optional(),
+    }))
+    .output(projectTaskSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to create tasks in this project.',
+        });
+      }
+
+      // If assignedTo is specified, verify they are a collaborator
+      if (input.assignedTo) {
+        const { data: assigneeCollaborator, error: assigneeError } = await ctx.supabase
+          .from('project_collaborators')
+          .select('role')
+          .eq('project_id', input.projectId)
+          .eq('user_id', input.assignedTo)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (assigneeError || !assigneeCollaborator) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Cannot assign task to user who is not a project collaborator.',
+          });
+        }
+      }
+
+      // Create task
+      const { data: task, error: taskError } = await ctx.supabase
+        .from('project_tasks')
+        .insert({
+          project_id: input.projectId,
+          title: input.title,
+          description: input.description,
+          assigned_to: input.assignedTo,
+          created_by: userId,
+          priority: input.priority,
+          due_date: input.dueDate?.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (taskError) {
+        console.error('Error creating task:', taskError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create task.',
+          cause: taskError,
+        });
+      }
+
+      const validation = projectTaskSchema.safeParse(task);
+      if (!validation.success) {
+        console.error('Task validation failed:', validation.error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Task data validation failed.',
+          cause: validation.error,
+        });
+      }
+
+      return validation.data;
+    }),
+
+  listTasks: protectedProcedure
+    .input(z.object({ 
+      projectId: z.string().uuid(),
+      status: z.enum(['todo', 'in_progress', 'completed']).optional(),
+    }))
+    .output(z.array(projectTaskSchema.extend({
+      assignee_name: z.string().optional(),
+      creator_name: z.string().optional(),
+    })))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to view tasks for this project.',
+        });
+      }
+
+      let query = ctx.supabase
+        .from('project_tasks')
+        .select(`
+          *,
+          assignee:profiles!project_tasks_assigned_to_fkey(first_name, last_name),
+          creator:profiles!project_tasks_created_by_fkey(first_name, last_name)
+        `)
+        .eq('project_id', input.projectId)
+        .order('created_at', { ascending: false });
+
+      if (input.status) {
+        query = query.eq('status', input.status);
+      }
+
+      const { data: tasks, error: tasksError } = await query;
+
+      if (tasksError) {
+        console.error('Error fetching tasks:', tasksError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch tasks.',
+          cause: tasksError,
+        });
+      }
+
+      return (tasks || []).map((task: any) => {
+        const assigneeName = task.assignee 
+          ? `${task.assignee.first_name || ''} ${task.assignee.last_name || ''}`.trim() || 'Unknown'
+          : undefined;
+        
+        const creatorName = task.creator
+          ? `${task.creator.first_name || ''} ${task.creator.last_name || ''}`.trim() || 'Unknown'
+          : 'Unknown';
+
+        return {
+          ...task,
+          assignee_name: assigneeName,
+          creator_name: creatorName,
+        };
+      });
+    }),
+
+  updateTaskStatus: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      taskId: z.string().uuid(),
+      status: z.enum(['todo', 'in_progress', 'completed']),
+    }))
+    .output(projectTaskSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to update tasks in this project.',
+        });
+      }
+
+      // Update task status
+      const updateData: any = {
+        status: input.status,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Set completed_at when marking as completed
+      if (input.status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      } else if (input.status !== 'completed') {
+        updateData.completed_at = null;
+      }
+
+      const { data: task, error: taskError } = await ctx.supabase
+        .from('project_tasks')
+        .update(updateData)
+        .eq('id', input.taskId)
+        .eq('project_id', input.projectId)
+        .select()
+        .single();
+
+      if (taskError) {
+        console.error('Error updating task:', taskError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update task.',
+          cause: taskError,
+        });
+      }
+
+      const validation = projectTaskSchema.safeParse(task);
+      if (!validation.success) {
+        console.error('Task validation failed:', validation.error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Task data validation failed.',
+          cause: validation.error,
+        });
+      }
+
+      return validation.data;
+    }),
+
+  deleteTask: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      taskId: z.string().uuid(),
+    }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user has permission (owner/editor or task creator)
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this project.',
+        });
+      }
+
+      // Check if user created the task or has admin rights
+      const { data: task, error: taskError } = await ctx.supabase
+        .from('project_tasks')
+        .select('created_by')
+        .eq('id', input.taskId)
+        .eq('project_id', input.projectId)
+        .single();
+
+      if (taskError || !task) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Task not found.',
+        });
+      }
+
+      const canDelete = task.created_by === userId || 
+                       collaborator.role === 'owner' || 
+                       collaborator.role === 'editor';
+
+      if (!canDelete) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to delete this task.',
+        });
+      }
+
+      // Delete task
+      const { error: deleteError } = await ctx.supabase
+        .from('project_tasks')
+        .delete()
+        .eq('id', input.taskId);
+
+      if (deleteError) {
+        console.error('Error deleting task:', deleteError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete task.',
+          cause: deleteError,
+        });
+      }
+
+      return { success: true };
+    }),
+
+  // Notes/Wiki Management Procedures
+
+  createNote: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      title: z.string().min(1).max(255),
+      content: z.string().max(50000),
+      section: z.string().max(100).optional(),
+      tags: z.array(z.string()).optional(),
+      isPublic: z.boolean().default(true),
+    }))
+    .output(projectNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to create notes in this project.',
+        });
+      }
+
+      // Create note
+      const { data: note, error: noteError } = await ctx.supabase
+        .from('project_notes')
+        .insert({
+          project_id: input.projectId,
+          title: input.title,
+          content: input.content,
+          section: input.section,
+          tags: input.tags,
+          is_public: input.isPublic,
+          created_by: userId,
+          last_edited_by: userId,
+        })
+        .select()
+        .single();
+
+      if (noteError) {
+        console.error('Error creating note:', noteError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create note.',
+          cause: noteError,
+        });
+      }
+
+      const validation = projectNoteSchema.safeParse(note);
+      if (!validation.success) {
+        console.error('Note validation failed:', validation.error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Note data validation failed.',
+          cause: validation.error,
+        });
+      }
+
+      return validation.data;
+    }),
+
+  listNotes: protectedProcedure
+    .input(z.object({ 
+      projectId: z.string().uuid(),
+      section: z.string().optional(),
+    }))
+    .output(z.array(projectNoteSchema.extend({
+      creator_name: z.string().optional(),
+      last_editor_name: z.string().optional(),
+    })))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to view notes for this project.',
+        });
+      }
+
+      let query = ctx.supabase
+        .from('project_notes')
+        .select(`
+          *,
+          creator:profiles!project_notes_created_by_fkey(first_name, last_name),
+          last_editor:profiles!project_notes_last_edited_by_fkey(first_name, last_name)
+        `)
+        .eq('project_id', input.projectId)
+        .eq('is_public', true) // Only show public notes for now
+        .order('updated_at', { ascending: false });
+
+      if (input.section) {
+        query = query.eq('section', input.section);
+      }
+
+      const { data: notes, error: notesError } = await query;
+
+      if (notesError) {
+        console.error('Error fetching notes:', notesError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch notes.',
+          cause: notesError,
+        });
+      }
+
+      return (notes || []).map((note: any) => {
+        const creatorName = note.creator
+          ? `${note.creator.first_name || ''} ${note.creator.last_name || ''}`.trim() || 'Unknown'
+          : 'Unknown';
+        
+        const lastEditorName = note.last_editor
+          ? `${note.last_editor.first_name || ''} ${note.last_editor.last_name || ''}`.trim() || 'Unknown'
+          : 'Unknown';
+
+        return {
+          ...note,
+          creator_name: creatorName,
+          last_editor_name: lastEditorName,
+        };
+      });
+    }),
+
+  updateNote: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      noteId: z.string().uuid(),
+      title: z.string().min(1).max(255).optional(),
+      content: z.string().max(50000).optional(),
+      section: z.string().max(100).optional(),
+      tags: z.array(z.string()).optional(),
+    }))
+    .output(projectNoteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user is an active collaborator
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to update notes in this project.',
+        });
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        last_edited_by: userId,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.content !== undefined) updateData.content = input.content;
+      if (input.section !== undefined) updateData.section = input.section;
+      if (input.tags !== undefined) updateData.tags = input.tags;
+
+      // Update note
+      const { data: note, error: noteError } = await ctx.supabase
+        .from('project_notes')
+        .update(updateData)
+        .eq('id', input.noteId)
+        .eq('project_id', input.projectId)
+        .select()
+        .single();
+
+      if (noteError) {
+        console.error('Error updating note:', noteError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update note.',
+          cause: noteError,
+        });
+      }
+
+      const validation = projectNoteSchema.safeParse(note);
+      if (!validation.success) {
+        console.error('Note validation failed:', validation.error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Note data validation failed.',
+          cause: validation.error,
+        });
+      }
+
+      return validation.data;
+    }),
+
+  deleteNote: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      noteId: z.string().uuid(),
+    }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Verify user has permission (owner/editor or note creator)
+      const { data: collaborator, error: collaboratorError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', input.projectId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (collaboratorError || !collaborator) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this project.',
+        });
+      }
+
+      // Check if user created the note or has admin rights
+      const { data: note, error: noteError } = await ctx.supabase
+        .from('project_notes')
+        .select('created_by')
+        .eq('id', input.noteId)
+        .eq('project_id', input.projectId)
+        .single();
+
+      if (noteError || !note) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Note not found.',
+        });
+      }
+
+      const canDelete = note.created_by === userId || 
+                       collaborator.role === 'owner' || 
+                       collaborator.role === 'editor';
+
+      if (!canDelete) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to delete this note.',
+        });
+      }
+
+      // Delete note
+      const { error: deleteError } = await ctx.supabase
+        .from('project_notes')
+        .delete()
+        .eq('id', input.noteId);
+
+      if (deleteError) {
+        console.error('Error deleting note:', deleteError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete note.',
           cause: deleteError,
         });
       }

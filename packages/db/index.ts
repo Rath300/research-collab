@@ -259,6 +259,77 @@ export const projectFileSchema = z.object({
 
 export type ProjectFile = z.infer<typeof projectFileSchema>;
 
+// Project Task Schema
+export const projectTaskSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  title: z.string().min(1, 'Task title is required').max(255),
+  description: z.string().max(1000).optional().nullable(),
+  assigned_to: z.string().uuid().optional().nullable(), // User ID
+  created_by: z.string().uuid(), // User who created the task
+  status: z.enum(['todo', 'in_progress', 'completed']).default('todo'),
+  priority: z.enum(['low', 'medium', 'high']).default('medium'),
+  due_date: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  completed_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+});
+
+export type ProjectTask = z.infer<typeof projectTaskSchema>;
+
+// Project Notes Schema (for collaborative documentation/wiki)
+export const projectNoteSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  title: z.string().min(1, 'Note title is required').max(255),
+  content: z.string().max(50000), // Rich text content
+  created_by: z.string().uuid(), // User who created the note
+  last_edited_by: z.string().uuid(), // User who last edited the note
+  is_public: z.boolean().default(true), // Visible to all collaborators
+  section: z.string().max(100).optional().nullable(), // For organizing notes (e.g., "methodology", "findings")
+  tags: z.array(z.string()).optional().nullable(),
+  created_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+  updated_at: z.preprocess((arg) => {
+    if (typeof arg === 'string' || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }, z.date().optional().nullable()),
+});
+
+export type ProjectNote = z.infer<typeof projectNoteSchema>;
+
 // Project Collaborator Schema
 export const projectCollaboratorRoleSchema = z.enum(['owner', 'editor', 'viewer']);
 export type ProjectCollaboratorRole = z.infer<typeof projectCollaboratorRoleSchema>;

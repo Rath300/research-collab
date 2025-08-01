@@ -11,6 +11,9 @@ import { useAuthStore } from '@/lib/store';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { FileManager } from '@/components/project/FileManager';
+import { ProjectChat } from '@/components/project/ProjectChat';
+import { TaskManager } from '@/components/project/TaskManager';
+import { ProjectNotes } from '@/components/project/ProjectNotes';
 
 type Collaborator = NonNullable<ReturnType<typeof api.project.listCollaborators.useQuery>['data']>[number];
 
@@ -143,12 +146,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   // Fetch project details
   const { data: project, isLoading: isProjectLoading, error: projectError } = api.project.getById.useQuery({ id: projectId });
-
-  // TODO: Fetch collaborators list
-  // const { data: collaborators, isLoading: areCollaboratorsLoading } = api.project.listCollaborators.useQuery({ projectId });
   
-  // TODO: Add mutation for inviting collaborators
-  // const inviteMutation = api.project.inviteCollaborator.useMutation();
+  // Fetch collaborators list for task assignments
+  const { data: collaborators } = api.project.listCollaborators.useQuery({ projectId });
 
   if (isProjectLoading) {
     return <div className="p-8"><FiLoader className="animate-spin text-2xl" /></div>;
@@ -200,7 +200,20 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </Card>
       )}
 
-      <FileManager projectId={projectId} userRole={project.role} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <ProjectChat projectId={projectId} />
+        <FileManager projectId={projectId} userRole={project.role} />
+      </div>
+
+      <TaskManager 
+        projectId={projectId} 
+        userRole={project.role} 
+        collaborators={collaborators || []} 
+      />
+
+      <div className="mt-8">
+        <ProjectNotes projectId={projectId} userRole={project.role} />
+      </div>
     </div>
   );
 }
