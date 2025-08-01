@@ -30,21 +30,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const isSidebarCollapsed = !sidebarOpen;
 
-  // Combined loading condition:
-  // 1. Auth is still loading.
-  // 2. Auth is NOT loading, but there's NO user (useEffect is handling /login redirect, show loader).
-  // 3. Auth is NOT loading, USER exists, profile fetch ATTEMPTED, profile INCOMPLETE, 
-  //    and we are NOT on /profile-setup (useEffect is handling /profile-setup redirect, show loader).
-  if (authIsLoading || 
-      (!authIsLoading && !user) ||
-      (!authIsLoading && user && hasAttemptedProfileFetch && (!profile || !profile.first_name) && pathname !== '/profile-setup')
-     ) {
-  return (
+  // Show loading only during initial auth check or profile setup redirect
+  // Don't show loading during regular navigation or when already redirecting
+  if (authIsLoading) {
+    return (
       <div className="flex h-screen w-screen items-center justify-center bg-black">
         <FiLoader className="animate-spin text-accent-purple text-4xl" />
-    </div>
-  );
-} 
+      </div>
+    );
+  }
+
+  // Early return for unauthenticated users - don't show loading, redirect is handled in useEffect
+  if (!user) {
+    return null;
+  }
+
+  // Early return for incomplete profiles - don't show loading, redirect is handled in useEffect
+  if (hasAttemptedProfileFetch && (!profile || !profile.first_name) && pathname !== '/profile-setup') {
+    return null;
+  } 
 
   // If all checks pass, render the layout
   return (

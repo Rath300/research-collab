@@ -80,16 +80,25 @@ export const guildSchema = z.object({
 
 export type Guild = z.infer<typeof guildSchema>;
 
-// Project Schema (now aligned with research_posts table)
+// Project Schema (aligned with actual projects table in database)
 export const projectSchema = z.object({
   id: z.string().uuid(),
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional(),
-  title: z.string().min(1).max(100),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
+  title: z.string().min(1).max(255),
   description: z.string().min(1),
   leader_id: z.string().uuid(),
   tags: z.array(z.string()).optional().nullable(),
   is_public: z.boolean().optional(),
+  status: z.enum(['planning', 'active', 'completed', 'archived']).optional(),
+  category: z.string().optional(),
+  skills_needed: z.array(z.string()).optional(),
+  collaboration_type: z.enum(['remote', 'local', 'hybrid']).optional(),
+  duration: z.enum(['short_term', 'medium_term', 'long_term']).optional(),
+  commitment_hours: z.number().min(1).max(40).optional(),
+  location: z.string().optional(),
+  deadline: z.date().optional(),
+  links: z.array(z.string()).optional(),
 });
 
 export type Project = z.infer<typeof projectSchema>; // This type now represents a research_post
