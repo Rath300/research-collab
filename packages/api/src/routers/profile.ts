@@ -6,25 +6,25 @@ import { TRPCError } from '@trpc/server';
 // Input schema allows only fields a user can edit. Dates are handled by the server.
 // Using a new Zod object is more explicit and avoids inference issues with .pick()
 const updateProfileInputSchema = z.object({
-    full_name: z.string().optional(),
-    first_name: z.string().optional(),
-    last_name: z.string().optional(),
-    title: z.string().optional(),
-    bio: z.string().optional(),
-    institution: z.string().optional(),
-    interests: z.array(z.string()).optional(),
-    skills: z.array(z.string()).optional(),
-    looking_for: z.array(z.string()).optional(),
-    collaboration_pitch: z.string().optional(),
-    location: z.string().optional(),
-    field_of_study: z.string().optional(),
-    availability: z.enum(['full-time', 'part-time', 'contract', 'weekends', 'not-available']).optional(),
-    availability_hours: z.number().optional(),
-    project_preference: z.string().optional(),
-    visibility: z.enum(['public', 'private', 'connections']).optional(),
-    website: z.string().optional(),
-    education: z.any().optional(), // Zod's `any` is suitable here since it's JSON
-    avatar_url: z.string().optional(),
+    full_name: z.string().optional().nullable(),
+    first_name: z.string().optional().nullable(),
+    last_name: z.string().optional().nullable(),
+    title: z.string().optional().nullable(),
+    bio: z.string().optional().nullable(),
+    institution: z.string().optional().nullable(),
+    interests: z.array(z.string()).optional().nullable(),
+    skills: z.array(z.string()).optional().nullable(),
+    looking_for: z.array(z.string()).optional().nullable(),
+    collaboration_pitch: z.string().optional().nullable(),
+    location: z.string().optional().nullable(),
+    field_of_study: z.string().optional().nullable(),
+    availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
+    availability_hours: z.number().optional().nullable(),
+    project_preference: z.string().optional().nullable(),
+    visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
+    website: z.string().optional().nullable(),
+    education: z.any().optional().nullable(), // Zod's `any` is suitable here since it's JSON
+    avatar_url: z.string().optional().nullable(),
 });
 
 export const profileRouter = router({
