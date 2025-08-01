@@ -6,6 +6,7 @@ import { taskRouter } from './routers/task';
 import { chatRouter } from './routers/chat';
 import { profileRouter } from './routers/profile';
 import { collaborationRouter } from './routers/collaboration';
+import { externalRouter } from './routers/external';
 
 export const appRouter = router({
   slack: slackRouter,
@@ -15,6 +16,7 @@ export const appRouter = router({
   chat: chatRouter,
   profile: profileRouter,
   collaboration: collaborationRouter,
+  external: externalRouter,
   // Add other routers here
 });
 

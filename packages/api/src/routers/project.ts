@@ -323,46 +323,27 @@ export const projectRouter = router({
         return null;
       }
 
-      // Only include fields that exist in the schema
-      const {
-        id,
-        title,
-        description,
-        leader_id,
-        tags,
-        is_public,
-        status,
-        category,
-        skills_needed,
-        collaboration_type,
-        duration,
-        commitment_hours,
-        location,
-        deadline,
-        links,
-        created_at,
-        updated_at,
-      } = project;
-      return {
-        id,
-        title,
-        description,
-        leader_id,
-        tags,
-        is_public,
-        status,
-        category,
-        skills_needed,
-        collaboration_type,
-        duration,
-        commitment_hours,
-        location,
-        deadline,
-        links,
-        created_at,
-        updated_at,
+      // Validate the project data against the schema
+      const projectData = {
+        ...project,
         role: collaborator.role,
       };
+      
+      const validation = projectSchema.extend({
+        role: projectCollaboratorRoleSchema,
+      }).safeParse(projectData);
+      
+      if (!validation.success) {
+        console.error('Project validation failed for getById:', input.id, validation.error);
+        console.error('Raw project data:', projectData);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Project data validation failed.',
+          cause: validation.error,
+        });
+      }
+      
+      return validation.data;
     }),
 
   /**
