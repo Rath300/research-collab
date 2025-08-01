@@ -401,47 +401,25 @@ export const projectRouter = router({
       const projects = data
         .filter((row: any) => row.projects && typeof row.projects === 'object' && row.projects.id)
         .map((row: any) => {
-          // Only include fields that exist in the schema
-          const {
-            id,
-            title,
-            description,
-            leader_id,
-            tags,
-            is_public,
-            status,
-            category,
-            skills_needed,
-            collaboration_type,
-            duration,
-            commitment_hours,
-            location,
-            deadline,
-            links,
-            created_at,
-            updated_at,
-          } = row.projects;
-          return {
-            id,
-            title,
-            description,
-            leader_id,
-            tags,
-            is_public,
-            status,
-            category,
-            skills_needed,
-            collaboration_type,
-            duration,
-            commitment_hours,
-            location,
-            deadline,
-            links,
-            created_at,
-            updated_at,
+          const projectData = {
+            ...row.projects,
             role: row.role,
           };
-        });
+          
+          // Validate each project against the schema
+          const validation = projectSchema.extend({
+            role: projectCollaboratorRoleSchema,
+          }).safeParse(projectData);
+          
+          if (!validation.success) {
+            console.error('Project validation failed for project:', row.projects.id, validation.error);
+            console.error('Raw project data:', projectData);
+            return null;
+          }
+          
+          return validation.data;
+        })
+        .filter((project): project is NonNullable<typeof project> => project !== null);
 
       if (projects.length === 0) {
         console.warn('No valid projects found for user', userId, 'Raw data:', data);
