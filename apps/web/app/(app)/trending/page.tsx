@@ -32,14 +32,14 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
     ? `${post.profiles.first_name} ${post.profiles.last_name}` 
     : post.profiles?.first_name)
     || 'Anonymous';
-  const authorName = calculatedAuthorName.trim() || 'Anonymous';
+  const authorName = calculatedAuthorName?.trim() || 'Anonymous User';
 
   const postDate = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'some time ago';
   const truncatedContent = post.description && post.description.length > 150 
     ? `${post.description.substring(0, 150)}...` 
     : post.description;
 
-  const usernameTag = post.profiles?.first_name || post.profiles?.email || 'Unknown';
+  const usernameTag = `@${post.profiles?.first_name?.toLowerCase() || 'user'}${post.profiles?.id?.slice(-4) || ''}`;
 
   return (
     <motion.div 
