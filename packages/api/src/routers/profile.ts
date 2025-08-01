@@ -59,6 +59,7 @@ export const profileRouter = router({
         // Profile doesn't exist, create it
         const createData = {
           id: userId,
+          user_id: userId, // Add user_id to satisfy NOT NULL constraint
           first_name: input.first_name || 'Anonymous',
           last_name: input.last_name || 'User', 
           email: ctx.user.email || 'no-email',
