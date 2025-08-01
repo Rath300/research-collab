@@ -45,12 +45,46 @@ export const profileRouter = router({
         Object.entries(profileDataToSave).filter(([_, value]) => value !== undefined)
       );
 
-      const { data: updatedProfile, error } = await ctx.supabase
+      // First check if profile exists, if not create it
+      const { data: existingProfile } = await ctx.supabase
         .from('profiles')
-        .update(cleanedData)
-        .eq('user_id', userId)
-        .select('*')
+        .select('id')
+        .eq('id', userId)
         .single();
+
+      let updatedProfile;
+      let error;
+
+      if (!existingProfile) {
+        // Profile doesn't exist, create it
+        const createData = {
+          id: userId,
+          first_name: input.first_name || 'Anonymous',
+          last_name: input.last_name || 'User', 
+          email: ctx.user.email || 'no-email',
+          ...cleanedData
+        };
+
+        const result = await ctx.supabase
+          .from('profiles')
+          .insert(createData)
+          .select('*')
+          .single();
+          
+        updatedProfile = result.data;
+        error = result.error;
+      } else {
+        // Profile exists, update it
+        const result = await ctx.supabase
+          .from('profiles')
+          .update(cleanedData)
+          .eq('id', userId)
+          .select('*')
+          .single();
+          
+        updatedProfile = result.data;
+        error = result.error;
+      }
       
       if (error) {
         console.error('Supabase error in profile.update:', error, 'Payload:', profileDataToSave);
@@ -64,6 +98,7 @@ export const profileRouter = router({
       const validation = profileSchema.safeParse(updatedProfile);
 
       if (!validation.success) {
+        console.error('Profile validation failed:', validation.error, 'Data:', updatedProfile);
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Updated profile data from database is invalid.',
