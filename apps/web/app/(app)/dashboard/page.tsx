@@ -337,10 +337,10 @@ export default function DashboardPage() {
       transition={{ duration: 0.5 }}
     >
       <header className="mb-8 md:mb-10">
-        <h1 className="text-3xl md:text-4xl font-heading text-white">Dashboard</h1>
+        <h1 className="text-3xl md:text-4xl font-heading text-text-primary">Dashboard</h1>
         {profile?.first_name && (
-          <p className="text-lg text-neutral-400 mt-1 font-sans">
-            Welcome back, <span className="font-semibold text-neutral-200">{titleCase(profile.first_name)}</span>!
+          <p className="text-lg text-text-secondary mt-1 font-sans">
+            Welcome back, <span className="font-semibold text-text-primary">{titleCase(profile.first_name)}</span>!
           </p>
         )}
       </header>

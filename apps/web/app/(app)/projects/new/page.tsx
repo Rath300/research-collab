@@ -197,10 +197,10 @@ export default function NewProjectPage() {
     router.push(createdProjectId ? `/projects/${createdProjectId}` : '/dashboard');
   };
 
-  const commonLabelClass = "block text-sm font-medium text-neutral-300 mb-1.5 font-sans";
-  const tagItemClass = "flex items-center bg-neutral-700 text-neutral-200 px-3 py-1.5 rounded-full text-xs font-sans shadow-sm transition-all hover:bg-neutral-600";
-  const tagRemoveButtonClass = "ml-2 text-neutral-400 hover:text-white focus:outline-none transition-colors";
-  const inputBaseClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
+  const commonLabelClass = "block text-sm font-medium text-text-primary mb-1.5 font-sans";
+  const tagItemClass = "flex items-center bg-text-secondary/10 text-text-secondary px-3 py-1.5 rounded-full text-xs font-sans shadow-sm transition-all hover:bg-text-secondary/20";
+  const tagRemoveButtonClass = "ml-2 text-text-secondary hover:text-text-primary focus:outline-none transition-colors";
+  const inputBaseClass = "flex h-10 w-full rounded-md border border-border-light bg-white px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 font-sans";
   const textareaBaseClass = inputBaseClass.replace('h-10', 'min-h-[80px]');
 
   if (authLoading) {
@@ -244,7 +244,7 @@ export default function NewProjectPage() {
                     className={inputBaseClass}
                     disabled={isSubmitting || !!createdProjectId}
                   />
-                  {errors.title && <p className="mt-2 text-sm text-red-400">{errors.title}</p>}
+                  {errors.title && <p className="mt-2 text-sm text-red-500">{errors.title}</p>}
                 </div>
 
                 <div>
@@ -254,7 +254,7 @@ export default function NewProjectPage() {
                         onChange={handleContentChange}
                         editable={!isSubmitting && !createdProjectId}
                     />
-                    {errors.description && <p className="mt-2 text-sm text-red-400">{errors.description}</p>}
+                    {errors.description && <p className="mt-2 text-sm text-red-500">{errors.description}</p>}
                 </div>
                 
                 <div>
@@ -284,14 +284,14 @@ export default function NewProjectPage() {
                     className={inputBaseClass}
                     disabled={isSubmitting || !!createdProjectId}
                   />
-                  {errors.tags && <p className="mt-2 text-sm text-red-400">{errors.tags}</p>}
+                  {errors.tags && <p className="mt-2 text-sm text-red-500">{errors.tags}</p>}
                 </div>
 
               </div>
 
               {/* Action Buttons */}
               <div className="flex justify-end pt-4">
-                <Button type="submit" variant="default" disabled={isSubmitting || !!createdProjectId}>
+                <Button type="submit" variant="primary" disabled={isSubmitting || !!createdProjectId}>
                   {isSubmitting ? (
                     <>
                       <FiLoader className="mr-2 h-4 w-4 animate-spin" />

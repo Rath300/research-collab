@@ -16,7 +16,7 @@ export default function MyProjectsPage() {
   return (
     <PageContainer title="My Projects">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">My Projects</h1>
+        <h1 className="text-3xl font-bold text-text-primary">My Projects</h1>
         <Link href="/projects/new" passHref>
           <Button>
             <FiPlusCircle className="mr-2" />
