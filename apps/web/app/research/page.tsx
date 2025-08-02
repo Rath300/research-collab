@@ -64,9 +64,9 @@ export default function ResearchPage() {
   if (error) {
     return (
       <PageContainer title="Error" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg p-8 text-center font-sans">
+                  <div className="bg-surface-primary border border-border-medium rounded-xl shadow-lg p-8 text-center font-sans">
           <FiAlertCircle className="mx-auto text-red-500 text-6xl mb-4" />
-          <h2 className="text-2xl font-heading text-neutral-100 mb-2">Oops! Something went wrong.</h2>
+                      <h2 className="text-2xl font-heading text-text-primary mb-2">Oops! Something went wrong.</h2>
           <p className="text-neutral-300 mb-4">Error: {error}</p>
           <button 
             onClick={loadProjects}
@@ -83,7 +83,7 @@ export default function ResearchPage() {
     <PageContainer title="Project Feed" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8">
         <HomeButton />
-        <h1 className="text-3xl md:text-4xl font-heading text-neutral-100 mb-8 text-center">Project Feed</h1>
+        <h1 className="text-3xl md:text-4xl font-heading text-text-primary mb-8 text-center">Project Feed</h1>
         
         {projects.length > 0 ? (
           <div className="space-y-6 max-w-3xl mx-auto">
@@ -97,7 +97,7 @@ export default function ResearchPage() {
               const usernameTag = project.profiles?.first_name || project.profiles?.email || 'Unknown';
 
               return (
-                <div key={project.id} className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-neutral-700">
+                <div key={project.id} className="bg-surface-primary border border-border-medium rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-border-dark">
                   <div className="p-5 sm:p-6">
                     <div className="flex items-center mb-3">
                         <Avatar 
@@ -114,7 +114,7 @@ export default function ResearchPage() {
         </div>
         
                     <Link href={`/projects/${project.id}`} className="block mb-2">
-                      <h2 className="text-xl lg:text-2xl font-heading text-neutral-100 hover:text-accent-purple transition-colors duration-150">
+                      <h2 className="text-xl lg:text-2xl font-heading text-text-primary hover:text-accent-primary transition-colors duration-150">
                         {project.title}
                       </h2>
                     </Link>

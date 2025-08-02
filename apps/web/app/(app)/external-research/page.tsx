@@ -63,16 +63,16 @@ export default function ExternalResearchPage() {
     <PageContainer title="External Research Discovery" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
         <header className="mb-8 text-center">
-          <FiBookOpen className="text-5xl text-accent-purple mx-auto mb-4" />
-          <h1 className="text-3xl md:text-4xl font-heading text-neutral-100">
+                      <FiBookOpen className="text-5xl text-accent-primary mx-auto mb-4" />
+          <h1 className="text-3xl md:text-4xl font-heading text-text-primary">
             Discover External Research
           </h1>
-          <p className="text-neutral-400 mt-2 text-base font-sans">
+          <p className="text-text-secondary mt-2 text-base font-sans">
             Search across multiple academic databases and open access repositories.
           </p>
         </header>
 
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl p-6 mb-8">
+        <div className="bg-surface-primary border border-border-medium rounded-lg shadow-xl p-6 mb-8">
           <div className="mb-4">
             <Label htmlFor="searchQuery" className={commonLabelClass}>Search Query</Label>
             <Input
@@ -129,17 +129,17 @@ export default function ExternalResearchPage() {
 
         {isLoading && (
           <div className="text-center py-10">
-            <FiLoader className="animate-spin text-accent-purple text-5xl mx-auto mb-4" />
+            <FiLoader className="animate-spin text-accent-primary text-5xl mx-auto mb-4" />
             <p className="text-neutral-400 font-sans">Fetching results from external sources...</p>
           </div>
         )}
 
         {!isLoading && papers.length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-heading text-neutral-100 mb-4">Search Results ({papers.length})</h2>
+            <h2 className="text-2xl font-heading text-text-primary mb-4">Search Results ({papers.length})</h2>
             {papers.map((paper) => (
-              <div key={paper.id} className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-lg p-5 hover:border-neutral-700 transition-colors">
-                <h3 className="text-lg font-semibold font-heading text-accent-purple mb-1">{paper.title}</h3>
+              <div key={paper.id} className="bg-surface-primary border border-border-medium rounded-lg shadow-lg p-5 hover:border-border-dark transition-colors">
+                                  <h3 className="text-lg font-semibold font-heading text-accent-primary mb-1">{paper.title}</h3>
                 {paper.abstract && (
                   <p className="text-sm text-neutral-400 mb-3 line-clamp-3 font-sans">{paper.abstract}</p>
                 )}
@@ -154,7 +154,7 @@ export default function ExternalResearchPage() {
                       View DOI
                     </a>
                   )}
-                  <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-accent-purple hover:text-accent-purple/80 hover:underline transition-colors">
+                  <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-accent-primary hover:text-accent-primary-hover hover:underline transition-colors">
                     View Paper
                   </a>
                 </div>
