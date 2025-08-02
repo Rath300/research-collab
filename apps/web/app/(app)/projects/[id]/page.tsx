@@ -68,8 +68,21 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
 
 const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
     const [inviteeUsername, setInviteeUsername] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const utils = api.useUtils();
     const { profile } = useAuthStore(); // Get current user's profile for optimistic update
+
+    // Search for collaborators when typing
+    const { data: suggestions, isLoading: isSearching } = api.project.searchCollaborators.useQuery(
+        { 
+            query: inviteeUsername, 
+            excludeProjectId: projectId 
+        },
+        { 
+            enabled: inviteeUsername.length >= 2,
+            staleTime: 1000 * 60 * 5 // 5 minutes
+        }
+    );
 
     const inviteMutation = api.project.inviteCollaborator.useMutation({
         onMutate: async (newInvite) => {
@@ -96,6 +109,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
             });
 
             setInviteeUsername('');
+            setShowSuggestions(false);
             // Return a context object with the snapshotted value
             return { previousCollaborators };
         },
@@ -124,20 +138,85 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
         }
     };
 
+    const handleSuggestionClick = (username: string) => {
+        setInviteeUsername(username);
+        setShowSuggestions(false);
+    };
+
     return (
-        <form onSubmit={handleInvite} className="flex items-center space-x-2">
-            <Input
-                type="text"
-                placeholder="Enter username to invite (e.g., CrazyChicken143)"
-                value={inviteeUsername}
-                onChange={(e) => setInviteeUsername(e.target.value)}
-                className="flex-grow"
-                disabled={inviteMutation.isPending}
-            />
-            <Button type="submit" disabled={!inviteeUsername.trim() || inviteMutation.isPending}>
-                {inviteMutation.isPending ? <FiLoader className="animate-spin" /> : 'Send Invite'}
-            </Button>
-        </form>
+        <div className="relative">
+            <form onSubmit={handleInvite} className="flex items-center space-x-2">
+                <div className="flex-grow relative">
+                    <Input
+                        type="text"
+                        placeholder="Enter username to invite (e.g., CrazyChicken143)"
+                        value={inviteeUsername}
+                        onChange={(e) => {
+                            setInviteeUsername(e.target.value);
+                            setShowSuggestions(e.target.value.length >= 2);
+                        }}
+                        onFocus={() => setShowSuggestions(inviteeUsername.length >= 2)}
+                        className="w-full"
+                        disabled={inviteMutation.isPending}
+                    />
+                    
+                    {/* Suggestions Dropdown */}
+                    {showSuggestions && suggestions && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                            {isSearching ? (
+                                <div className="p-3 text-center text-neutral-400">
+                                    <FiLoader className="animate-spin inline mr-2" />
+                                    Searching...
+                                </div>
+                            ) : (
+                                suggestions.map((suggestion) => (
+                                    <button
+                                        key={suggestion.id}
+                                        type="button"
+                                        onClick={() => handleSuggestionClick(suggestion.username || '')}
+                                        className="w-full p-3 text-left hover:bg-neutral-700 border-b border-neutral-700 last:border-b-0 flex items-center space-x-3"
+                                    >
+                                        <div className="flex-shrink-0">
+                                            {suggestion.avatar_url ? (
+                                                <img
+                                                    src={suggestion.avatar_url}
+                                                    alt=""
+                                                    className="w-8 h-8 rounded-full"
+                                                />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center">
+                                                    <FiUser className="w-4 h-4 text-neutral-400" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-neutral-200 truncate">
+                                                @{suggestion.username}
+                                            </div>
+                                            <div className="text-xs text-neutral-400 truncate">
+                                                {suggestion.first_name} {suggestion.last_name}
+                                                {suggestion.title && ` • ${suggestion.title}`}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+                <Button type="submit" disabled={!inviteeUsername.trim() || inviteMutation.isPending}>
+                    {inviteMutation.isPending ? <FiLoader className="animate-spin" /> : 'Send Invite'}
+                </Button>
+            </form>
+            
+            {/* Click outside to close suggestions */}
+            {showSuggestions && (
+                <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowSuggestions(false)}
+                />
+            )}
+        </div>
     );
 };
 

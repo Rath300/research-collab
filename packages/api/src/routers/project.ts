@@ -92,6 +92,11 @@ const listCollaboratorsInputSchema = z.object({
   projectId: z.string().uuid(),
 });
 
+const searchCollaboratorsInputSchema = z.object({
+  query: z.string().min(1).max(100),
+  excludeProjectId: z.string().uuid().optional(), // Exclude users already in this project
+});
+
 // Corrected: Pick fields that are definitely in the Zod profileSchema
 // and ensure `id` (profile's own PK) is included.
 const collaboratorWithProfileSchema = projectCollaboratorSchema.extend({
@@ -1197,20 +1202,36 @@ export const projectRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.user.id;
 
-      // Verify user is an active collaborator
-      const { data: collaborator, error: collaboratorError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('role')
-        .eq('project_id', input.projectId)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
+      // Check if user is project owner first
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('leader_id')
+        .eq('id', input.projectId)
+        .single();
 
-      if (collaboratorError || !collaborator) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have access to view tasks for this project.',
-        });
+      if (projectError) {
+        console.error("Error fetching project:", projectError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
+      }
+
+      const isOwner = project.leader_id === userId;
+
+      // If not owner, check if user is active collaborator
+      if (!isOwner) {
+        const { data: collaborator, error: collaboratorError } = await ctx.supabase
+          .from('project_collaborators')
+          .select('role')
+          .eq('project_id', input.projectId)
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (collaboratorError || !collaborator) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to view tasks for this project.',
+          });
+        }
       }
 
       let query = ctx.supabase
@@ -1474,20 +1495,36 @@ export const projectRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.user.id;
 
-      // Verify user is an active collaborator
-      const { data: collaborator, error: collaboratorError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('role')
-        .eq('project_id', input.projectId)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
+      // Check if user is project owner first
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('leader_id')
+        .eq('id', input.projectId)
+        .single();
 
-      if (collaboratorError || !collaborator) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have access to view notes for this project.',
-        });
+      if (projectError) {
+        console.error("Error fetching project:", projectError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
+      }
+
+      const isOwner = project.leader_id === userId;
+
+      // If not owner, check if user is active collaborator
+      if (!isOwner) {
+        const { data: collaborator, error: collaboratorError } = await ctx.supabase
+          .from('project_collaborators')
+          .select('role')
+          .eq('project_id', input.projectId)
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (collaboratorError || !collaborator) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to view notes for this project.',
+          });
+        }
       }
 
       let query = ctx.supabase
@@ -1674,6 +1711,67 @@ export const projectRouter = router({
     }),
 
   // Research Item Management Procedures
+
+  /**
+   * Search for potential collaborators by username or name
+   */
+  searchCollaborators: protectedProcedure
+    .input(searchCollaboratorsInputSchema)
+    .output(z.array(z.object({
+      id: z.string().uuid(),
+      user_id: z.string().uuid(),
+      username: z.string().nullable(),
+      first_name: z.string().nullable(),
+      last_name: z.string().nullable(),
+      avatar_url: z.string().nullable(),
+      title: z.string().nullable(),
+      bio: z.string().nullable(),
+    })))
+    .query(async ({ ctx, input }) => {
+      const { query, excludeProjectId } = input;
+
+      // Build the search query
+      let searchQuery = ctx.supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          username,
+          first_name,
+          last_name,
+          avatar_url,
+          title,
+          bio
+        `)
+        .or(`username.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+        .limit(10);
+
+      // Exclude users already in the project if specified
+      if (excludeProjectId) {
+        const { data: existingCollaborators } = await ctx.supabase
+          .from('project_collaborators')
+          .select('user_id')
+          .eq('project_id', excludeProjectId);
+
+        if (existingCollaborators && existingCollaborators.length > 0) {
+          const excludeUserIds = existingCollaborators.map(c => c.user_id);
+          searchQuery = searchQuery.not('user_id', 'in', `(${excludeUserIds.join(',')})`);
+        }
+      }
+
+      const { data: profiles, error } = await searchQuery;
+
+      if (error) {
+        console.error('Error searching collaborators:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to search for collaborators.',
+          cause: error,
+        });
+      }
+
+      return profiles || [];
+    }),
 
   /**
    * Lists all active collaborators for a given project.
