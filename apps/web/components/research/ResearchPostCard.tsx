@@ -96,11 +96,11 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
           
           <div className="flex-1 min-w-0">
             <Link href={`/profile/${userId}`} className="hover:underline">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <p className="text-sm font-medium text-text-primary truncate">
                 {fullName}
               </p>
             </Link>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-text-secondary truncate">
               {institution} • {createdAt}
             </p>
           </div>
@@ -127,11 +127,11 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
         {/* Post content */}
         <div>
           <Link href={`/project/${id}`}>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400">
+            <h3 className="text-lg font-semibold text-text-primary mb-2 hover:text-accent-primary">
               {title}
             </h3>
           </Link>
-          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {truncatedContent}
           </p>
           {description.length > 300 && (
@@ -151,7 +151,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
               <Link
                 key={tag}
                 href={`/project?tag=${encodeURIComponent(tag)}`}
-                className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-md flex items-center hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                className="px-2 py-1 bg-text-secondary/10 text-text-secondary text-xs rounded-md flex items-center hover:bg-text-secondary/20"
               >
                 <FiTag size={12} className="mr-1" />
                 {tag}
@@ -161,13 +161,13 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
         )}
       </CardContent>
       
-      <CardFooter className="px-4 py-3 border-t border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+      <CardFooter className="px-4 py-3 border-t border-border-light bg-gray-50">
         <div className="flex justify-between w-full">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => onLike?.(id)}
-            className="text-gray-600 dark:text-gray-400"
+            className="text-text-secondary"
           >
             <FiThumbsUp size={16} className="mr-1" />
             <span>{engagement_count}</span>
@@ -177,7 +177,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-gray-600 dark:text-gray-400"
+              className="text-text-secondary"
             >
               <FiMessageSquare size={16} className="mr-1" />
               <span>Comment</span>
@@ -187,7 +187,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
           <Button 
             variant="ghost" 
             size="sm"
-            className="text-gray-600 dark:text-gray-400"
+            className="text-text-secondary"
             onClick={() => {
               navigator.clipboard.writeText(`${window.location.origin}/project/${id}`);
             }}
@@ -200,7 +200,7 @@ export function ResearchPostCard({ post, onLike, onBoost }: ResearchPostCardProp
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-yellow-600 dark:text-yellow-400"
+              className="text-yellow-600"
               onClick={() => onBoost?.(id)}
             >
               <FiZap size={16} className="mr-1" />

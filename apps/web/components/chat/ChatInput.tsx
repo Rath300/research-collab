@@ -30,7 +30,7 @@ export function ChatInput({ onSendMessage, isLoading = false }: ChatInputProps) 
 
   return (
     <motion.div 
-      className="bg-surface-primary border-t border-border-light p-3 sm:p-4"
+      className="bg-gray-50 border-t border-border-light p-3 sm:p-4"
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
@@ -42,7 +42,7 @@ export function ChatInput({ onSendMessage, isLoading = false }: ChatInputProps) 
           onKeyDown={handleKeyDown}
           placeholder="Type a message... (Shift+Enter for new line)"
           rows={1}
-          className="flex-grow bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500 focus:ring-accent-purple focus:border-accent-purple resize-none max-h-32 py-2.5 px-3.5"
+          className="flex-grow bg-white border-border-light text-text-primary placeholder:text-text-secondary focus:ring-accent-primary focus:border-accent-primary resize-none max-h-32 py-2.5 px-3.5"
         />
         <Button 
           type="submit" 

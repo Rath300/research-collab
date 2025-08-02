@@ -52,9 +52,9 @@ export function ChatView({
 
   if (!chatPartner && !isLoadingMessages) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-neutral-950 text-neutral-500 p-8">
-        <FiMessageSquare size={64} className="mb-4 text-neutral-700"/>
-        <p className="text-xl font-heading text-neutral-300">Select a conversation</p>
+      <div className="h-full flex flex-col items-center justify-center bg-white text-text-secondary p-8">
+        <FiMessageSquare size={64} className="mb-4 text-text-secondary"/>
+        <p className="text-xl font-heading text-text-primary">Select a conversation</p>
         <p className="mt-1 text-sm">Choose a chat from the sidebar to start messaging.</p>
       </div>
     );
@@ -62,17 +62,17 @@ export function ChatView({
 
   return (
     <motion.div 
-      className="flex flex-col h-full bg-neutral-950"
+      className="flex flex-col h-full bg-white"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
       {/* Chat Header */} 
       {chatPartner && (
-        <header className="bg-surface-primary border-b border-border-light p-3 sm:p-4 flex items-center justify-between sticky top-0 z-10">
+        <header className="bg-gray-50 border-b border-border-light p-3 sm:p-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center">
             {onBack && (
-                <Button variant="ghost" size="sm" onClick={onBack} className="mr-2 sm:hidden text-neutral-300 hover:bg-neutral-700 !p-2 rounded-full">
+                <Button variant="ghost" size="sm" onClick={onBack} className="mr-2 sm:hidden text-text-secondary hover:bg-gray-100 !p-2 rounded-full">
                     <FiArrowLeft size={22} />
                 </Button>
             )}
@@ -81,16 +81,16 @@ export function ChatView({
               alt={chatPartner.name} 
               size="md" 
               className="mr-3"
-              fallback={<FiUser className="text-neutral-400"/>}
+              fallback={<FiUser className="text-text-secondary"/>}
             />
             <div>
-              <h2 className="font-semibold text-base sm:text-lg text-neutral-100 font-heading truncate max-w-[150px] sm:max-w-xs">{chatPartner.name}</h2>
-              <p className="text-xs text-neutral-400 font-sans">
+              <h2 className="font-semibold text-base sm:text-lg text-text-primary font-heading truncate max-w-[150px] sm:max-w-xs">{chatPartner.name}</h2>
+              <p className="text-xs text-text-secondary font-sans">
                 {chatPartner.isOnline ? <span className='text-green-500'>Online</span> : (chatPartner.lastSeen || 'Offline')}
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 !p-2 rounded-full">
+          <Button variant="ghost" size="sm" className="text-text-secondary hover:text-text-primary hover:bg-gray-100 !p-2 rounded-full">
             <FiInfo size={20} />
           </Button>
         </header>
@@ -98,21 +98,21 @@ export function ChatView({
 
       {/* Messages Area */} 
       <motion.div 
-        className="flex-grow p-4 sm:p-6 space-y-2 overflow-y-auto bg-neutral-950/80 backdrop-blur-sm"
+        className="flex-grow p-4 sm:p-6 space-y-2 overflow-y-auto bg-white"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {isLoadingMessages && (
-          <div className="flex flex-col items-center justify-center h-full text-neutral-500">
-            <FiLoader className="animate-spin text-accent-purple text-4xl mb-3" />
+          <div className="flex flex-col items-center justify-center h-full text-text-secondary">
+            <FiLoader className="animate-spin text-accent-primary text-4xl mb-3" />
             <p className="text-sm">Loading messages...</p>
           </div>
         )}
         {!isLoadingMessages && messages.length === 0 && (
-           <div className="flex flex-col items-center justify-center h-full text-neutral-500">
-            <FiMessageSquare size={48} className="mb-4 text-neutral-700"/>
-            <p className="text-lg font-heading text-neutral-300">No messages yet</p>
+           <div className="flex flex-col items-center justify-center h-full text-text-secondary">
+            <FiMessageSquare size={48} className="mb-4 text-text-secondary"/>
+            <p className="text-lg font-heading text-text-primary">No messages yet</p>
             <p className="mt-1 text-xs">Be the first to send a message to {chatPartner?.name || 'this user'}.</p>
           </div>
         )}
