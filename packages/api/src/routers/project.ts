@@ -573,18 +573,18 @@ export const projectRouter = router({
         });
       }
       
-      // 2. Find the invitee by username
+      // 2. Find the invitee by email or full name
       const { data: inviteeProfile, error: inviteeError } = await ctx.supabase
         .from('profiles')
-        .select('id, user_id')
-        .eq('username', inviteeUsername)
+        .select('id, user_id, email, first_name, last_name')
+        .or(`email.eq.${inviteeUsername},full_name.ilike.%${inviteeUsername}%`)
         .single();
 
       if (inviteeError) {
-        console.error("Error finding invitee by username:", inviteeError);
+        console.error("Error finding invitee:", inviteeError);
         throw new TRPCError({ 
           code: 'BAD_REQUEST', 
-          message: `User with username '${inviteeUsername}' not found.` 
+          message: `User with email or name '${inviteeUsername}' not found.` 
         });
       }
 
@@ -1788,7 +1788,7 @@ export const projectRouter = router({
     .output(z.array(z.object({
       id: z.string().uuid(),
       user_id: z.string().uuid(),
-      username: z.string().nullable(),
+      email: z.string().nullable(),
       first_name: z.string().nullable(),
       last_name: z.string().nullable(),
       avatar_url: z.string().nullable(),
@@ -1804,14 +1804,14 @@ export const projectRouter = router({
         .select(`
           id,
           user_id,
-          username,
+          email,
           first_name,
           last_name,
           avatar_url,
           title,
           bio
         `)
-        .or(`username.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+        .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
         .limit(10);
 
       // Exclude users already in the project if specified
@@ -1823,7 +1823,7 @@ export const projectRouter = router({
 
         if (existingCollaborators && existingCollaborators.length > 0) {
           const excludeUserIds = existingCollaborators.map(c => c.user_id);
-          searchQuery = searchQuery.not('user_id', 'in', `(${excludeUserIds.join(',')})`);
+          searchQuery = searchQuery.not('user_id', 'in', excludeUserIds);
         }
       }
 
