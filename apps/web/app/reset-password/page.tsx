@@ -57,19 +57,19 @@ export default function ResetPasswordPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-sm sm:max-w-md lg:max-w-lg"
       >
-        <Card className="w-full bg-neutral-950 border-none shadow-none p-6 sm:p-8">
+        <Card className="w-full bg-neutral-950 border-none shadow-none p-4 sm:p-6 lg:p-8">
           <CardHeader className="text-center mb-6">
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <CardTitle className="font-heading text-3xl sm:text-4xl font-semibold text-neutral-100">
+              <CardTitle className="font-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-100">
                 Reset your password
               </CardTitle>
-              <CardDescription className="mt-2 text-sm text-neutral-400 font-sans">
+              <CardDescription className="mt-2 text-xs sm:text-sm text-neutral-400 font-sans">
                 Enter your email and we&apos;ll send a reset link.
               </CardDescription>
             </motion.div>
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
             ) : (
               <motion.form
                 onSubmit={handleSubmit}
-                className="space-y-5"
+                className="space-y-4 sm:space-y-5"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
-                    className="w-full px-4 py-3 bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors"
+                    className="w-full bg-[#1C1C1C] border border-transparent text-neutral-200 placeholder:text-neutral-500 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-600 focus:border-neutral-600 transition-colors text-base sm:text-sm"
                   />
                 </div>
                 
@@ -123,7 +123,7 @@ export default function ResetPasswordPage() {
                     type="submit"
                     isLoading={isLoading}
                     isFullWidth
-                    className="w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors"
+                    className="w-full px-3 sm:px-4 py-3 sm:py-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-sans font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-600 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-colors text-base sm:text-sm min-h-[44px] sm:min-h-[48px]"
                     size="lg"
                   >
                     Send reset link
