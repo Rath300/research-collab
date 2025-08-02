@@ -81,7 +81,7 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <PageContainer title="My Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans">
+      <PageContainer title="My Matches" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans">
         <FiLoader className="animate-spin text-accent-purple text-6xl" />
         <p className="mt-4 text-neutral-400">Loading your matches...</p>
       </PageContainer>
@@ -90,7 +90,7 @@ export default function MatchesPage() {
 
   if (error) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans p-6">
+      <PageContainer title="Error" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans p-6">
         <FiAlertCircle className="text-red-500 text-6xl mb-4" />
         <h2 className="text-2xl font-heading mb-2">Oops! Something went wrong.</h2>
         <p className="text-neutral-400 text-center mb-6">{error}</p>
@@ -100,7 +100,7 @@ export default function MatchesPage() {
   }
 
   return (
-    <PageContainer title="My Matches" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="My Matches" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8">
         <motion.div 
           className="flex items-center mb-6 md:mb-8"

@@ -322,7 +322,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="flex items-center justify-center min-h-screen bg-bg-primary">
         <FiLoader className="animate-spin text-accent-purple text-4xl" />
         <p className="text-neutral-400 font-sans ml-3">Loading dashboard...</p>
       </div>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
 
   return (
     <motion.div 
-      className="min-h-screen bg-black text-neutral-100 p-4 md:p-6 lg:p-8 font-sans"
+      className="min-h-screen bg-bg-primary text-text-primary p-4 md:p-6 lg:p-8 font-sans"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}

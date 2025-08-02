@@ -159,7 +159,7 @@ export default function MatchPage() {
 
   if (loading) {
     return (
-      <PageContainer title="Find Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans">
+      <PageContainer title="Find Matches" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans">
         <FiLoader className="animate-spin text-accent-purple text-6xl" />
         <p className="mt-4 text-neutral-400">Loading potential matches...</p>
       </PageContainer>
@@ -168,7 +168,7 @@ export default function MatchPage() {
 
   if (error) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans p-6">
+      <PageContainer title="Error" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans p-6">
         <FiAlertCircle className="text-red-500 text-6xl mb-4" />
         <h2 className="text-2xl font-heading mb-2">Oops! Something went wrong.</h2>
         <p className="text-neutral-400 text-center mb-6">{error}</p>
@@ -178,7 +178,7 @@ export default function MatchPage() {
   }
 
   return (
-    <PageContainer title="Discover Matches" className="bg-black min-h-screen flex flex-col items-center justify-center text-neutral-100 font-sans overflow-hidden">
+    <PageContainer title="Discover Matches" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans overflow-hidden">
       <div className="absolute top-4 left-4 z-20">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700 p-2">
               <FiArrowLeft size={24} />

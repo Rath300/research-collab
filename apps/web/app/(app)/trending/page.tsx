@@ -159,7 +159,7 @@ export default function TrendingPage() {
   );
 
   return (
-    <PageContainer title="Trending" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="Trending" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8">
         <HomeButton />
         <motion.h1 

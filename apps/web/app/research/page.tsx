@@ -52,7 +52,7 @@ export default function ResearchPage() {
 
   if (loading) {
     return (
-      <PageContainer title="Project Feed" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Project Feed" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="flex flex-col items-center font-sans">
           <FiLoader className="animate-spin text-accent-purple text-6xl mb-4" />
           <p className="text-xl text-neutral-300">Loading project feed...</p>
@@ -63,7 +63,7 @@ export default function ResearchPage() {
 
   if (error) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Error" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg p-8 text-center font-sans">
           <FiAlertCircle className="mx-auto text-red-500 text-6xl mb-4" />
           <h2 className="text-2xl font-heading text-neutral-100 mb-2">Oops! Something went wrong.</h2>
@@ -80,7 +80,7 @@ export default function ResearchPage() {
   }
 
   return (
-    <PageContainer title="Project Feed" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="Project Feed" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8">
         <HomeButton />
         <h1 className="text-3xl md:text-4xl font-heading text-neutral-100 mb-8 text-center">Project Feed</h1>

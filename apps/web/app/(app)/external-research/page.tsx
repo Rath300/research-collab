@@ -60,7 +60,7 @@ export default function ExternalResearchPage() {
   const inputBaseClass = "flex h-10 w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50 font-sans";
 
   return (
-    <PageContainer title="External Research Discovery" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="External Research Discovery" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
         <header className="mb-8 text-center">
           <FiBookOpen className="text-5xl text-accent-purple mx-auto mb-4" />
