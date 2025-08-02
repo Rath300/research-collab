@@ -28,38 +28,38 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles = 
-      'inline-flex items-center justify-center rounded-lg font-semibold tracking-wide '
-      + 'transition-all duration-300 ease-in-out focus-visible:outline-none '
-      + 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent '
-      + 'disabled:opacity-60 disabled:pointer-events-none';
+      'inline-flex items-center justify-center rounded-lg font-ui font-medium tracking-wide '
+      + 'transition-all duration-200 ease-in-out focus-visible:outline-none '
+      + 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary '
+      + 'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
     
     const variantStyles = {
       primary: 
-        'bg-gradient-to-r from-purple-600 to-pink-500 text-white '
-        + 'hover:from-purple-700 hover:to-pink-600 shadow-lg hover:shadow-xl '
-        + 'focus-visible:ring-purple-500',
+        'bg-accent-primary text-text-inverse shadow-sm '
+        + 'hover:bg-accent-primary-hover hover:shadow-md '
+        + 'focus-visible:ring-accent-primary',
       secondary: 
-        'bg-gray-700/50 text-gray-100 hover:bg-gray-600/70 backdrop-blur-sm border border-gray-600/80 '
-        + 'focus-visible:ring-gray-400',
+        'bg-surface-primary text-text-primary border border-border-medium '
+        + 'hover:bg-surface-hover focus-visible:ring-accent-primary',
       accent: 
-        'bg-gradient-to-r from-researchbee-yellow to-orange-500 text-black '
-        + 'hover:from-researchbee-yellow-dark hover:to-orange-600 shadow-md hover:shadow-lg '
-        + 'focus-visible:ring-researchbee-yellow',
+        'bg-accent-secondary text-text-inverse shadow-sm '
+        + 'hover:bg-accent-secondary-hover hover:shadow-md '
+        + 'focus-visible:ring-accent-secondary',
       outline: 
-        'border border-white/30 bg-white/5 text-gray-100 backdrop-blur-sm '
-        + 'hover:bg-white/10 hover:border-white/50 hover:text-white '
-        + 'focus-visible:ring-white/70',
+        'border border-border-medium bg-transparent text-text-primary '
+        + 'hover:bg-surface-hover hover:border-border-dark '
+        + 'focus-visible:ring-accent-primary',
       ghost: 
-        'bg-transparent text-gray-200 hover:bg-white/10 hover:text-white '
-        + 'focus-visible:ring-gray-400',
+        'bg-transparent text-text-primary '
+        + 'hover:bg-surface-hover focus-visible:ring-accent-primary',
       danger: 
-        'bg-red-500/70 border border-red-500/90 text-white backdrop-blur-sm '
-        + 'hover:bg-red-600/80 hover:border-red-600 '
-        + 'focus-visible:ring-red-400',
+        'bg-accent-error text-text-inverse shadow-sm '
+        + 'hover:bg-red-700 hover:shadow-md '
+        + 'focus-visible:ring-accent-error',
       glass:
-        'bg-white/10 backdrop-blur-md border border-white/20 text-white '
-        + 'hover:bg-white/20 hover:border-white/30 shadow-lg '
-        + 'focus-visible:ring-white/50',
+        'bg-surface-primary/80 backdrop-blur-md border border-border-light text-text-primary '
+        + 'hover:bg-surface-primary hover:border-border-medium shadow-lg '
+        + 'focus-visible:ring-accent-primary',
     };
     
     const sizeStyles = {

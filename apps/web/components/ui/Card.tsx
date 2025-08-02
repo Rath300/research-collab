@@ -12,9 +12,9 @@ export const Card = ({ children, className, hoverEffect = false, as: Component =
   return (
     <Component
       className={twMerge(
-        'rounded-xl bg-black/20 backdrop-blur-lg border border-white/10 shadow-2xl',
+        'rounded-xl bg-surface-primary border border-border-light shadow-sm',
         'p-6',
-        hoverEffect && 'transition-all duration-300 hover:shadow-purple-500/30 hover:border-white/20 hover:bg-black/30',
+        hoverEffect && 'transition-all duration-200 hover:shadow-md hover:border-border-medium hover:bg-surface-secondary',
         className
       )}
     >
@@ -30,7 +30,7 @@ interface CardHeaderProps {
 
 export const CardHeader = ({ children, className }: CardHeaderProps) => {
   return (
-    <div className={twMerge('pb-4 mb-4 border-b border-white/10', className)}>
+    <div className={twMerge('pb-4 mb-4 border-b border-border-light', className)}>
       {children}
     </div>
   );
@@ -43,7 +43,7 @@ interface CardTitleProps {
 
 export const CardTitle = ({ children, className }: CardTitleProps) => {
   return (
-    <h3 className={twMerge('text-xl lg:text-2xl font-semibold text-white', className)}>
+    <h3 className={twMerge('text-xl lg:text-2xl font-heading font-semibold text-text-primary', className)}>
       {children}
     </h3>
   );
@@ -56,7 +56,7 @@ interface CardDescriptionProps {
 
 export const CardDescription = ({ children, className }: CardDescriptionProps) => {
   return (
-    <p className={twMerge('text-sm text-gray-300 leading-relaxed', className)}>
+    <p className={twMerge('text-sm text-text-secondary font-body leading-relaxed', className)}>
       {children}
     </p>
   );
@@ -82,7 +82,7 @@ interface CardFooterProps {
 
 export const CardFooter = ({ children, className }: CardFooterProps) => {
   return (
-    <div className={twMerge('pt-4 mt-4 border-t border-white/10 flex items-center', className)}>
+    <div className={twMerge('pt-4 mt-4 border-t border-border-light flex items-center', className)}>
       {children}
     </div>
   );

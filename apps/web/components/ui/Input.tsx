@@ -34,14 +34,16 @@ export const Input = forwardRef<
   (props, ref) => {
     const { className, type, ...rest } = props;
 
-    // Updated commonClasses for glassmorphic style
+    // Modern light theme input styles
     const commonClasses = cn(
-      'flex w-full rounded-lg border bg-white/5 backdrop-blur-sm px-4 py-2.5 text-sm text-gray-100 ',
-      'placeholder:text-gray-400 caret-purple-400 ',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-transparent ',
-      'disabled:cursor-not-allowed disabled:opacity-50 ',
+      'flex w-full rounded-lg border bg-bg-tertiary px-4 py-2.5 text-sm text-text-primary font-body ',
+      'placeholder:text-text-muted caret-accent-primary ',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:border-accent-primary ',
+      'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-quaternary ',
       'transition-all duration-200 ease-in-out ',
-      props.error ? 'border-red-500/70 focus-visible:ring-red-500' : 'border-white/20 hover:border-white/40',
+      props.error 
+        ? 'border-accent-error focus-visible:ring-accent-error focus-visible:border-accent-error' 
+        : 'border-border-medium hover:border-border-dark focus-visible:border-accent-primary',
       className // User-provided className for the wrapper or element itself
     );
 
