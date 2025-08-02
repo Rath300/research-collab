@@ -81,3 +81,4 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-stripe-key
 MIT
 
 # Trigger new Vercel Build
+# Trigger deployment Fri Aug  1 22:38:09 CDT 2025
