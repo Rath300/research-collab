@@ -53,18 +53,18 @@ export function ChatSidebar({
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="p-4 border-b border-neutral-800">
+      <div className="p-4 border-b border-border-light">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xl font-heading text-neutral-100">Conversations</h2>
+          <h2 className="text-xl font-heading text-text-primary">Conversations</h2>
           {/* <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700">
             <FiPlus size={20} />
           </Button> */}
         </div>
         <div className="relative flex items-center">
-            <FiSearch className="absolute left-3 text-neutral-500 pointer-events-none" />
+            <FiSearch className="absolute left-3 text-text-secondary pointer-events-none" />
             <Input 
               placeholder="Search chats..." 
-              className="bg-neutral-800 border-neutral-700 text-neutral-200 placeholder:text-neutral-500 focus:ring-accent-purple focus:border-accent-purple pl-10 w-full"
+              className="bg-white border-border-light text-text-primary placeholder:text-text-secondary focus:ring-accent-primary focus:border-accent-primary pl-10 w-full"
             />
         </div>
       </div>
@@ -72,12 +72,12 @@ export function ChatSidebar({
       <div className="flex-grow overflow-y-auto">
         {conversations.length === 0 && (
           <motion.div 
-            className="p-6 text-center text-neutral-500 font-sans"
+            className="p-6 text-center text-text-secondary font-sans"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <FiMessageSquare className="mx-auto text-4xl mb-3 text-neutral-600" />
+            <FiMessageSquare className="mx-auto text-4xl mb-3 text-text-secondary" />
             <p>No conversations yet.</p>
             <p className="text-xs mt-1">Start a new chat from a user's profile.</p>
           </motion.div>
@@ -86,14 +86,14 @@ export function ChatSidebar({
           variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
           initial="hidden"
           animate="visible"
-          className="divide-y divide-neutral-800"
+          className="divide-y divide-border-light"
         >
           {conversations.map((convo) => (
             <motion.li key={convo.id} variants={listItemVariants}>
               <button
                 onClick={() => onSelectConversation(convo.id)}
-                className={`w-full text-left p-4 hover:bg-neutral-800/70 transition-colors duration-150 focus:outline-none ${
-                  selectedConversationId === convo.id ? 'bg-neutral-800' : ''
+                className={`w-full text-left p-4 hover:bg-gray-50 transition-colors duration-150 focus:outline-none ${
+                  selectedConversationId === convo.id ? 'bg-gray-100' : ''
                 }`}
               >
                 <div className="flex items-center">
@@ -102,16 +102,16 @@ export function ChatSidebar({
                     alt={convo.partnerName} 
                     size="md" 
                     className="mr-3 flex-shrink-0"
-                    fallback={<FiUser className="text-neutral-400" />}
+                    fallback={<FiUser className="text-text-secondary" />}
                   />
                   <div className="flex-grow overflow-hidden">
-                    <h3 className="text-sm font-medium text-neutral-100 truncate">{convo.partnerName}</h3>
-                    <p className="text-xs text-neutral-400 truncate">{convo.lastMessage}</p>
+                    <h3 className="text-sm font-medium text-text-primary truncate">{convo.partnerName}</h3>
+                    <p className="text-xs text-text-secondary truncate">{convo.lastMessage}</p>
                   </div>
                   <div className="ml-2 text-right flex-shrink-0">
-                    <p className="text-xs text-neutral-500 mb-0.5">{convo.lastMessageTimestamp}</p>
+                    <p className="text-xs text-text-secondary mb-0.5">{convo.lastMessageTimestamp}</p>
                     {convo.unreadCount && convo.unreadCount > 0 && (
-                      <span className="bg-accent-purple text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                      <span className="bg-accent-primary text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
                         {convo.unreadCount}
                       </span>
                     )}

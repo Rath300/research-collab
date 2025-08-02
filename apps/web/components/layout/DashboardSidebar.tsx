@@ -43,8 +43,8 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, is
         isSubItem ? 'pr-3' : 'px-3',
         isSubItem && !isCollapsed ? 'pl-10' : '',
         isActive
-          ? 'bg-neutral-700 text-white font-medium'
-          : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100',
+          ? 'bg-accent-primary/10 text-accent-primary font-medium'
+          : 'text-text-primary hover:bg-gray-100 hover:text-accent-primary',
         isCollapsed ? 'justify-center' : ''
       )}
     >
@@ -77,7 +77,7 @@ const SidebarHeader: React.FC<{ isCollapsed: boolean; children: React.ReactNode 
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <h3 className="px-3 pt-4 pb-2 text-xs font-semibold uppercase text-neutral-500">
+      <h3 className="px-3 pt-4 pb-2 text-xs font-semibold uppercase text-text-primary">
         {children}
       </h3>
     </Transition>
@@ -204,8 +204,8 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
                   className={cn(
                     'w-full flex items-center h-10 rounded-lg text-sm font-medium transition-colors',
                     isProjectsActive
-                      ? 'bg-neutral-700 text-white'
-                      : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100',
+                      ? 'bg-accent-primary/10 text-accent-primary'
+                      : 'text-text-primary hover:bg-gray-100 hover:text-accent-primary',
                     isCollapsed ? 'justify-center px-3' : 'px-3 text-left'
                   )}
                 >

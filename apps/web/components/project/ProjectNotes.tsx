@@ -160,7 +160,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
 
   if (isLoading) {
     return (
-      <Card className="bg-neutral-900 border-neutral-800">
+      <Card className="bg-white border-border-light">
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <FiLoader className="animate-spin text-2xl mr-2" />
@@ -172,7 +172,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800">
+    <Card className="bg-white border-border-light">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold flex items-center">
@@ -219,7 +219,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
 
         {/* Create Note Form */}
         {showCreateForm && userRole !== 'viewer' && (
-          <Card className="mb-6 bg-neutral-800 border-neutral-700">
+          <Card className="mb-6 bg-gray-50 border-border-light">
             <CardContent className="p-4">
               <form onSubmit={handleCreateNote} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,7 +240,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                   placeholder="Note content *"
                   value={newNote.content}
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-                  className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-white border border-border-light rounded-md text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                   rows={6}
                   required
                 />
@@ -264,13 +264,13 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                       {newNote.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full flex items-center gap-1"
+                          className="px-2 py-1 bg-text-secondary/10 text-text-secondary text-xs rounded-full flex items-center gap-1"
                         >
                           {tag}
                           <button
                             type="button"
                             onClick={() => removeTag(tag, true)}
-                            className="hover:text-red-300"
+                            className="hover:text-red-500"
                           >
                             <FiX className="w-3 h-3" />
                           </button>
@@ -300,7 +300,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
 
         {/* Notes List */}
         {!notes || notes.length === 0 ? (
-          <div className="text-center py-8 text-neutral-400">
+          <div className="text-center py-8 text-text-secondary">
             <FiBookOpen className="mx-auto text-4xl mb-4" />
             <p>No notes yet.</p>
             {userRole !== 'viewer' && (
@@ -310,7 +310,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
         ) : (
           <div className="space-y-4">
             {notes.map((note: NoteWithDetails) => (
-              <Card key={note.id} className="bg-neutral-800 border-neutral-700">
+              <Card key={note.id} className="bg-white border-border-light">
                 <CardContent className="p-4">
                   {editingNote === note.id ? (
                     /* Edit Mode */
@@ -330,7 +330,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                       <textarea
                         value={editNote.content}
                         onChange={(e) => setEditNote({ ...editNote, content: e.target.value })}
-                        className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-white border border-border-light rounded-md text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                         rows={6}
                       />
 
@@ -353,13 +353,13 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                             {editNote.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full flex items-center gap-1"
+                                className="px-2 py-1 bg-text-secondary/10 text-text-secondary text-xs rounded-full flex items-center gap-1"
                               >
                                 {tag}
                                 <button
                                   type="button"
                                   onClick={() => removeTag(tag, false)}
-                                  className="hover:text-red-300"
+                                  className="hover:text-red-500"
                                 >
                                   <FiX className="w-3 h-3" />
                                 </button>
@@ -385,9 +385,9 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium text-white text-lg">{note.title}</h4>
+                            <h4 className="font-medium text-text-primary text-lg">{note.title}</h4>
                             {note.section && (
-                              <span className="px-2 py-1 bg-neutral-600 text-neutral-200 text-xs rounded-full">
+                              <span className="px-2 py-1 bg-text-secondary/10 text-text-secondary text-xs rounded-full">
                                 {note.section}
                               </span>
                             )}
@@ -463,3 +463,5 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
     </Card>
   );
 }
+
+
