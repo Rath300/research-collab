@@ -56,7 +56,9 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
     if (event.key === 'Enter') {
       const query = event.currentTarget.value;
       if (query.trim()) {
-        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+        // Redirect to discover page for now, which shows projects
+        // TODO: Create a unified search page that searches across projects, users, and research papers
+        router.push(`/discover?q=${encodeURIComponent(query.trim())}`);
       }
     }
   };
@@ -84,7 +86,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
           <Input
             type="search"
-            placeholder="Search anything..."
+            placeholder="Search projects..."
             className="pl-9 pr-4 py-2 text-sm w-full bg-neutral-800 border-neutral-700 focus:ring-blue-500 focus:border-blue-500 rounded-md text-neutral-100 placeholder-neutral-500"
             onKeyDown={handleSearch}
           />

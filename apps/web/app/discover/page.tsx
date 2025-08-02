@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -13,10 +14,12 @@ type Project = Database['public']['Tables']['projects']['Row'];
 
 export default function DiscoverPage() {
   // supabase is already imported as a singleton
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'trending' | 'recent'>('trending');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -45,6 +48,16 @@ export default function DiscoverPage() {
       setLoading(false);
     }
   }, [supabase, filter]);
+
+  // Initialize search query from URL params
+  useEffect(() => {
+    if (searchParams) {
+      const query = searchParams.get('q');
+      if (query) {
+        setSearchQuery(query);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadProjects();

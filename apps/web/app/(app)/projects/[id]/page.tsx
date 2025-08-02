@@ -160,7 +160,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
                 <div className="flex-grow relative">
                     <Input
                         type="text"
-                        placeholder="Enter username to invite (e.g., CrazyChicken143)"
+                        placeholder="Enter email or name to invite (e.g., john@example.com or John Doe)"
                         value={inviteeUsername}
                         onChange={(e) => {
                             setInviteeUsername(e.target.value);
@@ -184,7 +184,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
                                     <button
                                         key={suggestion.id}
                                         type="button"
-                                        onClick={() => handleSuggestionClick(suggestion.username || '')}
+                                        onClick={() => handleSuggestionClick(suggestion.email || `${suggestion.first_name} ${suggestion.last_name}`.trim() || '')}
                                         className="w-full p-3 text-left hover:bg-neutral-700 border-b border-neutral-700 last:border-b-0 flex items-center space-x-3"
                                     >
                                         <div className="flex-shrink-0">
@@ -202,7 +202,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="text-sm font-medium text-neutral-200 truncate">
-                                                @{suggestion.username}
+                                                {suggestion.email || `${suggestion.first_name} ${suggestion.last_name}`.trim() || 'Unknown'}
                                             </div>
                                             <div className="text-xs text-neutral-400 truncate">
                                                 {suggestion.first_name} {suggestion.last_name}
