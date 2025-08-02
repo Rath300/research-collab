@@ -11,30 +11,69 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Legacy colors (keeping for backward compatibility during transition)
         'researchbee-yellow': '#FFD54F',
         'researchbee-yellow-dark': '#FFC107',
         'researchbee-black': '#121212',
         'researchbee-dark-gray': '#1E1E1E',
         'researchbee-medium-gray': '#2C2C2C',
         'researchbee-light-gray': '#B3B3B3',
-        'researchbee-white': '#FFFFFF', // Primary text
+        'researchbee-white': '#FFFFFF',
 
-        // New theme colors
-        'ic-dark-bg': '#121212', // A very dark gray, almost black
-        'ic-yellow-accent': '#FDE047', // A bright, vibrant yellow (Tailwind yellow-400)
-        'ic-yellow-accent-dark': '#FACC15', // Tailwind yellow-500 for hover
-        'ic-text-primary': '#F9FAFB', // Tailwind gray-50
-        'ic-text-secondary': '#D1D5DB', // Tailwind gray-300
-        'ic-border': '#374151', // Tailwind gray-700 for borders on dark bg
+        // NEW MODERN LIGHT THEME - Primary Design System
+        // Background Colors (Light Theme)
+        'bg-primary': '#FAFAFA',        // Main background (very light grey)
+        'bg-secondary': '#F5F5F5',      // Card/section backgrounds  
+        'bg-tertiary': '#FFFFFF',       // Input fields, modals
+        'bg-quaternary': '#EEEEEE',     // Subtle dividers, disabled states
 
-        // New Accent Colors
-        'accent-purple': '#8B5CF6', // Tailwind violet-500
-        'accent-purple-hover': '#A78BFA', // Tailwind violet-400
+        // Text Colors (Dark on Light)
+        'text-primary': '#1A1A1A',      // Main text (near black)
+        'text-secondary': '#4A4A4A',    // Secondary text
+        'text-muted': '#8A8A8A',        // Placeholder, captions
+        'text-inverse': '#FFFFFF',      // White text for dark backgrounds
+
+        // Accent Colors (Modern & Vibrant)
+        'accent-primary': '#2563EB',    // Primary actions (blue)
+        'accent-primary-hover': '#1D4ED8', // Primary hover state
+        'accent-secondary': '#7C3AED',  // Secondary actions (purple)
+        'accent-secondary-hover': '#6D28D9', // Secondary hover state
+        'accent-success': '#16A34A',    // Success states (green)
+        'accent-warning': '#EA580C',    // Warnings (orange)
+        'accent-error': '#DC2626',      // Errors (red)
+
+        // Borders & Dividers (Light Theme)
+        'border-light': '#E5E5E5',      // Subtle borders
+        'border-medium': '#D1D1D1',     // Form inputs, cards
+        'border-dark': '#A1A1A1',       // Focused states, emphasis
+        'border-accent': '#2563EB',     // Accent borders
+
+        // Surface Colors (Cards, Panels)
+        'surface-primary': '#FFFFFF',    // Main cards, panels
+        'surface-secondary': '#F8F9FA',  // Secondary panels
+        'surface-hover': '#F1F3F4',      // Hover states
+        'surface-active': '#E8F0FE',     // Active/selected states
+
+        // Legacy support (keeping old names mapped to new values)
+        'ic-text-primary': '#1A1A1A',    // Now maps to dark text
+        'ic-text-secondary': '#4A4A4A',  // Now maps to secondary text
+        'ic-border': '#D1D1D1',          // Now maps to medium border
+        'accent-purple': '#7C3AED',      // Maps to new secondary accent
+        'accent-purple-hover': '#6D28D9', // Maps to new secondary hover
       },
       fontFamily: {
+        // Primary font system
         sans: ['var(--font-inter)', ...fontFamily.sans],
-        heading: ['var(--font-geist-sans)', ...fontFamily.sans],
-        mono: fontFamily.mono,
+        
+        // Specialized fonts for different use cases
+        display: ['var(--font-cal-sans)', 'var(--font-inter)', ...fontFamily.sans],  // Hero text, large headings
+        heading: ['var(--font-inter)', ...fontFamily.sans],                          // Section headings
+        body: ['var(--font-inter)', ...fontFamily.sans],                             // Body text
+        ui: ['var(--font-inter)', ...fontFamily.sans],                               // UI elements, buttons
+        mono: ['var(--font-jetbrains-mono)', ...fontFamily.mono],                    // Code, monospace
+        
+        // Legacy support
+        'geist-sans': ['var(--font-geist-sans)', ...fontFamily.sans],
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

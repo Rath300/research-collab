@@ -25,117 +25,185 @@
   --background-end-rgb: 20, 20, 20;
 }
 
-/* System defaults */
+/* System defaults for modern light theme */
 body {
-  color: rgb(var(--foreground-rgb)); /* This can be replaced by Tailwind text utilities */
-  background: linear-gradient(
-      to bottom,
-      rgb(var(--background-start-rgb)),
-      rgb(var(--background-end-rgb))
-    ); /* This specific gradient might be overridden by Tailwind bg utilities like on the body tag in layout.tsx */
-  /* font-family: var(--font-sans); */ /* REMOVE - Tailwind font-sans class on html/body will handle this */
-  font-feature-settings: "rlig" 1, "calt" 1; /* This is fine, relates to OpenType features */
-  @apply text-white bg-black; /* This is good, sets base text/bg via Tailwind */
+  /* Modern light theme body - clean and minimal */
+  font-feature-settings: "rlig" 1, "calt" 1; /* Enhanced typography rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Base Element Styling */
-html {
-  /* font-family: var(--font-sans); */ /* REMOVE - Tailwind font-sans class on html tag will handle this */
-}
-
-/* REMOVE these h1-h6 global styles. Rely on Tailwind's font-heading utility or @layer base typography */
-/* 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-*/
-
-/* Base Typography Styles - These @layer base styles for h1-p are generally good */
+/* Modern Light Theme Typography */
 @layer base {
+  /* Root element improvements */
+  html {
+    @apply font-body scroll-smooth;
+  }
+
+  /* Modern typography hierarchy with new design system */
   h1 {
-    @apply text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl; /* Ensure font-heading is applied where needed */
+    @apply text-4xl font-heading font-bold tracking-tight text-text-primary md:text-5xl lg:text-6xl;
   }
   h2 {
-    @apply text-3xl font-bold tracking-tight md:text-4xl; /* Ensure font-heading is applied where needed */
+    @apply text-3xl font-heading font-bold tracking-tight text-text-primary md:text-4xl;
   }
   h3 {
-    @apply text-2xl font-bold tracking-tight md:text-3xl; /* Ensure font-heading is applied where needed */
+    @apply text-2xl font-heading font-semibold tracking-tight text-text-primary md:text-3xl;
   }
   h4 {
-    @apply text-xl font-semibold tracking-tight md:text-2xl; /* Ensure font-heading is applied where needed */
+    @apply text-xl font-heading font-semibold tracking-tight text-text-primary md:text-2xl;
   }
+  h5 {
+    @apply text-lg font-heading font-medium tracking-tight text-text-primary md:text-xl;
+  }
+  h6 {
+    @apply text-base font-heading font-medium tracking-tight text-text-primary md:text-lg;
+  }
+  
+  /* Body text with improved readability */
   p {
-    /* @apply leading-relaxed text-researchbee-light-gray; */ /* Consider using ic-text-secondary or similar from Tailwind config */
-    @apply leading-relaxed text-ic-text-secondary; /* Using a newer theme color */
+    @apply leading-relaxed text-text-secondary font-body;
   }
+  
+  /* Enhanced link styles */
   a {
-    @apply transition-colors duration-200; /* Base link transition is fine */
-    /* Specific link colors should come from Tailwind config (e.g., typography plugin or text-accent-purple) */
+    @apply transition-all duration-200 text-accent-primary hover:text-accent-primary-hover;
   }
-  body {
-    /* This body style seems to be a mix of an older theme (Netflix Sans) and a newer one. */
-    /* The body tag in layout.tsx applies bg-black text-neutral-100. */
-    /* We should ensure one source of truth for body background and text color. */
-    /* For now, keeping the @apply from above, but commenting out the direct font-family here. */
-    /* font-family: 'Netflix Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
+  
+  /* Button reset for better styling control */
+  button {
+    @apply font-ui;
   }
-  /* This h1-h6 block is redundant if the one above is kept and uses font-heading from Tailwind */
-  /* 
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-gray-50;
+  
+  /* Input and form elements */
+  input, textarea, select {
+    @apply font-body;
   }
-  */
+  
+  /* Code elements */
+  code, pre {
+    @apply font-mono;
+  }
+  
+  /* Improved focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent-primary ring-offset-2 ring-offset-bg-primary;
+  }
 }
 
-/* Research-Bee Component Styles */
+/* Modern Light Theme Components */
 @layer components {
-  /* Button styles */
+  /* Modern Button System */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-ui font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply bg-accent-primary text-text-inverse hover:bg-accent-primary-hover focus:ring-accent-primary shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-surface-primary text-text-primary border border-border-medium hover:bg-surface-hover focus:ring-accent-primary;
+  }
+  
+  .btn-outline {
+    @apply border border-border-medium text-text-primary hover:bg-surface-hover focus:ring-accent-primary;
+  }
+  
+  .btn-ghost {
+    @apply text-text-primary hover:bg-surface-hover focus:ring-accent-primary;
+  }
+  
+  .btn-danger {
+    @apply bg-accent-error text-text-inverse hover:bg-red-700 focus:ring-accent-error;
+  }
+  
+  .btn-success {
+    @apply bg-accent-success text-text-inverse hover:bg-green-700 focus:ring-accent-success;
+  }
+  
+  /* Button sizes */
+  .btn-sm {
+    @apply text-sm px-3 py-1.5 rounded-md;
+  }
+  
+  .btn-lg {
+    @apply text-lg px-6 py-3 rounded-xl;
+  }
+  
+  /* Legacy button support (keeping for backward compatibility) */
   .netflix-btn {
-    @apply px-4 py-2 rounded font-medium transition-all duration-300 focus:outline-none;
+    @apply btn;
   }
-  
   .netflix-btn-primary {
-    @apply bg-researchbee-yellow text-researchbee-black hover:bg-researchbee-yellow-dark;
+    @apply btn-primary;
   }
-  
   .netflix-btn-secondary {
-    @apply bg-researchbee-medium-gray text-white hover:bg-gray-700;
+    @apply btn-secondary;
   }
-  
   .netflix-btn-outline {
-    @apply border border-researchbee-white text-researchbee-white hover:bg-researchbee-white hover:text-researchbee-black;
+    @apply btn-outline;
   }
-  
   .netflix-btn-danger {
-    @apply bg-red-600 text-researchbee-white hover:bg-red-700;
+    @apply btn-danger;
   }
-  
   .netflix-btn-sm {
-    @apply text-sm px-3 py-1;
+    @apply btn-sm;
   }
-  
   .netflix-btn-lg {
-    @apply text-lg px-6 py-3;
+    @apply btn-lg;
   }
   
-  /* Card styles */
+  /* Modern Card System */
+  .card {
+    @apply bg-surface-primary rounded-xl shadow-sm border border-border-light transition-all duration-200 hover:shadow-md;
+  }
+  
+  .card-header {
+    @apply p-6 border-b border-border-light;
+  }
+  
+  .card-content {
+    @apply p-6;
+  }
+  
+  .card-footer {
+    @apply p-6 border-t border-border-light;
+  }
+  
+  /* Modern Form Controls */
+  .input {
+    @apply w-full bg-bg-tertiary text-text-primary border border-border-medium rounded-lg px-4 py-3 font-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-all duration-200;
+  }
+  
+  .input-error {
+    @apply border-accent-error focus:ring-accent-error focus:border-accent-error;
+  }
+  
+  .label {
+    @apply block text-sm font-ui font-medium text-text-primary mb-2;
+  }
+  
+  .textarea {
+    @apply input resize-vertical min-h-[100px];
+  }
+  
+  /* Legacy support */
   .netflix-card {
-    @apply bg-researchbee-dark-gray rounded-md shadow-netflix transition-all duration-300 hover:shadow-netflix-hover;
+    @apply card;
   }
   
-  /* Form controls */
   .netflix-input {
-    @apply w-full bg-researchbee-medium-gray text-white border border-gray-600 rounded px-4 py-3 focus:outline-none focus:border-researchbee-yellow transition-colors;
+    @apply input;
   }
   
   .netflix-input-error {
-    @apply border-red-600 focus:ring-red-600;
+    @apply input-error;
   }
   
   .netflix-label {
-    @apply block text-sm text-researchbee-light-gray mb-1;
+    @apply label;
   }
   
   /* Navigation */
@@ -265,10 +333,7 @@ h1, h2, h3, h4, h5, h6 {
   @apply outline-none ring-2 ring-researchbee-yellow;
 }
 
-/* Base styles */
-body {
-  @apply bg-researchbee-black text-white antialiased;
-}
+/* Modern base styles - handled by layout.tsx */
 
 /* Animation utilities */
 .fade-in {
