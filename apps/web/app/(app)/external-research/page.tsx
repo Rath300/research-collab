@@ -15,8 +15,6 @@ const availableSources: { id: ApiSource; name: string }[] = [
   { id: 'arxiv', name: 'arXiv' },
   { id: 'semanticScholar', name: 'Semantic Scholar' },
   { id: 'crossref', name: 'CrossRef' },
-  { id: 'pubmed', name: 'PubMed' },
-  { id: 'core', name: 'CORE' },
 ];
 
 export default function ExternalResearchPage() {
@@ -27,26 +25,11 @@ export default function ExternalResearchPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Use tRPC APIs for external search
-  const arxivQuery = api.external.searchArxiv.useQuery(
-    { query: submittedQuery, limit: 10 },
-    { enabled: !!submittedQuery && selectedSources.includes('arxiv') }
-  );
-
-  const semanticScholarQuery = api.external.searchSemanticScholar.useQuery(
-    { query: submittedQuery, limit: 10 },
-    { enabled: !!submittedQuery && selectedSources.includes('semanticScholar') }
-  );
-
-  const crossrefQuery = api.external.searchCrossRef.useQuery(
-    { query: submittedQuery, limit: 10 },
-    { enabled: !!submittedQuery && selectedSources.includes('crossref') }
-  );
-
   const unifiedQuery = api.external.searchAll.useQuery(
     { 
       query: submittedQuery, 
       limit: 20, 
-      sources: selectedSources as any
+      sources: selectedSources.map(s => s === 'semanticScholar' ? 'semantic_scholar' : s) as any
     },
     { enabled: !!submittedQuery }
   );

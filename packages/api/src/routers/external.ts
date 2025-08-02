@@ -278,26 +278,59 @@ export const externalRouter = router({
         // Search each source in parallel
         const searchPromises = sources.map(async (source) => {
           try {
+            const sourceLimit = Math.ceil(limit / sources.length);
+            
             switch (source) {
               case 'arxiv':
-                const arxivResult = await fetch(`/api/trpc/external.searchArxiv?input=${encodeURIComponent(JSON.stringify({ query, limit: Math.ceil(limit / sources.length) }))}`);
+                const arxivResult = await fetch(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${sourceLimit}&sortBy=relevance&sortOrder=descending`);
                 if (arxivResult.ok) {
-                  const arxivData = await arxivResult.json();
-                  return arxivData.result.data.results;
+                  const xmlText = await arxivResult.text();
+                  const entries = parseArxivXML(xmlText);
+                  return entries.map(entry => ({
+                    id: entry.id,
+                    title: entry.title,
+                    abstract: entry.summary,
+                    authors: entry.authors,
+                    published: entry.published,
+                    updated: entry.updated,
+                    url: entry.link,
+                    pdf_url: entry.pdf_url,
+                    source: 'arxiv' as const,
+                  }));
                 }
                 break;
+                
               case 'semantic_scholar':
-                const ssResult = await fetch(`/api/trpc/external.searchSemanticScholar?input=${encodeURIComponent(JSON.stringify({ query, limit: Math.ceil(limit / sources.length) }))}`);
+                const ssResult = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=${sourceLimit}&fields=title,abstract,authors,year,url,openAccessPdf`);
                 if (ssResult.ok) {
-                  const ssData = await ssResult.json();
-                  return ssData.result.data.results;
+                  const data: SemanticScholarResponse = await ssResult.json();
+                  return data.data.map(paper => ({
+                    id: paper.paperId,
+                    title: paper.title,
+                    abstract: paper.abstract || '',
+                    authors: paper.authors.map(author => author.name),
+                    year: paper.year,
+                    url: paper.url,
+                    pdf_url: paper.openAccessPdf?.url,
+                    source: 'semantic_scholar' as const,
+                  }));
                 }
                 break;
+                
               case 'crossref':
-                const crResult = await fetch(`/api/trpc/external.searchCrossRef?input=${encodeURIComponent(JSON.stringify({ query, limit: Math.ceil(limit / sources.length) }))}`);
+                const crResult = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=${sourceLimit}&select=DOI,title,abstract,author,published,URL`);
                 if (crResult.ok) {
-                  const crData = await crResult.json();
-                  return crData.result.data.results;
+                  const data: CrossRefResponse = await crResult.json();
+                  return data.message.items.map(work => ({
+                    id: work.DOI,
+                    title: work.title?.[0] || 'Untitled',
+                    abstract: work.abstract || '',
+                    authors: work.author?.map(author => `${author.given} ${author.family}`) || [],
+                    year: work.published?.['date-parts']?.[0]?.[0],
+                    url: work.URL,
+                    doi: work.DOI,
+                    source: 'crossref' as const,
+                  }));
                 }
                 break;
             }
