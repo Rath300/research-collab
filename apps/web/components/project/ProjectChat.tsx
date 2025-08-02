@@ -77,7 +77,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
 
   if (!isExpanded) {
     return (
-      <Card className="bg-neutral-900 border-neutral-800">
+      <Card className="bg-white border-border-light">
         <CardHeader className="cursor-pointer" onClick={() => setIsExpanded(true)}>
           <CardTitle className="text-xl font-bold flex items-center justify-between">
             <div className="flex items-center">
@@ -94,7 +94,7 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800">
+    <Card className="bg-white border-border-light">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-bold flex items-center">

@@ -46,7 +46,7 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
 
   return (
     <motion.div 
-      className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-neutral-700/80"
+      className="bg-white border border-border-light rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-border-medium"
       variants={postCardItemVariants}
     >
       <div className="p-5">
@@ -59,36 +59,36 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
                 className="mr-3 flex-shrink-0"
             />
             <div>
-                <p className="text-sm font-medium text-neutral-200 line-clamp-1">{authorName || 'Unknown Author'}</p>
-                <p className="text-xs text-neutral-500">{post.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
+                <p className="text-sm font-medium text-text-primary line-clamp-1">{authorName || 'Unknown Author'}</p>
+                <p className="text-xs text-text-secondary">{post.profiles?.institution || 'Independent Researcher'} • {postDate}</p>
             </div>
         </div>
 
         <Link href={`/projects/${post.id}`} className="block mb-2">
-          <h3 className="text-lg font-heading text-neutral-100 hover:text-accent-purple transition-colors duration-150 line-clamp-2">
+          <h3 className="text-lg font-heading text-text-primary hover:text-accent-primary transition-colors duration-150 line-clamp-2">
             {post.title}
           </h3>
         </Link>
         
         {truncatedContent && (
-            <p className="text-neutral-400 text-sm mb-4 line-clamp-3">
+            <p className="text-text-secondary text-sm mb-4 line-clamp-3">
             {truncatedContent}
             </p>
         )}
 
         {usernameTag && (
           <div className="flex flex-wrap gap-2 mb-4">
-            <span className="bg-accent-purple/10 text-accent-purple px-2.5 py-1 rounded-full text-xs font-medium">
+            <span className="bg-text-secondary/10 text-text-secondary px-2.5 py-1 rounded-full text-xs font-medium">
               <FiTag className="inline mr-1 -mt-px h-3 w-3"/> {usernameTag}
             </span>
           </div>
         )}
       </div>
-      <div className="bg-neutral-800/30 px-5 py-3 border-t border-neutral-800 flex items-center justify-between text-neutral-500">
+      <div className="bg-gray-50 px-5 py-3 border-t border-border-light flex items-center justify-between text-text-secondary">
         <div className="flex items-center gap-3">
-            <button className="hover:text-accent-purple transition-colors flex items-center"><FiMessageSquare size={16} className="mr-1" /> <span className="text-xs">{/* count */}</span></button>
+            <button className="hover:text-accent-primary transition-colors flex items-center"><FiMessageSquare size={16} className="mr-1" /> <span className="text-xs">{/* count */}</span></button>
         </div>
-        <button className="hover:text-accent-purple transition-colors"><FiBookmark size={16} /></button>
+        <button className="hover:text-accent-primary transition-colors"><FiBookmark size={16} /></button>
       </div>
     </motion.div>
   );
@@ -163,7 +163,7 @@ export default function TrendingPage() {
       <div className="p-4 sm:p-6 md:p-8">
         <HomeButton />
         <motion.h1 
-            className="text-3xl md:text-4xl font-heading text-neutral-100 mb-6 md:mb-8 text-center"
+            className="text-3xl md:text-4xl font-heading text-text-primary mb-6 md:mb-8 text-center"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -177,17 +177,17 @@ export default function TrendingPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <h2 className="text-2xl font-heading text-neutral-200 mb-4 flex items-center"><FiZap className="mr-2 text-accent-purple"/>Hot Right Now</h2>
+          <h2 className="text-2xl font-heading text-text-primary mb-4 flex items-center"><FiZap className="mr-2 text-accent-primary"/>Hot Right Now</h2>
           {hotTopics.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {hotTopics.map(topic => (
                 <motion.div 
                   key={topic.name} 
-                  className="bg-neutral-800/70 p-4 rounded-lg border border-neutral-700/70 hover:bg-neutral-700/90 transition-colors cursor-pointer"
+                  className="bg-white p-4 rounded-lg border border-border-light hover:bg-gray-50 transition-colors cursor-pointer"
                   whileHover={{ scale: 1.03 }}
                 >
-                  <p className="font-sans font-medium text-neutral-100 text-sm truncate">{topic.name}</p>
-                  <p className="text-xs text-accent-purple/80">{topic.count} mention{topic.count === 1 ? '' : 's'}</p>
+                  <p className="font-sans font-medium text-text-primary text-sm truncate">{topic.name}</p>
+                  <p className="text-xs text-text-secondary">{topic.count} mention{topic.count === 1 ? '' : 's'}</p>
                 </motion.div>
               ))}
             </div>
@@ -201,7 +201,7 @@ export default function TrendingPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <h2 className="text-2xl font-heading text-neutral-200 mb-5 flex items-center"><FiBarChart2 className="mr-2 text-accent-purple"/>Popular Research</h2>
+          <h2 className="text-2xl font-heading text-text-primary mb-5 flex items-center"><FiBarChart2 className="mr-2 text-accent-primary"/>Popular Research</h2>
           
           {loading && !posts.length && (
             <div className="flex justify-center items-center py-10">

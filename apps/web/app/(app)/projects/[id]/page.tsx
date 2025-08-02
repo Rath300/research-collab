@@ -41,7 +41,7 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
                 return (
                     <div 
                       key={collab.id} 
-                      className={`flex items-center justify-between p-3 bg-neutral-800 rounded-lg transition-opacity ${
+                      className={`flex items-center justify-between p-3 bg-white border border-border-light rounded-lg transition-opacity ${
                         collab.status === 'pending' ? 'opacity-50' : 'opacity-100'
                       }`}
                     >
@@ -53,20 +53,20 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
                                 size="sm"
                             />
                             <div className="ml-4">
-                                <p className="font-semibold text-white">
+                                <p className="font-semibold text-text-primary">
                                     {collab.user?.first_name || 'Unknown'} {collab.user?.last_name || ''}
                                 </p>
-                                <p className="text-sm text-neutral-400">
+                                <p className="text-sm text-text-secondary">
                                     {collab.status === 'pending' ? 'Sending invite...' : (collab.user?.id || 'Unknown User')}
                                 </p>
                             </div>
                         </div>
                         <div
                           className={`px-2.5 py-1 rounded-full ${
-                            collab.role === 'owner' ? 'bg-blue-500' : 'bg-gray-600'
+                            collab.role === 'owner' ? 'bg-text-secondary/10 text-text-secondary' : 'bg-text-secondary/5 text-text-secondary'
                           }`}
                         >
-                          <span className="text-xs text-white font-bold">
+                          <span className="text-xs font-bold">
                             {collab.status === 'pending' ? 'PENDING' : (collab.role || 'UNKNOWN').toUpperCase()}
                           </span>
                         </div>

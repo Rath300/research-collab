@@ -150,7 +150,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800">
+    <Card className="bg-white border-border-light">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold flex items-center">
@@ -170,7 +170,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
       </CardHeader>
       <CardContent>
         {/* Task Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-neutral-700">
+        <div className="flex gap-2 mb-6 border-b border-border-light">
           {[
             { key: 'all', label: 'All', count: tasks?.length || 0 },
             { key: 'todo', label: 'To Do', count: taskCounts.todo },
@@ -182,8 +182,8 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
               onClick={() => setActiveTab(tab.key as any)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-neutral-400 hover:text-neutral-200'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-text-secondary hover:text-text-primary'
               }`}
             >
               {tab.label} ({tab.count})
@@ -193,7 +193,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
 
         {/* Create Task Form */}
         {showCreateForm && userRole !== 'viewer' && (
-          <Card className="mb-6 bg-neutral-800 border-neutral-700">
+          <Card className="mb-6 bg-gray-50 border-border-light">
             <CardContent className="p-4">
               <form onSubmit={handleCreateTask} className="space-y-4">
                 <div>
@@ -209,7 +209,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
                     placeholder="Task description (optional)"
                     value={newTask.description}
                     onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-border-light rounded-md text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     rows={3}
                   />
                 </div>
@@ -268,7 +268,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
 
         {/* Tasks List */}
         {!tasks || tasks.length === 0 ? (
-          <div className="text-center py-8 text-neutral-400">
+          <div className="text-center py-8 text-text-secondary">
             <FiCheck className="mx-auto text-4xl mb-4" />
             <p>No tasks yet.</p>
             {userRole !== 'viewer' && (
@@ -361,3 +361,4 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
     </Card>
   );
 }
+

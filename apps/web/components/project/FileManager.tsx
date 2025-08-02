@@ -48,7 +48,7 @@ export function FileManager({ projectId, userRole }: FileManagerProps) {
 
   if (isLoading) {
     return (
-      <Card className="bg-neutral-900 border-neutral-800">
+      <Card className="bg-white border-border-light">
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <FiLoader className="animate-spin text-2xl" />
@@ -61,7 +61,7 @@ export function FileManager({ projectId, userRole }: FileManagerProps) {
 
   if (error) {
     return (
-      <Card className="bg-neutral-900 border-neutral-800">
+      <Card className="bg-white border-border-light">
         <CardContent className="p-6">
           <div className="text-red-500">Error loading files: {error.message}</div>
         </CardContent>
@@ -70,7 +70,7 @@ export function FileManager({ projectId, userRole }: FileManagerProps) {
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800">
+    <Card className="bg-white border-border-light">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold flex items-center">
@@ -90,7 +90,7 @@ export function FileManager({ projectId, userRole }: FileManagerProps) {
       </CardHeader>
       <CardContent>
         {showUpload && userRole !== 'viewer' && (
-          <div className="mb-6 p-4 border border-neutral-700 rounded-lg bg-neutral-800/50">
+          <div className="mb-6 p-4 border border-border-light rounded-lg bg-gray-50">
             <FileUpload 
               projectId={projectId} 
               onUploadComplete={() => setShowUpload(false)}
