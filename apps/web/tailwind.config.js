@@ -27,10 +27,10 @@ module.exports = {
         'bg-tertiary': '#FFFFFF',       // Input fields, modals (pure white)
         'bg-quaternary': '#F8F9FA',     // Subtle dividers, disabled states (very light grey)
 
-        // Text Colors (Pure Black on White)
-        'text-primary': '#000000',      // Main text (pure black)
-        'text-secondary': '#6B7280',    // Secondary text (grey)
-        'text-muted': '#9CA3AF',        // Placeholder, captions (light grey)
+        // Text Colors (Darker for better readability)
+        'text-primary': '#111827',      // Main text (very dark grey - almost black)
+        'text-secondary': '#374151',    // Secondary text (dark grey)
+        'text-muted': '#6B7280',        // Placeholder, captions (medium grey)
         'text-inverse': '#FFFFFF',      // White text for rare dark backgrounds
 
         // Accent Colors (Monochrome Only)
@@ -49,10 +49,10 @@ module.exports = {
         'border-accent': '#000000',     // Accent borders (black)
 
         // Surface Colors (Very Light Grey Cards)
-        'surface-primary': '#F8F9FA',    // Main cards, panels (very light grey)
-        'surface-secondary': '#F1F3F4',  // Secondary panels (light grey)
-        'surface-hover': '#E8EAED',      // Hover states (slightly darker grey)
-        'surface-active': '#DADCE0',     // Active/selected states (medium light grey)
+        'surface-primary': '#FAFBFC',    // Main cards, panels (very light grey - almost white)
+        'surface-secondary': '#F8F9FA',  // Secondary panels (very light grey)
+        'surface-hover': '#F1F3F4',      // Hover states (light grey)
+        'surface-active': '#E8EAED',     // Active/selected states (slightly darker grey)
 
         // Legacy support (keeping old names mapped to new values)
         'ic-text-primary': '#000000',    // Now maps to black text

@@ -58,9 +58,9 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header - Updated to remove yellow accents */}
-              <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-surface-primary/70 backdrop-blur-lg border-b border-border-light">
+              <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-lg border-b border-neutral-800">
         <Link href="/" className="font-heading text-3xl font-semibold text-neutral-100 tracking-tight hover:text-white transition-colors">
           RESEARCH-BEE
         </Link>
@@ -84,7 +84,7 @@ export default function LandingPage() {
       <main className="flex-grow">
         {/* Hero Section - Styled for high contrast and modern feel */}
         <motion.section 
-          className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-100px)] px-4 py-20 overflow-hidden bg-bg-primary"
+          className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-100px)] px-4 py-20 overflow-hidden bg-black"
           initial="hidden"
           animate="visible"
           variants={{
@@ -149,7 +149,7 @@ export default function LandingPage() {
         {/* Features Section - Redesigned to be Vertical with Animated Text */}
         <motion.section 
           id="features" 
-          className="py-16 md:py-24 bg-bg-primary"
+          className="py-16 md:py-24 bg-black"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }} 
@@ -201,7 +201,7 @@ export default function LandingPage() {
 
         {/* How It Works Section (Horizontal Steps) */}
         <motion.section 
-          className="py-16 md:py-24 bg-bg-primary" 
+          className="py-16 md:py-24 bg-black" 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -290,7 +290,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 bg-surface-primary border-t border-border-light mt-auto">
+      <footer className="py-8 bg-neutral-900 border-t border-neutral-800 mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-neutral-500 text-sm">
           &copy; {new Date().getFullYear()} Research-Bee. All rights reserved.
         </div>

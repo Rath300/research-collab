@@ -64,7 +64,7 @@ export default function ResearchPage() {
   if (error) {
     return (
       <PageContainer title="Error" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
-                  <div className="bg-surface-primary border border-border-medium rounded-xl shadow-lg p-8 text-center font-sans">
+                  <div className="bg-white border border-border-light rounded-xl shadow-lg p-8 text-center font-sans">
           <FiAlertCircle className="mx-auto text-red-500 text-6xl mb-4" />
                       <h2 className="text-2xl font-heading text-text-primary mb-2">Oops! Something went wrong.</h2>
           <p className="text-neutral-300 mb-4">Error: {error}</p>
@@ -97,7 +97,7 @@ export default function ResearchPage() {
               const usernameTag = project.profiles?.first_name || project.profiles?.email || 'Unknown';
 
               return (
-                <div key={project.id} className="bg-surface-primary border border-border-medium rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-border-dark">
+                <div key={project.id} className="bg-white border border-border-light rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:border-border-medium">
                   <div className="p-5 sm:p-6">
                     <div className="flex items-center mb-3">
                         <Avatar 

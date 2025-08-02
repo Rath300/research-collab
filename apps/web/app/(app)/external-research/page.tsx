@@ -72,7 +72,7 @@ export default function ExternalResearchPage() {
           </p>
         </header>
 
-        <div className="bg-surface-primary border border-border-medium rounded-lg shadow-xl p-6 mb-8">
+        <div className="bg-white border border-border-light rounded-lg shadow-xl p-6 mb-8">
           <div className="mb-4">
             <Label htmlFor="searchQuery" className={commonLabelClass}>Search Query</Label>
             <Input
@@ -138,7 +138,7 @@ export default function ExternalResearchPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-heading text-text-primary mb-4">Search Results ({papers.length})</h2>
             {papers.map((paper) => (
-              <div key={paper.id} className="bg-surface-primary border border-border-medium rounded-lg shadow-lg p-5 hover:border-border-dark transition-colors">
+              <div key={paper.id} className="bg-white border border-border-light rounded-lg shadow-lg p-5 hover:border-border-medium transition-colors">
                                   <h3 className="text-lg font-semibold font-heading text-accent-primary mb-1">{paper.title}</h3>
                 {paper.abstract && (
                   <p className="text-sm text-neutral-400 mb-3 line-clamp-3 font-sans">{paper.abstract}</p>

@@ -254,7 +254,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <div className="p-4 md:p-8 text-text-primary">
-      <Card className="bg-surface-primary border-border-medium mb-8">
+      <Card className="bg-white border-border-light mb-8">
         <CardHeader>
             <div className="flex justify-between items-start">
               <CardTitle className="text-3xl font-bold">{project?.title || 'Loading...'}</CardTitle>
@@ -266,12 +266,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
         </CardHeader>
         <CardContent>
-            <p className="mt-2 text-neutral-300">{project?.description || 'No description available'}</p>
+            <p className="mt-2 text-text-secondary">{project?.description || 'No description available'}</p>
         </CardContent>
       </Card>
 
       {(project?.role === 'owner' || project?.role === 'editor') && (
-        <Card className="bg-surface-primary border-border-medium mb-8">
+        <Card className="bg-white border-border-light mb-8">
           <CardHeader>
               <CardTitle className="text-2xl font-bold">Invite a Collaborator</CardTitle>
           </CardHeader>
@@ -281,7 +281,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </Card>
       )}
       
-      <Card className="bg-surface-primary border-border-medium mb-8">
+      <Card className="bg-white border-border-light mb-8">
         <CardHeader>
             <CardTitle className="text-2xl font-bold">Collaborators</CardTitle>
         </CardHeader>
