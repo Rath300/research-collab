@@ -29,68 +29,68 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700">
+    <nav className="bg-surface-primary border-b border-border-light px-6 py-4 shadow-sm">
       <div className="flex flex-wrap justify-between items-center">
         <div className="flex items-center">
           <button
             type="button"
-            className="md:hidden inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            className="md:hidden inline-flex items-center p-2 text-sm text-text-secondary rounded-lg hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent-primary"
             aria-expanded="false"
           >
             <span className="sr-only">Open sidebar</span>
             <FiMenu className="w-6 h-6" />
           </button>
           <Link href="/dashboard" className="flex ml-2 md:mr-24 items-center">
-            <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
+            <span className="self-center text-xl font-heading font-semibold text-text-primary">
               Research Collab
             </span>
           </Link>
         </div>
         
         <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
-          {mounted && (
+          {/* Theme Toggle - Hidden for now since we're using light theme */}
+          {/* {mounted && (
             <button 
               onClick={toggleTheme} 
-              className="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+              className="p-2 text-text-secondary rounded-lg hover:text-text-primary hover:bg-surface-hover"
             >
               {theme === 'dark' ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
               <span className="sr-only">Toggle dark mode</span>
             </button>
-          )}
+          )} */}
           
           {/* Notifications */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+              className="p-2 text-text-secondary rounded-lg hover:text-text-primary hover:bg-surface-hover transition-colors"
             >
               <span className="sr-only">View notifications</span>
               <div className="relative">
                 <FiBell className="w-5 h-5" />
-                <div className="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full -top-2 -right-2">
+                <div className="absolute inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-text-inverse bg-accent-error rounded-full -top-1 -right-1">
                   3
                 </div>
               </div>
             </button>
             
             {notificationsOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-80 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                <div className="py-2 px-4 font-medium text-center text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-white">
+              <div className="absolute right-0 z-50 mt-2 w-80 bg-surface-primary rounded-lg border border-border-light shadow-lg">
+                <div className="py-3 px-4 font-ui font-medium text-center text-text-primary bg-surface-secondary rounded-t-lg">
                   Notifications
                 </div>
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                  <a href="#" className="flex py-3 px-4 hover:bg-gray-100 dark:hover:bg-gray-600">
+                <div className="divide-y divide-border-light">
+                  <a href="#" className="flex py-3 px-4 hover:bg-surface-hover transition-colors">
                     <div className="pl-3 w-full">
-                      <div className="text-gray-500 font-normal text-sm mb-1.5 dark:text-gray-400">
-                        New connection request from <span className="font-semibold text-gray-900 dark:text-white">Alex Johnson</span>
+                      <div className="text-text-secondary font-body text-sm mb-1.5">
+                        New connection request from <span className="font-semibold text-text-primary">Alex Johnson</span>
                       </div>
-                      <div className="text-xs font-medium text-primary-600">10 minutes ago</div>
+                      <div className="text-xs font-medium text-accent-primary">10 minutes ago</div>
                     </div>
                   </a>
                 </div>
-                <a href="#" className="block py-2 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:text-white dark:hover:underline">
+                <a href="#" className="block py-3 text-sm font-ui font-medium text-center text-text-primary bg-surface-secondary hover:bg-surface-hover rounded-b-lg transition-colors">
                   View all notifications
                 </a>
               </div>
@@ -102,10 +102,10 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+              className="flex text-sm rounded-full focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-primary transition-all"
             >
               <span className="sr-only">Open user menu</span>
-              <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+              <div className="w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center text-text-inverse">
                 <Avatar 
                   src={profile?.avatar_url} 
                   alt={profile ? `${profile.first_name} ${profile.last_name}` : 'User'} 
@@ -116,36 +116,36 @@ export function Navbar() {
             </button>
             
             {dropdownOpen && (
-              <div className="absolute right-0 z-50 my-4 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                <div className="py-3 px-4">
-                  <span className="block text-sm font-semibold text-gray-900 dark:text-white">
+              <div className="absolute right-0 z-50 my-4 w-56 bg-surface-primary rounded-lg border border-border-light shadow-lg">
+                <div className="py-3 px-4 border-b border-border-light">
+                  <span className="block text-sm font-ui font-semibold text-text-primary">
                     {profile ? `${profile.first_name} ${profile.last_name}` : 'User'}
                   </span>
-                  <span className="block text-sm text-gray-500 truncate dark:text-gray-400">
+                  <span className="block text-sm text-text-secondary truncate font-body">
                     {user?.email || 'user@example.com'}
                   </span>
                 </div>
-                <ul className="py-1 text-gray-700 dark:text-gray-300">
+                <ul className="py-2 text-text-primary">
                   <li>
-                    <Link href="/dashboard" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <Link href="/dashboard" className="block py-2 px-4 text-sm font-body hover:bg-surface-hover transition-colors">
                       Dashboard
                     </Link>
                   </li>
                   <li>
-                    <Link href="/profile" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <Link href="/profile" className="block py-2 px-4 text-sm font-body hover:bg-surface-hover transition-colors">
                       Profile
                     </Link>
                   </li>
                   <li>
-                    <Link href="/settings" className="block py-2 px-4 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <Link href="/settings" className="block py-2 px-4 text-sm font-body hover:bg-surface-hover transition-colors">
                       Settings
                     </Link>
                   </li>
                 </ul>
-                <div className="py-1">
+                <div className="py-2 border-t border-border-light">
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white w-full"
+                    className="flex items-center py-2 px-4 text-sm text-accent-error hover:bg-surface-hover font-body w-full transition-colors"
                   >
                     <FiLogOut className="mr-2 w-4 h-4" />
                     Sign out

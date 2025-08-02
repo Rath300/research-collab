@@ -61,16 +61,16 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-bg-primary">
       <Sidebar />
       
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <Navbar />
         
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto p-6 md:p-8">
           {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary-600"></div>
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-light border-t-accent-primary"></div>
             </div>
           ) : (
             children
