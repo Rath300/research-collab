@@ -546,22 +546,22 @@ export const projectRouter = router({
 
       // If not owner, check if user is active collaborator with editor role
       if (!isOwner) {
-        const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
-          .from('project_collaborators')
-          .select('role')
-          .eq('project_id', projectId)
-          .eq('user_id', inviterUserId)
-          .eq('status', 'active')
-          .maybeSingle();
+      const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', projectId)
+        .eq('user_id', inviterUserId)
+        .eq('status', 'active')
+        .maybeSingle();
 
-        if (inviterCheckError) {
-          console.error("Error checking inviter permission:", inviterCheckError);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to verify your project permissions.',
-            cause: inviterCheckError,
-          });
-        }
+      if (inviterCheckError) {
+        console.error("Error checking inviter permission:", inviterCheckError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to verify your project permissions.',
+          cause: inviterCheckError,
+        });
+      }
 
                  hasPermission = !!(inviterCollaborator && (inviterCollaborator.role === 'owner' || inviterCollaborator.role === 'editor'));
       }
@@ -1870,20 +1870,20 @@ export const projectRouter = router({
 
       // If not owner, check if user is active collaborator
       if (!isOwner) {
-        const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
-          .from('project_collaborators')
+      const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
+        .from('project_collaborators')
           .select('id', { head: true })
-          .eq('project_id', projectId)
-          .eq('user_id', requesterUserId)
-          .eq('status', 'active')
+        .eq('project_id', projectId)
+        .eq('user_id', requesterUserId)
+        .eq('status', 'active')
           .maybeSingle();
 
-        if (requesterCheckError) {
-          console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
-        }
+      if (requesterCheckError) {
+        console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
+      }
         if (!requesterMembership) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
         }
       }
 

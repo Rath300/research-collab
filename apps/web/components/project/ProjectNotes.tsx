@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/trpc';
-import { FiBookOpen, FiPlus, FiEdit3, FiTrash, FiSave, FiX, FiLoader, FiTag, FiFolderOpen } from 'react-icons/fi';
+import { FiBookOpen, FiPlus, FiEdit3, FiTrash, FiSave, FiX, FiLoader, FiTag, FiFolder } from 'react-icons/fi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -200,7 +200,7 @@ export function ProjectNotes({ projectId, userRole }: ProjectNotesProps) {
                 size="sm"
                 onClick={() => setSelectedSection('')}
               >
-                <FiFolderOpen className="w-3 h-3 mr-1" />
+                <FiFolder className="w-3 h-3 mr-1" />
                 All Sections
               </Button>
               {sections.map((section) => (

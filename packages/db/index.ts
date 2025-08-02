@@ -53,7 +53,7 @@ export const profileSchema = z.object({
   availability: z.enum(['full-time', 'part-time', 'weekends', 'not-available']).optional().nullable(),
   availability_hours: z.number().optional().nullable(),
   project_preference: z.enum(['remote', 'local', 'hybrid']).optional().nullable(),
-  visibility: z.enum(['public', 'private', 'connections']).optional().nullable(),
+  visibility: z.enum(['public', 'private']).optional().nullable(),
 
   has_completed_tour: z.boolean().optional().default(false),
 });

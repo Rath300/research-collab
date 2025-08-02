@@ -28,7 +28,7 @@ interface ProfileFormData {
   availability: 'full-time' | 'part-time' | 'weekends' | 'not-available';
   availability_hours: number | string;
   project_preference: 'remote' | 'local' | 'hybrid';
-  visibility: 'public' | 'private' | 'connections';
+  visibility: 'public' | 'private';
   website: string;
 
 }
@@ -407,7 +407,6 @@ export function ProfileForm({ initialData, onProfileUpdate }: ProfileFormProps) 
           <SelectTrigger className={commonInputClass} id="visibility"><SelectValue placeholder="Select visibility" /></SelectTrigger>
           <SelectContent className="bg-neutral-800 border-neutral-700 text-neutral-100">
             <SelectItem value="public">Public (Visible to everyone)</SelectItem>
-            <SelectItem value="connections">Connections Only (Not yet implemented)</SelectItem>
             <SelectItem value="private">Private (Only you can see)</SelectItem>
           </SelectContent>
         </Select>

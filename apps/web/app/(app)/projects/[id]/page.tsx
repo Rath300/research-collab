@@ -32,36 +32,47 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
 
     return (
         <div className="space-y-4">
-            {collaborators.map((collab: Collaborator) => (
-                <div 
-                  key={collab.id} 
-                  className={`flex items-center justify-between p-3 bg-neutral-800 rounded-lg transition-opacity ${
-                    collab.status === 'pending' ? 'opacity-50' : 'opacity-100'
-                  }`}
-                >
-                    <div className="flex items-center">
-                        <Avatar 
-                            src={collab.user?.avatar_url} 
-                            fallback={collab.status === 'pending' ? <FiLoader className="animate-spin" /> : <FiUser />}
-                            alt={collab.user?.first_name || 'User'}
-                            size="sm"
-                        />
-                        <div className="ml-4">
-                            <p className="font-semibold text-white">{collab.user?.first_name} {collab.user?.last_name}</p>
-                            <p className="text-sm text-neutral-400">{collab.status === 'pending' ? 'Sending invite...' : collab.user?.id}</p>
-                        </div>
-                    </div>
-                    <div
-                      className={`px-2.5 py-1 rounded-full ${
-                        collab.role === 'owner' ? 'bg-blue-500' : 'bg-gray-600'
+            {collaborators.map((collab: Collaborator) => {
+                // Defensive check for collaborator data
+                if (!collab || !collab.id) {
+                    return null; // Skip invalid collaborators
+                }
+                
+                return (
+                    <div 
+                      key={collab.id} 
+                      className={`flex items-center justify-between p-3 bg-neutral-800 rounded-lg transition-opacity ${
+                        collab.status === 'pending' ? 'opacity-50' : 'opacity-100'
                       }`}
                     >
-                      <span className="text-xs text-white font-bold">
-                        {collab.status === 'pending' ? 'PENDING' : collab.role.toUpperCase()}
-                      </span>
+                        <div className="flex items-center">
+                            <Avatar 
+                                src={collab.user?.avatar_url || undefined} 
+                                fallback={collab.status === 'pending' ? <FiLoader className="animate-spin" /> : <FiUser />}
+                                alt={collab.user?.first_name || 'User'}
+                                size="sm"
+                            />
+                            <div className="ml-4">
+                                <p className="font-semibold text-white">
+                                    {collab.user?.first_name || 'Unknown'} {collab.user?.last_name || ''}
+                                </p>
+                                <p className="text-sm text-neutral-400">
+                                    {collab.status === 'pending' ? 'Sending invite...' : (collab.user?.id || 'Unknown User')}
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                          className={`px-2.5 py-1 rounded-full ${
+                            collab.role === 'owner' ? 'bg-blue-500' : 'bg-gray-600'
+                          }`}
+                        >
+                          <span className="text-xs text-white font-bold">
+                            {collab.status === 'pending' ? 'PENDING' : (collab.role || 'UNKNOWN').toUpperCase()}
+                          </span>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
@@ -246,8 +257,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <Card className="bg-neutral-900 border-neutral-800 mb-8">
         <CardHeader>
             <div className="flex justify-between items-start">
-              <CardTitle className="text-3xl font-bold">{project.title}</CardTitle>
-              {(project.role === 'owner' || project.role === 'editor') && (
+              <CardTitle className="text-3xl font-bold">{project?.title || 'Loading...'}</CardTitle>
+              {(project?.role === 'owner' || project?.role === 'editor') && (
                   <Link href={`/projects/${project.id}/edit`} passHref>
                       <Button variant="outline">Edit Project</Button>
                   </Link>
@@ -255,7 +266,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
         </CardHeader>
         <CardContent>
-            <p className="mt-2 text-neutral-300">{project.description}</p>
+            <p className="mt-2 text-neutral-300">{project?.description || 'No description available'}</p>
         </CardContent>
       </Card>
       
@@ -268,7 +279,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </CardContent>
       </Card>
 
-      {(project.role === 'owner' || project.role === 'editor') && (
+      {(project?.role === 'owner' || project?.role === 'editor') && (
         <Card className="bg-neutral-900 border-neutral-800 mb-8">
           <CardHeader>
               <CardTitle className="text-2xl font-bold">Invite a Collaborator</CardTitle>
@@ -281,17 +292,17 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ProjectChat projectId={projectId} />
-        <FileManager projectId={projectId} userRole={project.role} />
+        <FileManager projectId={projectId} userRole={project?.role || 'viewer'} />
       </div>
 
       <TaskManager 
         projectId={projectId} 
-        userRole={project.role} 
+        userRole={project?.role || 'viewer'} 
         collaborators={collaborators || []} 
       />
 
       <div className="mt-8">
-        <ProjectNotes projectId={projectId} userRole={project.role} />
+        <ProjectNotes projectId={projectId} userRole={project?.role || 'viewer'} />
       </div>
     </div>
   );
