@@ -221,10 +221,10 @@ export default function NewProjectPage() {
       className="bg-bg-primary min-h-screen text-text-primary font-sans p-4 sm:p-6 lg:p-8"
     >
       <div className="max-w-4xl mx-auto">
-        <Card className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl overflow-hidden">
+        <Card className="bg-white border border-border-light rounded-lg shadow-xl overflow-hidden">
           <CardHeader className="p-6">
-            <CardTitle className="text-2xl font-semibold text-white font-heading">Create New Research Project</CardTitle>
-            <CardDescription className="text-neutral-400 mt-2">
+            <CardTitle className="text-2xl font-semibold text-text-primary font-heading">Create New Research Project</CardTitle>
+            <CardDescription className="text-text-secondary mt-2">
               Start by defining the core details of your project. You can add files and other resources after saving.
             </CardDescription>
           </CardHeader>

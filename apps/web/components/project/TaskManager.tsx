@@ -108,17 +108,17 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-400 bg-green-900/30';
-      case 'in_progress': return 'text-yellow-400 bg-yellow-900/30';
-      default: return 'text-gray-400 bg-gray-900/30';
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'in_progress': return 'text-yellow-600 bg-yellow-100';
+      default: return 'text-text-secondary bg-text-secondary/10';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-400 bg-red-900/30';
-      case 'medium': return 'text-yellow-400 bg-yellow-900/30';
-      default: return 'text-green-400 bg-green-900/30';
+      case 'high': return 'text-red-600 bg-red-100';
+      case 'medium': return 'text-text-primary bg-text-secondary/10';
+      default: return 'text-green-600 bg-green-100';
     }
   };
 
@@ -138,7 +138,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
 
   if (isLoading) {
     return (
-      <Card className="bg-neutral-900 border-neutral-800">
+      <Card className="bg-white border-border-light">
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <FiLoader className="animate-spin text-2xl mr-2" />
@@ -218,7 +218,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
                     <select
                       value={newTask.assignedTo}
                       onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                      className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-white border border-border-light rounded-md text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                       <option value="">Assign to...</option>
                       {collaborators.map((collab) => (
@@ -232,7 +232,7 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
                     <select
                       value={newTask.priority}
                       onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
-                      className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-white border border-border-light rounded-md text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                       <option value="low">Low Priority</option>
                       <option value="medium">Medium Priority</option>
@@ -278,12 +278,12 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
         ) : (
           <div className="space-y-3">
             {tasks.map((task: TaskWithDetails) => (
-              <Card key={task.id} className="bg-neutral-800 border-neutral-700">
+              <Card key={task.id} className="bg-white border-border-light">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-medium text-white truncate">{task.title}</h4>
+                        <h4 className="font-medium text-text-primary truncate">{task.title}</h4>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
                           {getStatusIcon(task.status)}
                           <span className="ml-1 capitalize">{task.status.replace('_', ' ')}</span>
@@ -294,10 +294,10 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
                       </div>
                       
                       {task.description && (
-                        <p className="text-sm text-neutral-400 mb-2">{task.description}</p>
+                        <p className="text-sm text-text-secondary mb-2">{task.description}</p>
                       )}
                       
-                      <div className="flex items-center gap-4 text-xs text-neutral-500">
+                      <div className="flex items-center gap-4 text-xs text-text-secondary">
                         <span>Created by {task.creator_name}</span>
                         {task.assignee_name && (
                           <span className="flex items-center gap-1">
@@ -361,4 +361,6 @@ export function TaskManager({ projectId, userRole, collaborators }: TaskManagerP
     </Card>
   );
 }
+
+
 
