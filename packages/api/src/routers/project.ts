@@ -1798,47 +1798,56 @@ export const projectRouter = router({
     .query(async ({ ctx, input }) => {
       const { query, excludeProjectId } = input;
 
-      // Build the search query
-      let searchQuery = ctx.supabase
-        .from('profiles')
-        .select(`
-          id,
-          user_id,
-          email,
-          first_name,
-          last_name,
-          avatar_url,
-          title,
-          bio
-        `)
-        .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
-        .limit(10);
+      try {
+        // Build the search query
+        let searchQuery = ctx.supabase
+          .from('profiles')
+          .select(`
+            id,
+            user_id,
+            email,
+            first_name,
+            last_name,
+            avatar_url,
+            title,
+            bio
+          `)
+          .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+          .limit(10);
 
-      // Exclude users already in the project if specified
-      if (excludeProjectId) {
-        const { data: existingCollaborators } = await ctx.supabase
-          .from('project_collaborators')
-          .select('user_id')
-          .eq('project_id', excludeProjectId);
+        // Exclude users already in the project if specified
+        if (excludeProjectId) {
+          const { data: existingCollaborators } = await ctx.supabase
+            .from('project_collaborators')
+            .select('user_id')
+            .eq('project_id', excludeProjectId);
 
-        if (existingCollaborators && existingCollaborators.length > 0) {
-          const excludeUserIds = existingCollaborators.map(c => c.user_id);
-          searchQuery = searchQuery.not('user_id', 'in', excludeUserIds);
+          if (existingCollaborators && existingCollaborators.length > 0) {
+            const excludeUserIds = existingCollaborators.map(c => c.user_id);
+            searchQuery = searchQuery.not('user_id', 'in', excludeUserIds);
+          }
         }
-      }
 
-      const { data: profiles, error } = await searchQuery;
+        const { data: profiles, error } = await searchQuery;
 
-      if (error) {
-        console.error('Error searching collaborators:', error);
+        if (error) {
+          console.error('Error searching collaborators:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to search for collaborators.',
+            cause: error,
+          });
+        }
+
+        return profiles || [];
+      } catch (error) {
+        console.error('Error in searchCollaborators:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to search for collaborators.',
           cause: error,
         });
       }
-
-      return profiles || [];
     }),
 
   /**

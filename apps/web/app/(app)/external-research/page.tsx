@@ -6,18 +6,8 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox'; // Assuming you have a Checkbox component
 import { Label } from '@/components/ui/Label'; // Assuming you have a Label component
-import {
-  searchArxiv,
-  searchSemanticScholar,
-  searchCrossref,
-  searchPubmed,
-  searchCore,
-  type ExternalSearchQuery,
-  type UnifiedSearchResultItem,
-} from '@/lib/external-apis'; // Adjust path as necessary
 import { FiSearch, FiLoader, FiAlertCircle, FiBookOpen } from 'react-icons/fi';
 import { api } from '@/lib/trpc';
-import { mapCoreResultToPaper } from '@/lib/external-apis/core.mapping';
 
 type ApiSource = 'arxiv' | 'semanticScholar' | 'crossref' | 'pubmed' | 'core';
 
@@ -33,16 +23,32 @@ export default function ExternalResearchPage() {
   const [searchQuery, setSearchQuery] = useState('AI');
   const [submittedQuery, setSubmittedQuery] = useState('AI');
   const [selectedSources, setSelectedSources] = useState<ApiSource[]>(['arxiv', 'semanticScholar']); // Default selection
-  const [results, setResults] = useState<UnifiedSearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const coreQuery = api.external.searchCore.useQuery(
-    { query: submittedQuery },
-    {
-      enabled: !!submittedQuery, // Only run the query if there is a submitted query
-      staleTime: 1000 * 60 * 5, // Cache results for 5 minutes
-    }
+  // Use tRPC APIs for external search
+  const arxivQuery = api.external.searchArxiv.useQuery(
+    { query: submittedQuery, limit: 10 },
+    { enabled: !!submittedQuery && selectedSources.includes('arxiv') }
+  );
+
+  const semanticScholarQuery = api.external.searchSemanticScholar.useQuery(
+    { query: submittedQuery, limit: 10 },
+    { enabled: !!submittedQuery && selectedSources.includes('semanticScholar') }
+  );
+
+  const crossrefQuery = api.external.searchCrossRef.useQuery(
+    { query: submittedQuery, limit: 10 },
+    { enabled: !!submittedQuery && selectedSources.includes('crossref') }
+  );
+
+  const unifiedQuery = api.external.searchAll.useQuery(
+    { 
+      query: submittedQuery, 
+      limit: 20, 
+      sources: selectedSources as any
+    },
+    { enabled: !!submittedQuery }
   );
 
   const handleSearch = (e: React.FormEvent) => {
@@ -50,13 +56,13 @@ export default function ExternalResearchPage() {
     setSubmittedQuery(searchQuery);
   };
 
+  // Get results from unified search
   const papers = useMemo(() => {
-    if (!coreQuery.data || !Array.isArray(coreQuery.data.results)) {
+    if (!unifiedQuery.data || !Array.isArray(unifiedQuery.data.results)) {
       return [];
     }
-    // Use the existing mapping function
-    return coreQuery.data.results.map(mapCoreResultToPaper).filter(Boolean);
-  }, [coreQuery.data]);
+    return unifiedQuery.data.results;
+  }, [unifiedQuery.data]);
 
   const handleSourceChange = (sourceId: ApiSource) => {
     setSelectedSources(prev =>
@@ -155,11 +161,19 @@ export default function ExternalResearchPage() {
                   <p className="text-sm text-neutral-400 mb-3 line-clamp-3 font-sans">{paper.abstract}</p>
                 )}
                 <div className="flex flex-wrap gap-3 items-center">
-                  {paper.downloadUrl && (
-                    <a href={paper.downloadUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-green-400 hover:text-green-300 hover:underline transition-colors">
+                  {paper.pdf_url && (
+                    <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-green-400 hover:text-green-300 hover:underline transition-colors">
                       Download PDF
                     </a>
                   )}
+                  {paper.doi && (
+                    <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-blue-400 hover:text-blue-300 hover:underline transition-colors">
+                      View DOI
+                    </a>
+                  )}
+                  <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-sm font-sans text-accent-purple hover:text-accent-purple/80 hover:underline transition-colors">
+                    View Paper
+                  </a>
                 </div>
               </div>
             ))}

@@ -10,7 +10,14 @@ import { FiSearch, FiTrendingUp, FiClock, FiAlertCircle, FiLoader, FiUser } from
 import { Avatar } from '@/components/ui/Avatar';
 import { type Database } from '@/lib/database.types';
 
-type Project = Database['public']['Tables']['projects']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'] & {
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+    institution: string | null;
+    avatar_url: string | null;
+  } | null;
+};
 
 export default function DiscoverPage() {
   // supabase is already imported as a singleton
@@ -27,12 +34,20 @@ export default function DiscoverPage() {
     try {
       let query = supabase
         .from('projects')
-        .select('*')
-        .eq('visibility', 'public')
+        .select(`
+          *,
+          profiles!leader_id (
+            first_name,
+            last_name,
+            institution,
+            avatar_url
+          )
+        `)
+        .eq('is_public', true)
         .limit(20);
 
       if (filter === 'trending') {
-        query = query.order('engagement_count', { ascending: false });
+        query = query.order('created_at', { ascending: false });
       } else {
         query = query.order('created_at', { ascending: false });
       }
