@@ -157,7 +157,7 @@ body {
   
   /* Minimal Card System - smaller, cleaner */
   .card {
-    @apply bg-surface-primary rounded-lg border border-border-light transition-all duration-200 hover:border-border-medium;
+    @apply bg-surface-primary rounded-lg border border-border-medium transition-all duration-200 hover:border-border-dark hover:bg-surface-hover;
   }
   
   .card-header {

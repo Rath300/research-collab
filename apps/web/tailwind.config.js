@@ -48,18 +48,18 @@ module.exports = {
         'border-dark': '#D1D5DB',       // Focused states, emphasis
         'border-accent': '#000000',     // Accent borders (black)
 
-        // Surface Colors (Pure White)
-        'surface-primary': '#FFFFFF',    // Main cards, panels (pure white)
-        'surface-secondary': '#FAFBFC',  // Secondary panels (barely grey)
-        'surface-hover': '#F9FAFB',      // Hover states (very light grey)
-        'surface-active': '#F3F4F6',     // Active/selected states (light grey)
+        // Surface Colors (Very Light Grey Cards)
+        'surface-primary': '#F8F9FA',    // Main cards, panels (very light grey)
+        'surface-secondary': '#F1F3F4',  // Secondary panels (light grey)
+        'surface-hover': '#E8EAED',      // Hover states (slightly darker grey)
+        'surface-active': '#DADCE0',     // Active/selected states (medium light grey)
 
         // Legacy support (keeping old names mapped to new values)
-        'ic-text-primary': '#1A1A1A',    // Now maps to dark text
-        'ic-text-secondary': '#4A4A4A',  // Now maps to secondary text
-        'ic-border': '#D1D1D1',          // Now maps to medium border
-        'accent-purple': '#7C3AED',      // Maps to new secondary accent
-        'accent-purple-hover': '#6D28D9', // Maps to new secondary hover
+        'ic-text-primary': '#000000',    // Now maps to black text
+        'ic-text-secondary': '#6B7280',  // Now maps to grey text
+        'ic-border': '#E5E7EB',          // Now maps to light border
+        'accent-purple': '#000000',      // Maps to black (no purple)
+        'accent-purple-hover': '#374151', // Maps to dark grey
       },
       fontFamily: {
         // Primary font system

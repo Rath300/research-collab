@@ -12,9 +12,9 @@ export const Card = ({ children, className, hoverEffect = false, as: Component =
   return (
     <Component
       className={twMerge(
-        'rounded-lg bg-surface-primary border border-border-light',
+        'rounded-lg bg-surface-primary border border-border-medium',
         'p-4',
-        hoverEffect && 'transition-all duration-200 hover:border-border-medium hover:bg-surface-hover',
+        hoverEffect && 'transition-all duration-200 hover:border-border-dark hover:bg-surface-hover',
         className
       )}
     >

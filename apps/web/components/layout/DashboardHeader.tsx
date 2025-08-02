@@ -69,25 +69,25 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
   const displayAvatarUrl = profile?.avatar_url;
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 md:px-6 bg-neutral-950 border-b border-neutral-800">
+    <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 md:px-6 bg-white border-b border-border-light shadow-sm">
       <div className="flex items-center">
         {/* Sidebar Toggle Button */} 
         <Button 
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="mr-4 p-2 text-neutral-400 hover:text-neutral-100"
+          className="mr-4 p-2 text-text-secondary hover:text-text-primary"
         >
           {isSidebarCollapsed ? <FiMenu className="h-5 w-5" /> : <FiX className="h-5 w-5" />}
         </Button>
         
         {/* Search Input - Adjusted width and placeholder */}
         <div className="relative w-full max-w-xs">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
           <Input
             type="search"
             placeholder="Search projects..."
-            className="pl-9 pr-4 py-2 text-sm w-full bg-neutral-800 border-neutral-700 focus:ring-blue-500 focus:border-blue-500 rounded-md text-neutral-100 placeholder-neutral-500"
+            className="pl-9 pr-4 py-2 text-sm w-full bg-bg-tertiary border-border-medium focus:ring-accent-primary focus:border-accent-primary rounded-md text-text-primary placeholder-text-muted"
             onKeyDown={handleSearch}
           />
         </div>
@@ -95,7 +95,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
 
       <div className="flex items-center space-x-4">
         {/* Notification Bell */}
-        <Link href="/notifications" className="p-2 rounded-full text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800">
+        <Link href="/notifications" className="p-2 rounded-full text-text-secondary hover:text-text-primary hover:bg-surface-hover">
           <FiBell className="w-5 h-5" />
           {/* Optional: Add a badge for unread notifications */}
         </Link>

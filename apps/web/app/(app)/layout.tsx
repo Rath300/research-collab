@@ -35,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (authIsLoading) {
     return (
               <div className="flex h-screen w-screen items-center justify-center bg-bg-primary">
-        <FiLoader className="animate-spin text-accent-purple text-4xl" />
+        <FiLoader className="animate-spin text-accent-primary text-4xl" />
       </div>
     );
   }

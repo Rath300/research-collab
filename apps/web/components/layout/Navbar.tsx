@@ -29,7 +29,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-surface-primary border-b border-border-light px-4 py-3">
+    <nav className="bg-white border-b border-border-light px-4 py-3 shadow-sm">
       <div className="flex flex-wrap justify-between items-center">
         <div className="flex items-center">
           <button
