@@ -246,8 +246,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <Card className="bg-neutral-900 border-neutral-800 mb-8">
         <CardHeader>
             <div className="flex justify-between items-start">
-              <CardTitle className="text-3xl font-bold">{project.title}</CardTitle>
-              {(project.role === 'owner' || project.role === 'editor') && (
+              <CardTitle className="text-3xl font-bold">{project?.title || 'Loading...'}</CardTitle>
+              {(project?.role === 'owner' || project?.role === 'editor') && (
                   <Link href={`/projects/${project.id}/edit`} passHref>
                       <Button variant="outline">Edit Project</Button>
                   </Link>
@@ -255,7 +255,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
         </CardHeader>
         <CardContent>
-            <p className="mt-2 text-neutral-300">{project.description}</p>
+            <p className="mt-2 text-neutral-300">{project?.description || 'No description available'}</p>
         </CardContent>
       </Card>
       
@@ -268,7 +268,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </CardContent>
       </Card>
 
-      {(project.role === 'owner' || project.role === 'editor') && (
+      {(project?.role === 'owner' || project?.role === 'editor') && (
         <Card className="bg-neutral-900 border-neutral-800 mb-8">
           <CardHeader>
               <CardTitle className="text-2xl font-bold">Invite a Collaborator</CardTitle>
@@ -281,17 +281,17 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ProjectChat projectId={projectId} />
-        <FileManager projectId={projectId} userRole={project.role} />
+        <FileManager projectId={projectId} userRole={project?.role || 'viewer'} />
       </div>
 
       <TaskManager 
         projectId={projectId} 
-        userRole={project.role} 
+        userRole={project?.role || 'viewer'} 
         collaborators={collaborators || []} 
       />
 
       <div className="mt-8">
-        <ProjectNotes projectId={projectId} userRole={project.role} />
+        <ProjectNotes projectId={projectId} userRole={project?.role || 'viewer'} />
       </div>
     </div>
   );
