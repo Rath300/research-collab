@@ -1234,13 +1234,10 @@ export const projectRouter = router({
         }
       }
 
+      // First, get the tasks
       let query = ctx.supabase
         .from('project_tasks')
-        .select(`
-          *,
-          assignee:profiles!project_tasks_assigned_to_fkey(first_name, last_name),
-          creator:profiles!project_tasks_created_by_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('project_id', input.projectId)
         .order('created_at', { ascending: false });
 
@@ -1259,13 +1256,50 @@ export const projectRouter = router({
         });
       }
 
-      return (tasks || []).map((task: any) => {
-        const assigneeName = task.assignee 
-          ? `${task.assignee.first_name || ''} ${task.assignee.last_name || ''}`.trim() || 'Unknown'
+      if (!tasks || tasks.length === 0) {
+        return [];
+      }
+
+      // Get all unique user IDs from tasks
+      const userIds = new Set<string>();
+      tasks.forEach(task => {
+        if (task.assigned_to) userIds.add(task.assigned_to);
+        if (task.created_by) userIds.add(task.created_by);
+      });
+
+      // Fetch profiles for all user IDs
+      const { data: profilesData, error: profilesError } = await ctx.supabase
+        .from('profiles')
+        .select('id, user_id, first_name, last_name')
+        .in('user_id', Array.from(userIds));
+
+      if (profilesError) {
+        console.error('Error fetching profiles for tasks:', profilesError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch task assignee profiles.',
+          cause: profilesError,
+        });
+      }
+
+      // Create a map of user_id to profile
+      const profileMap = new Map();
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profileMap.set(profile.user_id, profile);
+        });
+      }
+
+      return tasks.map((task: any) => {
+        const assigneeProfile = task.assigned_to ? profileMap.get(task.assigned_to) : null;
+        const creatorProfile = task.created_by ? profileMap.get(task.created_by) : null;
+        
+        const assigneeName = assigneeProfile 
+          ? `${assigneeProfile.first_name || ''} ${assigneeProfile.last_name || ''}`.trim() || 'Unknown'
           : undefined;
         
-        const creatorName = task.creator
-          ? `${task.creator.first_name || ''} ${task.creator.last_name || ''}`.trim() || 'Unknown'
+        const creatorName = creatorProfile
+          ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown'
           : 'Unknown';
 
         return {
@@ -1527,13 +1561,10 @@ export const projectRouter = router({
         }
       }
 
+      // First, get the notes
       let query = ctx.supabase
         .from('project_notes')
-        .select(`
-          *,
-          creator:profiles!project_notes_created_by_fkey(first_name, last_name),
-          last_editor:profiles!project_notes_last_edited_by_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('project_id', input.projectId)
         .eq('is_public', true) // Only show public notes for now
         .order('updated_at', { ascending: false });
@@ -1553,13 +1584,50 @@ export const projectRouter = router({
         });
       }
 
-      return (notes || []).map((note: any) => {
-        const creatorName = note.creator
-          ? `${note.creator.first_name || ''} ${note.creator.last_name || ''}`.trim() || 'Unknown'
+      if (!notes || notes.length === 0) {
+        return [];
+      }
+
+      // Get all unique user IDs from notes
+      const userIds = new Set<string>();
+      notes.forEach(note => {
+        if (note.created_by) userIds.add(note.created_by);
+        if (note.last_edited_by) userIds.add(note.last_edited_by);
+      });
+
+      // Fetch profiles for all user IDs
+      const { data: profilesData, error: profilesError } = await ctx.supabase
+        .from('profiles')
+        .select('id, user_id, first_name, last_name')
+        .in('user_id', Array.from(userIds));
+
+      if (profilesError) {
+        console.error('Error fetching profiles for notes:', profilesError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch note creator profiles.',
+          cause: profilesError,
+        });
+      }
+
+      // Create a map of user_id to profile
+      const profileMap = new Map();
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profileMap.set(profile.user_id, profile);
+        });
+      }
+
+      return notes.map((note: any) => {
+        const creatorProfile = note.created_by ? profileMap.get(note.created_by) : null;
+        const lastEditorProfile = note.last_edited_by ? profileMap.get(note.last_edited_by) : null;
+        
+        const creatorName = creatorProfile
+          ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown'
           : 'Unknown';
         
-        const lastEditorName = note.last_editor
-          ? `${note.last_editor.first_name || ''} ${note.last_editor.last_name || ''}`.trim() || 'Unknown'
+        const lastEditorName = lastEditorProfile
+          ? `${lastEditorProfile.first_name || ''} ${lastEditorProfile.last_name || ''}`.trim() || 'Unknown'
           : 'Unknown';
 
         return {
@@ -1840,6 +1908,7 @@ export const projectRouter = router({
         } | null; // Profile can be null if no matching profile found for user_id
       };
 
+      // First, get the collaborators
       const { data: collaboratorsData, error: fetchError } = await ctx.supabase
         .from('project_collaborators')
         .select(`
@@ -1850,18 +1919,47 @@ export const projectRouter = router({
           status,
           invited_by,
           created_at,
-          updated_at,
-          profiles ( 
-            id,
-            user_id,
-            first_name,
-            last_name,
-            avatar_url
-          )
+          updated_at
         `)
         .eq('project_id', projectId)
-        .eq('status', 'active')
-        .returns<CollaboratorWithProfileFromSupabase[]>(); // Explicitly type the return
+        .eq('status', 'active');
+
+      if (fetchError) {
+        console.error("Error fetching collaborators:", fetchError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch collaborators.',
+          cause: fetchError,
+        });
+      }
+
+      if (!collaboratorsData || collaboratorsData.length === 0) {
+        return [];
+      }
+
+      // Then, get the profiles for all user_ids
+      const userIds = collaboratorsData.map(collab => collab.user_id);
+      const { data: profilesData, error: profilesError } = await ctx.supabase
+        .from('profiles')
+        .select('id, user_id, first_name, last_name, avatar_url')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch collaborator profiles.',
+          cause: profilesError,
+        });
+      }
+
+      // Create a map of user_id to profile
+      const profileMap = new Map();
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profileMap.set(profile.user_id, profile);
+        });
+      }
 
       if (fetchError) {
         console.error("Error fetching collaborators:", fetchError);
@@ -1877,14 +1975,7 @@ export const projectRouter = router({
       }
       
       return collaboratorsData.map(collab => {
-        const profileData = collab.profiles; // Now explicitly typed as an object or null
-        
-        let fullName: string | null = null;
-        if (profileData && profileData.first_name && profileData.last_name) {
-          fullName = `${profileData.first_name} ${profileData.last_name}`.trim();
-        } else if (profileData && profileData.first_name) {
-          fullName = profileData.first_name;
-        }
+        const profileData = profileMap.get(collab.user_id);
         
         return {
           id: collab.id,
@@ -1896,7 +1987,7 @@ export const projectRouter = router({
           created_at: new Date(collab.created_at),
           updated_at: new Date(collab.updated_at),
           user: profileData ? {
-              id: profileData.id, // Include profile's own id
+              id: profileData.id,
               user_id: profileData.user_id,
               first_name: profileData.first_name,
               last_name: profileData.last_name,
