@@ -269,15 +269,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <p className="mt-2 text-neutral-300">{project?.description || 'No description available'}</p>
         </CardContent>
       </Card>
-      
-      <Card className="bg-neutral-900 border-neutral-800 mb-8">
-        <CardHeader>
-            <CardTitle className="text-2xl font-bold">Collaborators</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <CollaboratorList projectId={projectId} />
-        </CardContent>
-      </Card>
 
       {(project?.role === 'owner' || project?.role === 'editor') && (
         <Card className="bg-neutral-900 border-neutral-800 mb-8">
@@ -289,6 +280,15 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           </CardContent>
         </Card>
       )}
+      
+      <Card className="bg-neutral-900 border-neutral-800 mb-8">
+        <CardHeader>
+            <CardTitle className="text-2xl font-bold">Collaborators</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <CollaboratorList projectId={projectId} />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <ProjectChat projectId={projectId} />
