@@ -39,7 +39,10 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
     ? `${post.description.substring(0, 150)}...` 
     : post.description;
 
-  const usernameTag = `@${post.profiles?.first_name?.toLowerCase() || 'user'}${post.profiles?.id?.slice(-4) || ''}`;
+  // Use username if available, otherwise fall back to old format
+  const usernameTag = post.profiles?.username 
+    ? `@${post.profiles.username}` 
+    : `@${post.profiles?.first_name?.toLowerCase() || 'user'}${post.profiles?.id?.slice(-4) || ''}`;
 
   return (
     <motion.div 

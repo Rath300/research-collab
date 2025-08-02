@@ -34,6 +34,7 @@ export const profileSchema = z.object({
     }
     return null; // Return null if the input is not a string or Date, or if parsing fails
   }, z.date().optional().nullable()),
+  username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9]+$/, "Username must be alphanumeric").optional().nullable(),
   full_name: z.string().max(255).optional().nullable(),
   first_name: z.string().max(255).optional().nullable(),
   last_name: z.string().max(255).optional().nullable(),

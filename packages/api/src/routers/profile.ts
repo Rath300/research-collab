@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { profileSchema } from '@research-collab/db';
+import { generateRandomUsername } from '@research-collab/db/utils';
 import { TRPCError } from '@trpc/server';
 
 // Input schema allows only fields a user can edit. Dates are handled by the server.
 // Using a new Zod object is more explicit and avoids inference issues with .pick()
 const updateProfileInputSchema = z.object({
+    username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9]+$/, "Username must be alphanumeric").optional().nullable(),
     full_name: z.string().optional().nullable(),
     first_name: z.string().optional().nullable(),
     last_name: z.string().optional().nullable(),
@@ -61,6 +63,49 @@ export const profileRouter = router({
       return validation.data;
     }),
 
+  // Generate a random username
+  generateUsername: protectedProcedure
+    .output(z.object({ username: z.string() }))
+    .query(async ({ ctx }) => {
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        const generatedUsername = generateRandomUsername();
+        
+        // Check if username is already taken
+        const { data: existingUser } = await ctx.supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', generatedUsername)
+          .single();
+        
+        if (!existingUser) {
+          return { username: generatedUsername };
+        }
+        attempts++;
+      }
+      
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to generate unique username. Please try again.',
+      });
+    }),
+
+  // Check if username is available
+  checkUsernameAvailability: protectedProcedure
+    .input(z.object({ username: z.string().min(3).max(20) }))
+    .output(z.object({ available: z.boolean() }))
+    .query(async ({ ctx, input }) => {
+      const { data: existingUser } = await ctx.supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', input.username)
+        .single();
+      
+      return { available: !existingUser };
+    }),
+
   update: protectedProcedure
     .input(updateProfileInputSchema)
     .output(profileSchema)
@@ -89,10 +134,55 @@ export const profileRouter = router({
       let error;
 
       if (!existingProfile) {
+        // Generate a unique username if not provided
+        let username = input.username;
+        if (!username) {
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          while (!username && attempts < maxAttempts) {
+            const generatedUsername = generateRandomUsername();
+            
+            // Check if username is already taken
+            const { data: existingUser } = await ctx.supabase
+              .from('profiles')
+              .select('id')
+              .eq('username', generatedUsername)
+              .single();
+            
+            if (!existingUser) {
+              username = generatedUsername;
+            }
+            attempts++;
+          }
+          
+          if (!username) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Failed to generate unique username. Please try again.',
+            });
+          }
+        } else {
+          // Check if provided username is already taken
+          const { data: existingUser } = await ctx.supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', username)
+            .single();
+          
+          if (existingUser) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Username is already taken. Please choose a different one.',
+            });
+          }
+        }
+        
         // Profile doesn't exist, create it
         const createData = {
           id: userId,
           user_id: userId, // Add user_id to satisfy NOT NULL constraint
+          username: username,
           first_name: input.first_name || 'Anonymous',
           last_name: input.last_name || 'User', 
           email: ctx.user.email || 'no-email',

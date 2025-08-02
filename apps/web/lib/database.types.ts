@@ -407,6 +407,7 @@ export type Database = {
           title: string | null
           updated_at: string
           user_id: string
+          username: string | null
           visibility: string | null
           website: string | null
         }
@@ -435,6 +436,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
           visibility?: string | null
           website?: string | null
         }
@@ -463,6 +465,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
           visibility?: string | null
           website?: string | null
         }
