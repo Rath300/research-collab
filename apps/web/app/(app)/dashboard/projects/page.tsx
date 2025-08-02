@@ -50,16 +50,16 @@ export default function MyProjectsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects?.map((project) => (
           <Link key={project.id} href={`/projects/${project.id}`} passHref>
-            <Card className="bg-neutral-900 border-neutral-800 hover:border-accent-purple transition-colors cursor-pointer h-full flex flex-col">
+            <Card className="bg-white border-border-light hover:border-border-medium transition-colors cursor-pointer h-full flex flex-col">
               <CardHeader>
-                <CardTitle className="text-xl text-white">{project.title}</CardTitle>
-                <div className="text-xs text-white font-bold px-2 py-1 rounded-full bg-blue-500 w-min mt-2">{project.role?.toUpperCase() || ''}</div>
+                <CardTitle className="text-xl text-text-primary">{project.title}</CardTitle>
+                <div className="text-xs text-text-primary font-bold px-2 py-1 rounded-full bg-text-secondary/10 text-text-secondary w-min mt-2">{project.role?.toUpperCase() || ''}</div>
                 {project.tags && project.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {project.tags.map((tag: string) => (
                       <span
                         key={tag}
-                        className="bg-accent-purple/20 text-accent-purple px-2 py-1 rounded-full text-xs"
+                        className="bg-text-secondary/10 text-text-secondary px-2 py-1 rounded-full text-xs"
                       >
                         {tag}
                       </span>
@@ -68,7 +68,7 @@ export default function MyProjectsPage() {
                 )}
               </CardHeader>
               <CardContent className="flex-grow">
-                <CardDescription className="text-neutral-400 line-clamp-3">
+                <CardDescription className="text-text-secondary line-clamp-3">
                   {project.description || 'No description available.'}
                 </CardDescription>
               </CardContent>

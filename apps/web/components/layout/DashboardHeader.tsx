@@ -83,11 +83,11 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
         
         {/* Search Input - Adjusted width and placeholder */}
         <div className="relative w-full max-w-xs">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
           <Input
             type="search"
             placeholder="Search projects..."
-            className="pl-9 pr-4 py-2 text-sm w-full bg-bg-tertiary border-border-medium focus:ring-accent-primary focus:border-accent-primary rounded-md text-text-primary placeholder-text-muted"
+            className="pl-9 pr-4 py-2 text-sm w-full bg-white border-border-light focus:ring-accent-primary focus:border-accent-primary rounded-md text-text-primary placeholder-text-secondary"
             onKeyDown={handleSearch}
           />
         </div>

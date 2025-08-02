@@ -86,12 +86,12 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex items-center mb-4">
-        <div className="p-2 bg-neutral-800/70 rounded-lg mr-3 shadow">
-          <FiActivity className="w-5 h-5 text-accent-purple" />
+        <div className="p-2 bg-text-secondary/10 rounded-lg mr-3 shadow">
+          <FiActivity className="w-5 h-5 text-accent-primary" />
         </div>
-        <h3 className="text-xl font-heading text-neutral-100">Recent Activity</h3>
+        <h3 className="text-xl font-heading text-text-primary">Recent Activity</h3>
       </div>
-      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60 min-h-[200px]">
+      <div className="font-sans text-text-secondary bg-white p-5 md:p-6 rounded-xl shadow-md border border-border-light min-h-[200px]">
         {hasActualActivity ? (
           <motion.ul
             variants={{ 
@@ -105,7 +105,7 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
             {notifications.map((activity) => (
               <motion.li
                 key={activity.id} 
-                className="font-sans text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                className="font-sans text-sm text-text-secondary hover:text-text-primary transition-colors"
                 variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
               >
                 {activity.link_to ? (
@@ -116,13 +116,13 @@ const ActivityFeed = ({ notifications }: { notifications: UserNotification[] }) 
                   <span>{activity.content}</span>
                 )}
                 {' - '}
-                <span className="text-xs text-neutral-500">{formatTimeAgo(activity.created_at)}</span>
+                <span className="text-xs text-text-secondary">{formatTimeAgo(activity.created_at)}</span>
               </motion.li>
             ))}
           </motion.ul>
         ) : (
           <div className="text-center py-6 font-sans">
-            <p className="text-neutral-500 mb-3">No recent activity yet.</p>
+            <p className="text-text-secondary mb-3">No recent activity yet.</p>
             <Button variant="secondary" size="sm" onClick={() => router.push('/trending')} className="font-sans">
               <FiSearch className="mr-1"/> Explore Platform
             </Button>
@@ -155,18 +155,18 @@ const CollaborationStatsDisplay = ({ stats }: { stats: DashboardStats }) => {
         const StatCardContent = (
           <div className="flex flex-col items-start text-left h-full p-1">
             <div className="flex items-center w-full">
-              <item.icon className="w-6 h-6 text-accent-purple mr-3 flex-shrink-0" />
-              <p className="text-2xl md:text-3xl font-heading text-neutral-100 truncate">
+              <item.icon className="w-6 h-6 text-accent-primary mr-3 flex-shrink-0" />
+              <p className="text-2xl md:text-3xl font-heading text-text-primary truncate">
                 {item.value}
               </p>
             </div>
-            <p className="text-xs text-neutral-500 font-sans mt-1 ml-[calc(1.5rem+0.75rem)]"> {/* 24px (w-6) + 12px (mr-3) = 36px */}
+            <p className="text-xs text-text-secondary font-sans mt-1 ml-[calc(1.5rem+0.75rem)]"> {/* 24px (w-6) + 12px (mr-3) = 36px */}
               {item.label}
             </p>
           </div>
         );
 
-        const kpiBlockClasses = "block p-3 md:p-4 bg-neutral-900 rounded-lg shadow-md hover:bg-neutral-800/70 border border-neutral-700/60 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-purple focus:ring-opacity-50 cursor-pointer";
+        const kpiBlockClasses = "block p-3 md:p-4 bg-white rounded-lg shadow-md hover:bg-gray-50 border border-border-light transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-opacity-50 cursor-pointer";
 
         return item.href ? (
           <Link href={item.href} key={item.label} className={kpiBlockClasses}>
@@ -188,30 +188,30 @@ const RecentMatchesDisplay = ({ matches }: { matches: ProfileMatch[] }) => {
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex items-center mb-4">
-        <div className="p-2 bg-neutral-800/70 rounded-lg mr-3 shadow">
-          <FiUsers className="w-5 h-5 text-accent-purple" />
+        <div className="p-2 bg-text-secondary/10 rounded-lg mr-3 shadow">
+          <FiUsers className="w-5 h-5 text-accent-primary" />
         </div>
-        <h3 className="text-xl font-heading text-neutral-100">Recent Matches</h3>
+        <h3 className="text-xl font-heading text-text-primary">Recent Matches</h3>
       </div>
-      <div className="font-sans text-neutral-300 bg-neutral-900 p-5 md:p-6 rounded-xl shadow-md border border-neutral-700/60">
+      <div className="font-sans text-text-secondary bg-white p-5 md:p-6 rounded-xl shadow-md border border-border-light">
         {matches.length > 0 ? (
           <ul className="space-y-3">
             {matches.map(match => (
-              <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-neutral-800/70 transition-colors">
+              <li key={match.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-50 transition-colors">
                 <Avatar src={match.matched_profile?.avatar_url} alt={titleCase(match.matched_profile?.full_name) || 'User'} size="sm" fallback={<FiUser size={18}/>} />
                 <div>
-                  <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-neutral-200 hover:underline">
+                  <Link href={`/profile/${match.matchee_user_id}`} className="font-sans font-medium text-text-primary hover:underline">
                     {titleCase(match.matched_profile?.full_name) || 'Matched User'}
                   </Link>
-                  <p className="text-xs text-neutral-500 font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-text-secondary font-sans">Matched on: {new Date(match.created_at).toLocaleDateString()}</p>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-neutral-500 py-4 text-center">No recent matches yet.</p>
+          <p className="text-text-secondary py-4 text-center">No recent matches yet.</p>
         )}
-        <Link href="/match" className="block mt-4 text-sm text-accent-purple hover:text-accent-purple-hover font-sans hover:underline">
+        <Link href="/match" className="block mt-4 text-sm text-accent-primary hover:text-accent-primary/80 font-sans hover:underline">
           Find New Collaborators
         </Link>
       </div>

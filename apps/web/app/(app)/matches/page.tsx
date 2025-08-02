@@ -117,21 +117,21 @@ export default function MatchesPage() {
           >
               <FiArrowLeft size={20} />
           </Button>
-          <h1 className="text-3xl md:text-4xl font-heading text-neutral-100">
+          <h1 className="text-3xl md:text-4xl font-heading text-text-primary">
             My Matches
           </h1>
         </motion.div>
 
         {matchedProfiles.length === 0 && (
           <motion.div 
-            className="text-center py-20 bg-neutral-900 rounded-lg border border-neutral-800 max-w-3xl mx-auto"
+            className="text-center py-20 bg-white rounded-lg border border-border-light max-w-3xl mx-auto"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <FiInbox className="mx-auto text-6xl text-neutral-600 mb-6" />
-            <h3 className="text-xl font-heading text-neutral-300 mb-2">No Matches Yet</h3>
-            <p className="text-neutral-500 font-sans text-sm mb-4">Keep swiping to find your research partners!</p>
+            <FiInbox className="mx-auto text-6xl text-text-secondary mb-6" />
+            <h3 className="text-xl font-heading text-text-primary mb-2">No Matches Yet</h3>
+            <p className="text-text-secondary font-sans text-sm mb-4">Keep swiping to find your research partners!</p>
             <Link href="/match">
                 <Button variant="primary" className="font-sans">
                     Find Matches
@@ -151,41 +151,41 @@ export default function MatchesPage() {
               <motion.div
                 key={profile.id}
                 variants={cardItemVariants}
-                className="bg-neutral-900 rounded-xl border border-neutral-800 shadow-lg overflow-hidden flex flex-col"
+                className="bg-white rounded-xl border border-border-light shadow-lg overflow-hidden flex flex-col"
               >
                 <div className="p-5 flex-grow">
                     <Avatar 
                         src={profile.avatar_url} 
                         alt={profile.first_name || 'User'} 
                         size="xl" 
-                        className="mx-auto mb-4 border-2 border-neutral-700" 
+                        className="mx-auto mb-4 border-2 border-border-light" 
                         fallback={<FiUser size={40}/>}
                     />
-                  <h3 className="text-xl font-heading text-neutral-100 text-center truncate">
+                  <h3 className="text-xl font-heading text-text-primary text-center truncate">
                     {profile.first_name || ''} {profile.last_name || ''}
                   </h3>
-                  <p className="text-sm text-neutral-400 text-center truncate mb-1">{profile.title || 'Researcher'}</p>
-                  <p className="text-xs text-neutral-500 text-center mb-3">Matched: {new Date(profile.match_created_at).toLocaleDateString()}</p>
+                  <p className="text-sm text-text-secondary text-center truncate mb-1">{profile.title || 'Researcher'}</p>
+                  <p className="text-xs text-text-secondary text-center mb-3">Matched: {new Date(profile.match_created_at).toLocaleDateString()}</p>
                   
                   {profile.interests && profile.interests.length > 0 && (
                     <div className="mb-3 flex flex-wrap justify-center gap-1.5">
                       {profile.interests.slice(0, 3).map(interest => (
-                        <span key={interest} className="px-2 py-0.5 bg-accent-purple/20 text-accent-purple text-[10px] rounded-full font-sans">
+                        <span key={interest} className="px-2 py-0.5 bg-text-secondary/10 text-text-secondary text-[10px] rounded-full font-sans">
                           {interest}
                         </span>
                       ))}
                     </div>
                   )}
-                  <p className="text-xs text-neutral-400 line-clamp-2 text-center mb-4 min-h-[30px]">
+                  <p className="text-xs text-text-secondary line-clamp-2 text-center mb-4 min-h-[30px]">
                     {profile.bio || 'No bio available.'}
                   </p>
                 </div>
-                <div className="border-t border-neutral-800 p-3 flex gap-2">
+                <div className="border-t border-border-light p-3 flex gap-2">
                     <Link href={profile.id ? `/profile/${profile.id}` : '#'} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full font-sans"><FiEye className="mr-1.5"/> View</Button>
                     </Link>
                     <Link href={profile.id ? `/chats?userId=${profile.id}` : '#'} className="flex-1">
-                         <Button variant="primary" size="sm" className="w-full font-sans"><FiMessageSquare className="mr-1.5"/> Message</Button>
+                         <Button variant="outline" size="sm" className="w-full font-sans"><FiMessageSquare className="mr-1.5"/> Message</Button>
                     </Link>
                 </div>
               </motion.div>

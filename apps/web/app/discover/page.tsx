@@ -131,27 +131,27 @@ export default function DiscoverPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {projects.map((project) => (
               <Link href={`/research/${project.id}`} key={project.id} className="block group h-full">
-                <div className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out flex flex-col justify-between h-full transform group-hover:-translate-y-1 p-5">
+                <div className="bg-white border border-border-light rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out flex flex-col justify-between h-full transform group-hover:-translate-y-1 p-5">
                   <div>
-                    <h2 className="text-xl font-heading text-neutral-100 mb-2 truncate group-hover:text-accent-purple transition-colors" title={project.title}>
+                    <h2 className="text-xl font-heading text-text-primary mb-2 truncate group-hover:text-accent-primary transition-colors" title={project.title}>
                       {project.title}
                     </h2>
-                    <p className="text-neutral-400 text-sm mb-3 line-clamp-3 font-sans" title={project.description || undefined}>
+                    <p className="text-text-secondary text-sm mb-3 line-clamp-3 font-sans" title={project.description || undefined}>
                       {project.description || 'No description available.'}
                     </p>
                     
                     <div className="flex items-center mb-4 font-sans">
-                      <div className="w-8 h-8 rounded-full bg-neutral-700/50 flex items-center justify-center mr-2 overflow-hidden flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-text-secondary/10 flex items-center justify-center mr-2 overflow-hidden flex-shrink-0">
                         <Avatar 
                           src={null} 
                           alt="User" 
                           size="sm"
-                          fallback={<FiUser className="h-4 w-4 text-accent-purple" />}
+                          fallback={<FiUser className="h-4 w-4 text-text-secondary" />}
                         />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-neutral-100 truncate">Project Leader</p>
-                        <p className="text-xs text-neutral-400 truncate">
+                        <p className="text-sm font-medium text-text-primary truncate">Project Leader</p>
+                        <p className="text-xs text-text-secondary truncate">
                           Research Project
                         </p>
                       </div>
