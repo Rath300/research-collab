@@ -1799,8 +1799,8 @@ export const projectRouter = router({
       const { query, excludeProjectId } = input;
 
       try {
-        // Build the search query
-        let searchQuery = ctx.supabase
+        // First, get all profiles that match the search query
+        const { data: allProfiles, error: searchError } = await ctx.supabase
           .from('profiles')
           .select(`
             id,
@@ -1813,9 +1813,22 @@ export const projectRouter = router({
             bio
           `)
           .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
-          .limit(10);
+          .limit(20);
 
-        // Exclude users already in the project if specified
+        if (searchError) {
+          console.error('Error searching profiles:', searchError);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to search for collaborators.',
+            cause: searchError,
+          });
+        }
+
+        if (!allProfiles || allProfiles.length === 0) {
+          return [];
+        }
+
+        // If we need to exclude users from a specific project
         if (excludeProjectId) {
           const { data: existingCollaborators } = await ctx.supabase
             .from('project_collaborators')
@@ -1823,23 +1836,13 @@ export const projectRouter = router({
             .eq('project_id', excludeProjectId);
 
           if (existingCollaborators && existingCollaborators.length > 0) {
-            const excludeUserIds = existingCollaborators.map(c => c.user_id);
-            searchQuery = searchQuery.not('user_id', 'in', excludeUserIds);
+            const excludeUserIds = new Set(existingCollaborators.map(c => c.user_id));
+            const filteredProfiles = allProfiles.filter(profile => !excludeUserIds.has(profile.user_id));
+            return filteredProfiles.slice(0, 10);
           }
         }
 
-        const { data: profiles, error } = await searchQuery;
-
-        if (error) {
-          console.error('Error searching collaborators:', error);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to search for collaborators.',
-            cause: error,
-          });
-        }
-
-        return profiles || [];
+        return allProfiles.slice(0, 10);
       } catch (error) {
         console.error('Error in searchCollaborators:', error);
         throw new TRPCError({

@@ -10,14 +10,7 @@ import { FiSearch, FiTrendingUp, FiClock, FiAlertCircle, FiLoader, FiUser } from
 import { Avatar } from '@/components/ui/Avatar';
 import { type Database } from '@/lib/database.types';
 
-type Project = Database['public']['Tables']['projects']['Row'] & {
-  profiles?: {
-    first_name: string | null;
-    last_name: string | null;
-    institution: string | null;
-    avatar_url: string | null;
-  } | null;
-};
+type Project = Database['public']['Tables']['projects']['Row'];
 
 export default function DiscoverPage() {
   // supabase is already imported as a singleton
@@ -34,15 +27,7 @@ export default function DiscoverPage() {
     try {
       let query = supabase
         .from('projects')
-        .select(`
-          *,
-          profiles!leader_id (
-            first_name,
-            last_name,
-            institution,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('is_public', true)
         .limit(20);
 
@@ -158,16 +143,16 @@ export default function DiscoverPage() {
                     <div className="flex items-center mb-4 font-sans">
                       <div className="w-8 h-8 rounded-full bg-neutral-700/50 flex items-center justify-center mr-2 overflow-hidden flex-shrink-0">
                         <Avatar 
-                          src={project.profiles?.avatar_url} 
-                          alt={project.profiles?.first_name || 'User'} 
+                          src={null} 
+                          alt="User" 
                           size="sm"
                           fallback={<FiUser className="h-4 w-4 text-accent-purple" />}
                         />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-neutral-100 truncate">{`${project.profiles?.first_name || ''} ${project.profiles?.last_name || ''}`.trim() || 'Anonymous Researcher'}</p>
+                        <p className="text-sm font-medium text-neutral-100 truncate">Project Leader</p>
                         <p className="text-xs text-neutral-400 truncate">
-                          {project.profiles?.institution || 'No Institution Provided'}
+                          Research Project
                         </p>
                       </div>
                     </div>
