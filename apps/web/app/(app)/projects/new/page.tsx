@@ -329,13 +329,13 @@ export default function NewProjectPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-8"
           >
-            <Card className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl">
+            <Card className="bg-white border border-border-light rounded-lg shadow-xl">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-white flex items-center">
-                  <FiPaperclip className="mr-3 text-accent-purple" />
+                <CardTitle className="text-xl font-semibold text-text-primary flex items-center">
+                  <FiPaperclip className="mr-3 text-accent-primary" />
                   Upload Project Files
                 </CardTitle>
-                <CardDescription className="text-neutral-400 mt-2">
+                <CardDescription className="text-text-secondary mt-2">
                   Your project details have been saved. Now you can upload supporting documents, images, or datasets.
                 </CardDescription>
               </CardHeader>
@@ -345,7 +345,7 @@ export default function NewProjectPage() {
                   onUploadComplete={handleFileUploadComplete} 
                 />
                 <div className="mt-6">
-                  <h3 className="text-lg font-medium text-neutral-200 mb-3">Uploaded Files:</h3>
+                  <h3 className="text-lg font-medium text-text-primary mb-3">Uploaded Files:</h3>
                   {uploadedFiles.length > 0 ? (
                     <ul className="space-y-3">
                       {uploadedFiles.map(file => (

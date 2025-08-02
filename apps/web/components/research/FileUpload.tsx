@@ -10,9 +10,9 @@ interface FileUploadProps {
   onUploadComplete?: (fileData: { name: string; path: string; type: string; size: number }) => void;
 }
 
-// Define classes similar to our Button variant="outline" for dark theme
+// Define classes similar to our Button variant="outline" for light theme
 const labelButtonClasses = 
-  "inline-flex items-center justify-center rounded-md text-sm font-sans font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:pointer-events-none disabled:opacity-50 border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-neutral-100 h-10 px-4 py-2 cursor-pointer";
+  "inline-flex items-center justify-center rounded-md text-sm font-sans font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 border border-border-light bg-white hover:bg-gray-50 text-text-primary hover:text-accent-primary h-10 px-4 py-2 cursor-pointer";
 
 export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
@@ -86,7 +86,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
   };
 
   return (
-    <div className="space-y-3 p-4 border border-neutral-700 rounded-lg bg-neutral-800/30">
+    <div className="space-y-3 p-4 border border-border-light rounded-lg bg-gray-50">
       <div className="flex items-center gap-3">
       <label
         htmlFor={`file-upload-${projectId}`}
@@ -103,12 +103,12 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
           disabled={uploading}
         />
         {selectedFileName && !uploading && (
-            <p className="text-sm text-neutral-400 font-sans truncate max-w-[200px]" title={selectedFileName}>Selected: {selectedFileName}</p>
+            <p className="text-sm text-text-secondary font-sans truncate max-w-[200px]" title={selectedFileName}>Selected: {selectedFileName}</p>
       )}
       </div>
       
       {error && (
-        <p className="text-sm text-red-400 font-sans">Error: {error}</p>
+        <p className="text-sm text-red-500 font-sans">Error: {error}</p>
       )}
     </div>
   );

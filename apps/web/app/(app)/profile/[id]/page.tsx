@@ -48,10 +48,10 @@ function TabComponent({ active, onClick, children }: TabProps) {
       onClick={onClick}
       className={cn(
         "pb-3 text-sm font-medium transition-colors duration-150 ease-in-out",
-        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral-900 focus:ring-accent-purple",
+        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-accent-primary",
         active
-          ? 'border-b-2 border-accent-purple text-accent-purple'
-          : 'border-b-2 border-transparent text-neutral-400 hover:text-neutral-100 hover:border-neutral-500'
+          ? 'border-b-2 border-accent-primary text-accent-primary'
+          : 'border-b-2 border-transparent text-text-secondary hover:text-text-primary hover:border-border-medium'
       )}
     >
       {children}
@@ -261,23 +261,23 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
-      <Card className="bg-neutral-900 border border-neutral-800 shadow-xl overflow-hidden rounded-lg">
-        <div className="h-40 md:h-48 bg-neutral-800" />
+      <Card className="bg-white border border-border-light shadow-xl overflow-hidden rounded-lg">
+        <div className="h-40 md:h-48 bg-gray-100" />
 
         <div className="px-6 sm:px-8 pb-8">
           <div className="relative flex flex-col sm:flex-row sm:items-end sm:space-x-5 -mt-16 sm:-mt-20">
             <Avatar 
               src={profile.avatar_url} 
               alt={`${profile.first_name || ''} ${profile.last_name || ''}`.trim()}
-              className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-neutral-900 bg-neutral-700 text-4xl flex-shrink-0 text-neutral-400"
+              className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-white bg-text-secondary/10 text-4xl flex-shrink-0 text-text-secondary"
             />
             <div className="mt-4 sm:mt-0 flex-grow min-w-0 pt-10 sm:pt-0">
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
                 <div className="min-w-0">
-                  <h1 className="text-2xl md:text-3xl font-heading font-bold text-neutral-100 truncate">
+                  <h1 className="text-2xl md:text-3xl font-heading font-bold text-text-primary truncate">
                     {profile.first_name || ''} {profile.last_name || ''}
                   </h1>
-                  <p className="text-sm text-neutral-400 truncate">{profile.title || 'Research Enthusiast'}</p>
+                  <p className="text-sm text-text-secondary truncate">{profile.title || 'Research Enthusiast'}</p>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-4 flex-shrink-0 flex space-x-2">
                   {isOwnProfile ? (
@@ -314,7 +314,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="mt-8 border-b border-neutral-700">
+          <div className="mt-8 border-b border-border-light">
             <nav className="-mb-px flex space-x-6" aria-label="Tabs">
               <TabComponent
                 active={activeTab === 'posts'}
@@ -340,39 +340,39 @@ export default function ProfilePage() {
                   ))
                 ) : (
                   <div className="text-center py-12">
-                    <FiBookmark className="mx-auto text-4xl text-neutral-500 mb-3" />
-                    <p className="text-neutral-400">This user hasn't posted any research yet.</p>
+                    <FiBookmark className="mx-auto text-4xl text-text-secondary mb-3" />
+                    <p className="text-text-secondary">This user hasn't posted any research yet.</p>
                   </div>
                 )}
               </div>
             )}
             {activeTab === 'about' && (
-              <div className="prose prose-invert prose-sm sm:prose-base max-w-none text-neutral-300 space-y-4 font-sans">
+              <div className="prose prose-sm sm:prose-base max-w-none text-text-primary space-y-4 font-sans">
                 {profile.bio && <p>{profile.bio}</p>}
                 {!profile.bio && <p>No bio available.</p>}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-4">
                   {profile.email && (
                     <div className="flex items-center">
-                      <FiMail className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <FiMail className="w-5 h-5 mr-3 text-text-secondary flex-shrink-0" />
                       <span>{profile.email}</span>
                     </div>
                   )}
                   {profile.location && (
                     <div className="flex items-center">
-                      <FiMapPin className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <FiMapPin className="w-5 h-5 mr-3 text-text-secondary flex-shrink-0" />
                       <span>{profile.location}</span>
                     </div>
                   )}
                   {profile.website && (
                     <div className="flex items-center">
-                      <FiLink className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-accent-purple break-all">{profile.website}</a>
+                      <FiLink className="w-5 h-5 mr-3 text-text-secondary flex-shrink-0" />
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-accent-primary break-all">{profile.website}</a>
                     </div>
                   )}
                   {profile.created_at && (
                     <div className="flex items-center">
-                      <FiCalendar className="w-5 h-5 mr-3 text-neutral-500 flex-shrink-0" />
+                      <FiCalendar className="w-5 h-5 mr-3 text-text-secondary flex-shrink-0" />
                       <span>Joined on {new Date(profile.created_at).toLocaleDateString()}</span>
                     </div>
                   )}

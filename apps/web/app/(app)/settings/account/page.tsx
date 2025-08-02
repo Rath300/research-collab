@@ -158,12 +158,12 @@ export default function AccountSettingsPage() {
   return (
     <PageContainer title="Account Settings" className="py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <Card className="bg-surface-primary border border-neutral-800 shadow-xl">
+        <Card className="bg-white border border-border-light shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl font-heading text-neutral-100 flex items-center">
-              <FiUser className="mr-3 text-accent-purple" /> Your Profile
+            <CardTitle className="text-2xl font-heading text-text-primary flex items-center">
+              <FiUser className="mr-3 text-accent-primary" /> Your Profile
             </CardTitle>
-            <CardDescription className="text-neutral-400">
+            <CardDescription className="text-text-secondary">
               Manage your personal information and account settings.
             </CardDescription>
           </CardHeader>
@@ -174,7 +174,7 @@ export default function AccountSettingsPage() {
                   src={avatarUrl}
                   fallback={`${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || 'U'}
                   alt="User avatar"
-                  className="w-32 h-32 text-4xl border-2 border-neutral-700"
+                  className="w-32 h-32 text-4xl border-2 border-border-light"
                 />
                 <div className="relative">
                   <input
@@ -192,38 +192,38 @@ export default function AccountSettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-neutral-300 mb-1">First Name</label>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-text-primary mb-1">First Name</label>
                   <CustomInput 
                     id="firstName" 
                     type="text" 
                     value={firstName} 
                     onChange={(e) => setFirstName(e.target.value)} 
                     placeholder="Your first name"
-                    className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500"
+                    className="bg-white border-border-light text-text-primary placeholder:text-text-secondary"
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-neutral-300 mb-1">Last Name</label>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-text-primary mb-1">Last Name</label>
                   <CustomInput 
                     id="lastName" 
                     type="text" 
                     value={lastName} 
                     onChange={(e) => setLastName(e.target.value)} 
                     placeholder="Your last name"
-                    className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500"
+                    className="bg-white border-border-light text-text-primary placeholder:text-text-secondary"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-neutral-300 mb-1">Bio</label>
+                <label htmlFor="bio" className="block text-sm font-medium text-text-primary mb-1">Bio</label>
                 <Textarea 
                   id="bio" 
                   value={bio} 
                   onChange={(e) => setBio(e.target.value)} 
                   placeholder="Tell us a bit about yourself..."
                   rows={4}
-                  className="bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500"
+                  className="bg-white border-border-light text-text-primary placeholder:text-text-secondary"
                 />
               </div>
 
