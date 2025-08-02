@@ -109,13 +109,13 @@ export const projectSchema = z.object({
   leader_id: z.string().uuid(),
   tags: z.array(z.string()).optional().nullable(),
   is_public: z.boolean().optional(),
-  status: z.enum(['planning', 'active', 'completed', 'archived']).optional(),
-  category: z.string().optional(),
-  skills_needed: z.array(z.string()).optional(),
-  collaboration_type: z.enum(['remote', 'local', 'hybrid']).optional(),
-  duration: z.enum(['short_term', 'medium_term', 'long_term']).optional(),
-  commitment_hours: z.number().min(1).max(40).optional(),
-  location: z.string().optional(),
+  status: z.enum(['planning', 'active', 'completed', 'archived']).optional().nullable(),
+  category: z.string().optional().nullable(),
+  skills_needed: z.array(z.string()).optional().nullable(),
+  collaboration_type: z.enum(['remote', 'local', 'hybrid']).optional().nullable(),
+  duration: z.enum(['short_term', 'medium_term', 'long_term']).optional().nullable(),
+  commitment_hours: z.number().min(1).max(40).optional().nullable(),
+  location: z.string().optional().nullable(),
   deadline: z.preprocess((arg) => {
     if (typeof arg === 'string' || arg instanceof Date) {
       const date = new Date(arg);
