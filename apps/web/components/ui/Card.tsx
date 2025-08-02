@@ -12,9 +12,9 @@ export const Card = ({ children, className, hoverEffect = false, as: Component =
   return (
     <Component
       className={twMerge(
-        'rounded-xl bg-surface-primary border border-border-light shadow-sm',
-        'p-6',
-        hoverEffect && 'transition-all duration-200 hover:shadow-md hover:border-border-medium hover:bg-surface-secondary',
+        'rounded-lg bg-surface-primary border border-border-light',
+        'p-4',
+        hoverEffect && 'transition-all duration-200 hover:border-border-medium hover:bg-surface-hover',
         className
       )}
     >
@@ -30,7 +30,7 @@ interface CardHeaderProps {
 
 export const CardHeader = ({ children, className }: CardHeaderProps) => {
   return (
-    <div className={twMerge('pb-4 mb-4 border-b border-border-light', className)}>
+    <div className={twMerge('pb-3 mb-3 border-b border-border-light', className)}>
       {children}
     </div>
   );
@@ -43,7 +43,7 @@ interface CardTitleProps {
 
 export const CardTitle = ({ children, className }: CardTitleProps) => {
   return (
-    <h3 className={twMerge('text-xl lg:text-2xl font-heading font-semibold text-text-primary', className)}>
+    <h3 className={twMerge('text-base font-heading font-medium text-text-primary', className)}>
       {children}
     </h3>
   );
@@ -56,7 +56,7 @@ interface CardDescriptionProps {
 
 export const CardDescription = ({ children, className }: CardDescriptionProps) => {
   return (
-    <p className={twMerge('text-sm text-text-secondary font-body leading-relaxed', className)}>
+    <p className={twMerge('text-xs text-text-secondary font-body leading-normal', className)}>
       {children}
     </p>
   );
@@ -82,7 +82,7 @@ interface CardFooterProps {
 
 export const CardFooter = ({ children, className }: CardFooterProps) => {
   return (
-    <div className={twMerge('pt-4 mt-4 border-t border-border-light flex items-center', className)}>
+    <div className={twMerge('pt-3 mt-3 border-t border-border-light flex items-center', className)}>
       {children}
     </div>
   );

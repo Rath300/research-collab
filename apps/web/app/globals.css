@@ -41,24 +41,24 @@ body {
     @apply font-body scroll-smooth;
   }
 
-  /* Modern typography hierarchy with new design system */
+  /* Minimal typography hierarchy - smaller, cleaner */
   h1 {
-    @apply text-4xl font-heading font-bold tracking-tight text-text-primary md:text-5xl lg:text-6xl;
+    @apply text-2xl font-heading font-semibold tracking-tight text-text-primary md:text-3xl lg:text-4xl;
   }
   h2 {
-    @apply text-3xl font-heading font-bold tracking-tight text-text-primary md:text-4xl;
-  }
-  h3 {
-    @apply text-2xl font-heading font-semibold tracking-tight text-text-primary md:text-3xl;
-  }
-  h4 {
     @apply text-xl font-heading font-semibold tracking-tight text-text-primary md:text-2xl;
   }
-  h5 {
+  h3 {
     @apply text-lg font-heading font-medium tracking-tight text-text-primary md:text-xl;
   }
-  h6 {
+  h4 {
     @apply text-base font-heading font-medium tracking-tight text-text-primary md:text-lg;
+  }
+  h5 {
+    @apply text-sm font-heading font-medium tracking-tight text-text-primary md:text-base;
+  }
+  h6 {
+    @apply text-xs font-heading font-medium tracking-tight text-text-primary md:text-sm;
   }
   
   /* Body text with improved readability */
@@ -94,25 +94,25 @@ body {
 
 /* Modern Light Theme Components */
 @layer components {
-  /* Modern Button System */
+  /* Minimal Button System - smaller, monochrome */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-ui font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-3 py-1.5 rounded-md font-ui font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .btn-primary {
-    @apply bg-accent-primary text-text-inverse hover:bg-accent-primary-hover focus:ring-accent-primary shadow-sm;
+    @apply bg-accent-primary text-text-inverse hover:bg-accent-primary-hover focus:ring-accent-primary;
   }
   
   .btn-secondary {
-    @apply bg-surface-primary text-text-primary border border-border-medium hover:bg-surface-hover focus:ring-accent-primary;
+    @apply bg-surface-primary text-text-primary border border-border-medium hover:bg-surface-hover focus:ring-border-dark;
   }
   
   .btn-outline {
-    @apply border border-border-medium text-text-primary hover:bg-surface-hover focus:ring-accent-primary;
+    @apply border border-border-medium text-text-primary hover:bg-surface-hover focus:ring-border-dark;
   }
   
   .btn-ghost {
-    @apply text-text-primary hover:bg-surface-hover focus:ring-accent-primary;
+    @apply text-text-primary hover:bg-surface-hover focus:ring-border-dark;
   }
   
   .btn-danger {
@@ -123,13 +123,13 @@ body {
     @apply bg-accent-success text-text-inverse hover:bg-green-700 focus:ring-accent-success;
   }
   
-  /* Button sizes */
+  /* Button sizes - smaller and more minimal */
   .btn-sm {
-    @apply text-sm px-3 py-1.5 rounded-md;
+    @apply text-xs px-2 py-1 rounded;
   }
   
   .btn-lg {
-    @apply text-lg px-6 py-3 rounded-xl;
+    @apply text-base px-4 py-2 rounded-lg;
   }
   
   /* Legacy button support (keeping for backward compatibility) */
@@ -155,21 +155,21 @@ body {
     @apply btn-lg;
   }
   
-  /* Modern Card System */
+  /* Minimal Card System - smaller, cleaner */
   .card {
-    @apply bg-surface-primary rounded-xl shadow-sm border border-border-light transition-all duration-200 hover:shadow-md;
+    @apply bg-surface-primary rounded-lg border border-border-light transition-all duration-200 hover:border-border-medium;
   }
   
   .card-header {
-    @apply p-6 border-b border-border-light;
+    @apply p-4 border-b border-border-light;
   }
   
   .card-content {
-    @apply p-6;
+    @apply p-4;
   }
   
   .card-footer {
-    @apply p-6 border-t border-border-light;
+    @apply p-4 border-t border-border-light;
   }
   
   /* Modern Form Controls */

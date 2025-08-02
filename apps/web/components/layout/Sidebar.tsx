@@ -83,12 +83,13 @@ export function Sidebar() {
     <div className="flex h-screen fixed top-0 left-0 z-30">
       <ProSidebar
         collapsed={!sidebarOpen}
-        width="270px"
-        collapsedWidth="80px"
-        backgroundColor="rgb(24 24 27)"
+        width="240px"
+        collapsedWidth="70px"
+        backgroundColor="#FFFFFF"
         rootStyles={{
-          borderRightWidth: '0px',
-          color: '#e0e0e0',
+          borderRightWidth: '1px',
+          borderRightColor: '#E5E7EB',
+          color: '#000000',
           height: '100vh',
           '.ps-sidebar-container': {
             backgroundColor: 'transparent',
@@ -113,27 +114,27 @@ export function Sidebar() {
                 />
               </Link>
             ) : (
-              <div className={`rounded-full bg-neutral-700 flex items-center justify-center ${sidebarOpen ? 'mr-3' : 'mb-2'}`} style={{ width: sidebarOpen ? 48 : 40, height: sidebarOpen ? 48 : 40}}>
-                <FiUser size={sidebarOpen? 24 : 20} className="text-neutral-400" />
+              <div className={`rounded-full bg-border-medium flex items-center justify-center ${sidebarOpen ? 'mr-3' : 'mb-2'}`} style={{ width: sidebarOpen ? 48 : 40, height: sidebarOpen ? 48 : 40}}>
+                <FiUser size={sidebarOpen? 24 : 20} className="text-text-secondary" />
               </div>
             )}
             {sidebarOpen && (
               <div className="overflow-hidden whitespace-nowrap flex-grow">
                 {currentUserId ? (
                   <Link href={`/profile/${currentUserId}`} passHref className="hover:underline">
-                    <h5 className="font-semibold text-sm text-white truncate">{currentUserName}</h5>
+                    <h5 className="font-medium text-sm text-text-primary truncate">{currentUserName}</h5>
                   </Link>
                 ) : (
-                  <h5 className="font-semibold text-sm text-white truncate">{currentUserName}</h5>
+                  <h5 className="font-medium text-sm text-text-primary truncate">{currentUserName}</h5>
                 )}
               </div>
             )}
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)} 
-              className={`p-1 rounded-md hover:bg-neutral-700/50 transition-colors ${sidebarOpen ? 'ml-auto self-center' : 'mt-2'}`}
+              className={`p-1 rounded-md hover:bg-surface-hover transition-colors ${sidebarOpen ? 'ml-auto self-center' : 'mt-2'}`}
               aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
-              {sidebarOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
+              {sidebarOpen ? <FiChevronLeft size={18} className="text-text-secondary" /> : <FiChevronRight size={18} className="text-text-secondary" />}
             </button>
           </div>
 
@@ -142,24 +143,26 @@ export function Sidebar() {
             className="flex-grow overflow-y-auto"
             menuItemStyles={{
               button: ({ level, active }) => ({
-                color: active ? '#ffffff' : '#a3a3a3',
-                backgroundColor: active ? 'rgb(63 63 70)' : 'transparent',
-                paddingLeft: sidebarOpen ? (level === 0 ? '20px' : '0') : '0',
+                color: active ? '#000000' : '#6B7280',
+                backgroundColor: active ? '#F3F4F6' : 'transparent',
+                paddingLeft: sidebarOpen ? (level === 0 ? '16px' : '0') : '0',
                 justifyContent: sidebarOpen ? 'flex-start' : 'center',
-                height: '48px',
-                borderRadius: '8px',
-                margin: '2px 10px',
+                height: '40px',
+                borderRadius: '6px',
+                margin: '1px 8px',
                 alignItems: 'center',
+                fontSize: '0.875rem',
+                fontWeight: 500,
                 transition: 'background-color 0.2s ease, color 0.2s ease',
                 '&:hover': {
-                  backgroundColor: 'rgb(82 82 91)',
-                  color: '#ffffff',
+                  backgroundColor: '#F9FAFB',
+                  color: '#000000',
                 },
               }),
               icon: ({ active }) => ({
-                 color: active ? '#ffffff' : '#a3a3a3',
+                 color: active ? '#000000' : '#6B7280',
                  marginLeft: sidebarOpen ? '0' : 'auto',
-                 marginRight: sidebarOpen ? '10px' : 'auto',
+                 marginRight: sidebarOpen ? '8px' : 'auto',
                  transition: 'color 0.2s ease',
               }),
               label: () => ({
@@ -171,11 +174,11 @@ export function Sidebar() {
               }),
               subMenuContent: () => ({
                 backgroundColor: 'transparent',
-                marginLeft: sidebarOpen ? '10px' : '0',
+                marginLeft: sidebarOpen ? '8px' : '0',
               })
             }}
           >
-            <div className={`px-5 py-2 text-xs text-neutral-500 uppercase ${sidebarOpen ? '' : 'text-center sr-only'}`}>
+            <div className={`px-4 py-2 text-xs text-text-muted uppercase ${sidebarOpen ? '' : 'text-center sr-only'}`}>
               {sidebarOpen ? 'Menu' : ''}
             </div>
             {mainNavItems.map((item) => (
@@ -217,21 +220,21 @@ export function Sidebar() {
           </Menu>
 
           {/* Bottom CTA */}
-          <div className={`mb-4 px-4 ${sidebarOpen ? '' : 'flex justify-center'}`}>
+          <div className={`mb-4 px-3 ${sidebarOpen ? '' : 'flex justify-center'}`}>
             {sidebarOpen ? (
-              <div className="p-3 rounded-lg bg-neutral-800/70 text-center">
-                <h6 className="font-semibold text-white text-sm mb-0.5">New Project</h6>
-                <p className="text-xs text-neutral-400 mb-2.5">Start collaborating on a new idea.</p>
+              <div className="p-3 rounded-lg bg-surface-secondary border border-border-light text-center">
+                <h6 className="font-medium text-text-primary text-sm mb-0.5">New Project</h6>
+                <p className="text-xs text-text-secondary mb-2.5">Start collaborating on a new idea.</p>
                 <Link href="/projects/new" passHref>
-                  <button className="w-full bg-neutral-700 text-white py-2 px-3 rounded-md text-xs font-semibold hover:bg-neutral-600 transition-colors flex items-center justify-center">
-                    <FiPlus className="inline mr-1.5 -ml-0.5" size={16} /> Add Project
+                  <button className="w-full bg-accent-primary text-text-inverse py-2 px-3 rounded-md text-xs font-medium hover:bg-accent-primary-hover transition-colors flex items-center justify-center">
+                    <FiPlus className="inline mr-1.5 -ml-0.5" size={14} /> Add Project
                   </button>
                 </Link>
               </div>
             ) : (
               <Link href="/projects/new" passHref>
-                <button className="bg-neutral-700 text-white p-2.5 rounded-lg hover:bg-neutral-600 transition-colors" aria-label="Add New Project">
-                  <FiPlus size={20} />
+                <button className="bg-accent-primary text-text-inverse p-2.5 rounded-lg hover:bg-accent-primary-hover transition-colors" aria-label="Add New Project">
+                  <FiPlus size={18} />
                 </button>
               </Link>
             )}

@@ -20,39 +20,39 @@ module.exports = {
         'researchbee-light-gray': '#B3B3B3',
         'researchbee-white': '#FFFFFF',
 
-        // NEW MODERN LIGHT THEME - Primary Design System
-        // Background Colors (Light Theme)
-        'bg-primary': '#FAFAFA',        // Main background (very light grey)
-        'bg-secondary': '#F5F5F5',      // Card/section backgrounds  
-        'bg-tertiary': '#FFFFFF',       // Input fields, modals
-        'bg-quaternary': '#EEEEEE',     // Subtle dividers, disabled states
+        // MINIMAL BLACK/WHITE/GREY THEME - Pure Monochrome
+        // Background Colors (Pure White Theme)
+        'bg-primary': '#FFFFFF',        // Main background (pure white)
+        'bg-secondary': '#FFFFFF',      // Card/section backgrounds (pure white)
+        'bg-tertiary': '#FFFFFF',       // Input fields, modals (pure white)
+        'bg-quaternary': '#F8F9FA',     // Subtle dividers, disabled states (very light grey)
 
-        // Text Colors (Dark on Light)
-        'text-primary': '#1A1A1A',      // Main text (near black)
-        'text-secondary': '#4A4A4A',    // Secondary text
-        'text-muted': '#8A8A8A',        // Placeholder, captions
-        'text-inverse': '#FFFFFF',      // White text for dark backgrounds
+        // Text Colors (Pure Black on White)
+        'text-primary': '#000000',      // Main text (pure black)
+        'text-secondary': '#6B7280',    // Secondary text (grey)
+        'text-muted': '#9CA3AF',        // Placeholder, captions (light grey)
+        'text-inverse': '#FFFFFF',      // White text for rare dark backgrounds
 
-        // Accent Colors (Modern & Vibrant)
-        'accent-primary': '#2563EB',    // Primary actions (blue)
-        'accent-primary-hover': '#1D4ED8', // Primary hover state
-        'accent-secondary': '#7C3AED',  // Secondary actions (purple)
-        'accent-secondary-hover': '#6D28D9', // Secondary hover state
-        'accent-success': '#16A34A',    // Success states (green)
-        'accent-warning': '#EA580C',    // Warnings (orange)
-        'accent-error': '#DC2626',      // Errors (red)
+        // Accent Colors (Monochrome Only)
+        'accent-primary': '#000000',    // Primary actions (black)
+        'accent-primary-hover': '#374151', // Primary hover state (dark grey)
+        'accent-secondary': '#6B7280',  // Secondary actions (grey)
+        'accent-secondary-hover': '#4B5563', // Secondary hover state (darker grey)
+        'accent-success': '#059669',    // Success states (minimal green)
+        'accent-warning': '#D97706',    // Warnings (minimal orange)
+        'accent-error': '#DC2626',      // Errors (minimal red)
 
-        // Borders & Dividers (Light Theme)
-        'border-light': '#E5E5E5',      // Subtle borders
-        'border-medium': '#D1D1D1',     // Form inputs, cards
-        'border-dark': '#A1A1A1',       // Focused states, emphasis
-        'border-accent': '#2563EB',     // Accent borders
+        // Borders & Dividers (Minimal Grey)
+        'border-light': '#F3F4F6',      // Very subtle borders
+        'border-medium': '#E5E7EB',     // Form inputs, cards
+        'border-dark': '#D1D5DB',       // Focused states, emphasis
+        'border-accent': '#000000',     // Accent borders (black)
 
-        // Surface Colors (Cards, Panels)
-        'surface-primary': '#FFFFFF',    // Main cards, panels
-        'surface-secondary': '#F8F9FA',  // Secondary panels
-        'surface-hover': '#F1F3F4',      // Hover states
-        'surface-active': '#E8F0FE',     // Active/selected states
+        // Surface Colors (Pure White)
+        'surface-primary': '#FFFFFF',    // Main cards, panels (pure white)
+        'surface-secondary': '#FAFBFC',  // Secondary panels (barely grey)
+        'surface-hover': '#F9FAFB',      // Hover states (very light grey)
+        'surface-active': '#F3F4F6',     // Active/selected states (light grey)
 
         // Legacy support (keeping old names mapped to new values)
         'ic-text-primary': '#1A1A1A',    // Now maps to dark text

@@ -28,44 +28,44 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles = 
-      'inline-flex items-center justify-center rounded-lg font-ui font-medium tracking-wide '
+      'inline-flex items-center justify-center rounded-md font-ui font-medium '
       + 'transition-all duration-200 ease-in-out focus-visible:outline-none '
-      + 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary '
+      + 'focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-primary '
       + 'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
     
     const variantStyles = {
       primary: 
-        'bg-accent-primary text-text-inverse shadow-sm '
-        + 'hover:bg-accent-primary-hover hover:shadow-md '
+        'bg-accent-primary text-text-inverse '
+        + 'hover:bg-accent-primary-hover '
         + 'focus-visible:ring-accent-primary',
       secondary: 
         'bg-surface-primary text-text-primary border border-border-medium '
-        + 'hover:bg-surface-hover focus-visible:ring-accent-primary',
+        + 'hover:bg-surface-hover focus-visible:ring-border-dark',
       accent: 
-        'bg-accent-secondary text-text-inverse shadow-sm '
-        + 'hover:bg-accent-secondary-hover hover:shadow-md '
+        'bg-accent-secondary text-text-inverse '
+        + 'hover:bg-accent-secondary-hover '
         + 'focus-visible:ring-accent-secondary',
       outline: 
         'border border-border-medium bg-transparent text-text-primary '
         + 'hover:bg-surface-hover hover:border-border-dark '
-        + 'focus-visible:ring-accent-primary',
+        + 'focus-visible:ring-border-dark',
       ghost: 
         'bg-transparent text-text-primary '
-        + 'hover:bg-surface-hover focus-visible:ring-accent-primary',
+        + 'hover:bg-surface-hover focus-visible:ring-border-dark',
       danger: 
-        'bg-accent-error text-text-inverse shadow-sm '
-        + 'hover:bg-red-700 hover:shadow-md '
+        'bg-accent-error text-text-inverse '
+        + 'hover:bg-red-700 '
         + 'focus-visible:ring-accent-error',
       glass:
-        'bg-surface-primary/80 backdrop-blur-md border border-border-light text-text-primary '
-        + 'hover:bg-surface-primary hover:border-border-medium shadow-lg '
-        + 'focus-visible:ring-accent-primary',
+        'bg-surface-primary border border-border-light text-text-primary '
+        + 'hover:bg-surface-hover hover:border-border-medium '
+        + 'focus-visible:ring-border-dark',
     };
     
     const sizeStyles = {
-      sm: 'px-3.5 py-2 text-xs h-9',
-      md: 'px-5 py-2.5 text-sm h-10',
-      lg: 'px-6 py-3 text-base h-12',
+      sm: 'px-2 py-1 text-xs h-7',
+      md: 'px-3 py-1.5 text-sm h-8',
+      lg: 'px-4 py-2 text-base h-9',
     };
     
     const fullWidthStyles = isFullWidth ? 'w-full' : '';

@@ -29,7 +29,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-surface-primary border-b border-border-light px-6 py-4 shadow-sm">
+    <nav className="bg-surface-primary border-b border-border-light px-4 py-3">
       <div className="flex flex-wrap justify-between items-center">
         <div className="flex items-center">
           <button
@@ -40,8 +40,8 @@ export function Navbar() {
             <span className="sr-only">Open sidebar</span>
             <FiMenu className="w-6 h-6" />
           </button>
-          <Link href="/dashboard" className="flex ml-2 md:mr-24 items-center">
-            <span className="self-center text-xl font-heading font-semibold text-text-primary">
+          <Link href="/dashboard" className="flex ml-2 md:mr-16 items-center">
+            <span className="self-center text-lg font-heading font-medium text-text-primary">
               Research Collab
             </span>
           </Link>
@@ -102,10 +102,10 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex text-sm rounded-full focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-primary transition-all"
+              className="flex text-sm rounded-full focus:ring-1 focus:ring-border-dark focus:ring-offset-1 focus:ring-offset-bg-primary transition-all"
             >
               <span className="sr-only">Open user menu</span>
-              <div className="w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center text-text-inverse">
+              <div className="w-8 h-8 rounded-full bg-border-medium flex items-center justify-center text-text-primary">
                 <Avatar 
                   src={profile?.avatar_url} 
                   alt={profile ? `${profile.first_name} ${profile.last_name}` : 'User'} 

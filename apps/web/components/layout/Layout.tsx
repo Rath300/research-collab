@@ -67,7 +67,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <Navbar />
         
-        <main className="flex-1 overflow-auto p-6 md:p-8">
+        <main className="flex-1 overflow-auto p-4 md:p-6">
           {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-light border-t-accent-primary"></div>
