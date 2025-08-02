@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getProjectById, type ProjectWithDetails } from '@/lib/api';
+import { api } from '@/lib/trpc';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
@@ -18,36 +18,12 @@ export default function ResearchPostPage() {
   const postId = params?.id as string;
 
   const { user, isLoading: authLoading } = useAuthStore();
-  const [post, setPost] = useState<ProjectWithDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: post, isLoading: loading, error: queryError } = api.project.getById.useQuery(
+    { id: postId },
+    { enabled: !authLoading && !!postId }
+  );
 
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (postId) {
-      const fetchPost = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          const fetchedPost = await getProjectById(postId);
-          if (fetchedPost) {
-            setPost(fetchedPost);
-          } else {
-            setError('Research post not found.');
-          }
-        } catch (err: any) {
-          console.error('Error fetching research post:', err);
-          setError(err.message || 'Failed to load research post.');
-        }
-        setLoading(false);
-      };
-      fetchPost();
-    } else {
-      setError('Post ID is missing.');
-      setLoading(false);
-    }
-  }, [postId, user, authLoading, router]);
+  const error = queryError?.message || null;
 
   const handleFileDownload = (filePath: string, fileName: string) => {
     const supabaseStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
