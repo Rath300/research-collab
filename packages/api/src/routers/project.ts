@@ -546,22 +546,22 @@ export const projectRouter = router({
 
       // If not owner, check if user is active collaborator with editor role
       if (!isOwner) {
-        const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
-          .from('project_collaborators')
-          .select('role')
-          .eq('project_id', projectId)
-          .eq('user_id', inviterUserId)
-          .eq('status', 'active')
-          .maybeSingle();
+      const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('role')
+        .eq('project_id', projectId)
+        .eq('user_id', inviterUserId)
+        .eq('status', 'active')
+        .maybeSingle();
 
-        if (inviterCheckError) {
-          console.error("Error checking inviter permission:", inviterCheckError);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to verify your project permissions.',
-            cause: inviterCheckError,
-          });
-        }
+      if (inviterCheckError) {
+        console.error("Error checking inviter permission:", inviterCheckError);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to verify your project permissions.',
+          cause: inviterCheckError,
+        });
+      }
 
                  hasPermission = !!(inviterCollaborator && (inviterCollaborator.role === 'owner' || inviterCollaborator.role === 'editor'));
       }
@@ -1236,11 +1236,7 @@ export const projectRouter = router({
 
       let query = ctx.supabase
         .from('project_tasks')
-        .select(`
-          *,
-          assignee:profiles!project_tasks_assigned_to_fkey(first_name, last_name),
-          creator:profiles!project_tasks_created_by_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('project_id', input.projectId)
         .order('created_at', { ascending: false });
 
@@ -1260,18 +1256,10 @@ export const projectRouter = router({
       }
 
       return (tasks || []).map((task: any) => {
-        const assigneeName = task.assignee 
-          ? `${task.assignee.first_name || ''} ${task.assignee.last_name || ''}`.trim() || 'Unknown'
-          : undefined;
-        
-        const creatorName = task.creator
-          ? `${task.creator.first_name || ''} ${task.creator.last_name || ''}`.trim() || 'Unknown'
-          : 'Unknown';
-
         return {
           ...task,
-          assignee_name: assigneeName,
-          creator_name: creatorName,
+          assignee_name: undefined, // Will need to fetch separately if needed
+          creator_name: 'Unknown', // Will need to fetch separately if needed
         };
       });
     }),
@@ -1529,11 +1517,7 @@ export const projectRouter = router({
 
       let query = ctx.supabase
         .from('project_notes')
-        .select(`
-          *,
-          creator:profiles!project_notes_created_by_fkey(first_name, last_name),
-          last_editor:profiles!project_notes_last_edited_by_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('project_id', input.projectId)
         .eq('is_public', true) // Only show public notes for now
         .order('updated_at', { ascending: false });
@@ -1554,18 +1538,10 @@ export const projectRouter = router({
       }
 
       return (notes || []).map((note: any) => {
-        const creatorName = note.creator
-          ? `${note.creator.first_name || ''} ${note.creator.last_name || ''}`.trim() || 'Unknown'
-          : 'Unknown';
-        
-        const lastEditorName = note.last_editor
-          ? `${note.last_editor.first_name || ''} ${note.last_editor.last_name || ''}`.trim() || 'Unknown'
-          : 'Unknown';
-
         return {
           ...note,
-          creator_name: creatorName,
-          last_editor_name: lastEditorName,
+          creator_name: 'Unknown', // Will need to fetch separately if needed
+          last_editor_name: 'Unknown', // Will need to fetch separately if needed
         };
       });
     }),
@@ -1802,20 +1778,20 @@ export const projectRouter = router({
 
       // If not owner, check if user is active collaborator
       if (!isOwner) {
-        const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
-          .from('project_collaborators')
+      const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
+        .from('project_collaborators')
           .select('id', { head: true })
-          .eq('project_id', projectId)
-          .eq('user_id', requesterUserId)
-          .eq('status', 'active')
+        .eq('project_id', projectId)
+        .eq('user_id', requesterUserId)
+        .eq('status', 'active')
           .maybeSingle();
 
-        if (requesterCheckError) {
-          console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
-        }
+      if (requesterCheckError) {
+        console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
+      }
         if (!requesterMembership) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
         }
       }
 
