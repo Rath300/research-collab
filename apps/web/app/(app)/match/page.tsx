@@ -17,7 +17,7 @@ import Link from 'next/link';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileMatchStatus = Database['public']['Tables']['profile_matches']['Row']['status'];
 
-interface PotentialMatch extends Profile {
+interface PotentialMatch extends Omit<Profile, 'username'> {
   // Any additional properties needed for the card
 }
 
@@ -147,8 +147,12 @@ export default function MatchPage() {
   };
   
   const swipe = async (dir: 'left' | 'right' | 'up' | 'down') => {
-    if (currentIndex >= 0 && childRefs[currentIndex]) {
-      await childRefs[currentIndex].current?.swipe(dir);
+    if (currentIndex >= 0 && childRefs[currentIndex] && childRefs[currentIndex].current) {
+      try {
+        await childRefs[currentIndex].current.swipe(dir);
+      } catch (error) {
+        console.error('Error swiping card:', error);
+      }
     }
   };
 
@@ -250,7 +254,10 @@ export default function MatchPage() {
       {potentialMatches.length > 0 && currentIndex >= 0 && (
         <div className='flex items-center justify-center gap-6 mt-8 z-20'>
           <Button
-            onClick={() => swipe('left')}
+            onClick={() => {
+              console.log('Reject button clicked, currentIndex:', currentIndex);
+              swipe('left');
+            }}
             variant="outline"
             size="lg"
             className="rounded-full !p-5 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-400"
@@ -268,7 +275,10 @@ export default function MatchPage() {
             <FiRewind size={20} />
           </Button> */}
           <Button
-            onClick={() => swipe('right')}
+            onClick={() => {
+              console.log('Like button clicked, currentIndex:', currentIndex);
+              swipe('right');
+            }}
             variant="outline"
             size="lg"
             className="rounded-full !p-5 border-green-500/50 text-green-500 hover:bg-green-500/10 hover:text-green-400"
