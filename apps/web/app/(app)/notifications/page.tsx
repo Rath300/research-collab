@@ -139,7 +139,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <PageContainer title="Notifications" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="Notifications" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="p-4 sm:p-6 md:p-8"> 
         <motion.div 
           className="flex justify-between items-center mb-6 md:mb-8 max-w-3xl mx-auto"

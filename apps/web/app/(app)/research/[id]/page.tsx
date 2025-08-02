@@ -43,7 +43,7 @@ export default function ResearchPostPage() {
 
   if (loading || authLoading) {
     return (
-      <PageContainer title="Loading Post..." className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Loading Post..." className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="flex flex-col items-center">
           <FiLoader className="animate-spin text-accent-purple text-6xl mb-4" />
           <p className="text-xl text-neutral-400">Loading research post...</p>
@@ -54,7 +54,7 @@ export default function ResearchPostPage() {
 
   if (error) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center p-6">
+      <PageContainer title="Error" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center p-6">
         <div className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-xl text-center max-w-md">
           <FiAlertCircle className="mx-auto text-red-500 text-5xl mb-4" />
           <h2 className="text-2xl font-heading text-neutral-100 mb-2">Oops! Something went wrong.</h2>
@@ -72,7 +72,7 @@ export default function ResearchPostPage() {
 
   if (!post) {
     return (
-      <PageContainer title="Post Not Found" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center p-6">
+      <PageContainer title="Post Not Found" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center p-6">
         <div className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-xl text-center">
           <FiAlertCircle className="mx-auto text-neutral-500 text-5xl mb-4" />
           <h2 className="text-2xl font-heading text-neutral-100">Post Not Found</h2>
@@ -89,7 +89,7 @@ export default function ResearchPostPage() {
   const postDate = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'some time ago';
 
   return (
-    <PageContainer title={post.title || "Research Post"} className="bg-black min-h-screen text-neutral-100">
+    <PageContainer title={post.title || "Research Post"} className="bg-bg-primary min-h-screen text-text-primary">
       <div className="absolute top-20 left-6 z-10"> {/* Adjusted top to avoid header overlap, may need tweaking */}
         <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-400 hover:text-accent-purple hover:bg-neutral-800 p-2 rounded-full">
           <FiArrowLeft size={24} />

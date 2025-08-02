@@ -158,7 +158,7 @@ export default function AccountSettingsPage() {
   return (
     <PageContainer title="Account Settings" className="py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <Card className="bg-neutral-900 border border-neutral-800 shadow-xl">
+        <Card className="bg-surface-primary border border-neutral-800 shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl font-heading text-neutral-100 flex items-center">
               <FiUser className="mr-3 text-accent-purple" /> Your Profile

@@ -99,7 +99,7 @@ export default function ProfileSetupPage() {
         animate="visible"
         className="w-full max-w-2xl"
       >
-        <Card className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl overflow-hidden">
+        <Card className="bg-surface-primary border border-neutral-800 rounded-lg shadow-xl overflow-hidden">
           <CardHeader className="pt-8 pb-6 text-center">
             <motion.div custom={0} variants={itemVariants}>
               <FiUserCheck className="text-5xl text-accent-purple mx-auto mb-4" />

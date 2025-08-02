@@ -85,7 +85,7 @@ export default function SettingsPage() {
 
   if (isLoading || (!profile && !pageError)) { // Show loading if isLoading or if profile isn't there yet (and no error)
     return (
-      <PageContainer title="Settings" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Settings" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="flex flex-col items-center">
           <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
           <p className="text-xl text-neutral-300 font-sans">Loading your settings...</p>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
 
   if (pageError) {
     return (
-      <PageContainer title="Error" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Error" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="bg-neutral-900 border border-neutral-800 p-8 rounded-xl shadow-xl text-center max-w-md w-full">
           <FiAlertCircle className="mx-auto text-red-500 text-5xl mb-4" />
           <h2 className="text-2xl font-heading text-neutral-100 mb-2">Oops! Something went wrong.</h2>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
      // If it is, it implies a deeper issue or a race condition.
      if (!useAuthStore.getState().isLoading) router.push('/login');
      return (
-      <PageContainer title="Settings" className="bg-black min-h-screen text-neutral-100 flex items-center justify-center">
+      <PageContainer title="Settings" className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center">
         <div className="flex flex-col items-center">
           <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
           <p className="text-xl text-neutral-300 font-sans">Preparing settings...</p>
@@ -128,7 +128,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <PageContainer title="Account Settings" className="bg-black min-h-screen text-neutral-100 font-sans">
+    <PageContainer title="Account Settings" className="bg-bg-primary min-h-screen text-text-primary font-sans">
       <div className="container mx-auto max-w-4xl px-4 py-12 sm:py-16 lg:py-20">
         <div className="mb-12 sm:mb-16 text-center">
           <FiSettings className="mx-auto text-accent-purple text-5xl mb-4" />

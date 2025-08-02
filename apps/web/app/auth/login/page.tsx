@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-researchbee-black flex flex-col">
+    <div className="min-h-screen bg-bg-primary flex flex-col">
       <header className="py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold text-researchbee-yellow">
           RESEARCH-BEE

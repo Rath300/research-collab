@@ -205,7 +205,7 @@ export default function NewProjectPage() {
 
   if (authLoading) {
     return (
-      <div className="bg-black min-h-screen text-neutral-300 flex items-center justify-center font-sans">
+      <div className="bg-bg-primary min-h-screen text-text-primary flex items-center justify-center font-sans">
         <div className="flex flex-col items-center">
           <FiLoader className="animate-spin text-neutral-500 text-5xl mb-4" />
           <p className="text-xl">Loading...</p>
@@ -218,7 +218,7 @@ export default function NewProjectPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-black min-h-screen text-neutral-300 font-sans p-4 sm:p-6 lg:p-8"
+      className="bg-bg-primary min-h-screen text-text-primary font-sans p-4 sm:p-6 lg:p-8"
     >
       <div className="max-w-4xl mx-auto">
         <Card className="bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl overflow-hidden">
