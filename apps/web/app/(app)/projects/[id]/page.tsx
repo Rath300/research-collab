@@ -67,7 +67,7 @@ const CollaboratorList = ({ projectId }: { projectId: string }) => {
 }
 
 const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
-    const [inviteeUserId, setInviteeUserId] = useState('');
+    const [inviteeUsername, setInviteeUsername] = useState('');
     const utils = api.useUtils();
     const { profile } = useAuthStore(); // Get current user's profile for optimistic update
 
@@ -86,7 +86,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
                     role: newInvite.role,
                     status: 'pending',
                     user: {
-                        id: newInvite.inviteeUserId,
+                        id: 'pending',
                         first_name: 'Pending',
                         last_name: 'Invitation',
                         avatar_url: null,
@@ -95,7 +95,7 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
                 return old ? [...old, optimisticCollaborator] : [optimisticCollaborator];
             });
 
-            setInviteeUserId('');
+            setInviteeUsername('');
             // Return a context object with the snapshotted value
             return { previousCollaborators };
         },
@@ -115,10 +115,10 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
 
     const handleInvite = (e: React.FormEvent) => {
         e.preventDefault();
-        if (inviteeUserId.trim() && profile) {
+        if (inviteeUsername.trim() && profile) {
             inviteMutation.mutate({
                 projectId,
-                inviteeUserId: inviteeUserId.trim(),
+                inviteeUsername: inviteeUsername.trim(),
                 role: 'viewer',
             });
         }
@@ -128,13 +128,13 @@ const InviteCollaboratorForm = ({ projectId }: { projectId: string }) => {
         <form onSubmit={handleInvite} className="flex items-center space-x-2">
             <Input
                 type="text"
-                placeholder="Enter User ID to invite"
-                value={inviteeUserId}
-                onChange={(e) => setInviteeUserId(e.target.value)}
+                placeholder="Enter username to invite (e.g., CrazyChicken143)"
+                value={inviteeUsername}
+                onChange={(e) => setInviteeUsername(e.target.value)}
                 className="flex-grow"
                 disabled={inviteMutation.isPending}
             />
-            <Button type="submit" disabled={!inviteeUserId.trim() || inviteMutation.isPending}>
+            <Button type="submit" disabled={!inviteeUsername.trim() || inviteMutation.isPending}>
                 {inviteMutation.isPending ? <FiLoader className="animate-spin" /> : 'Send Invite'}
             </Button>
         </form>

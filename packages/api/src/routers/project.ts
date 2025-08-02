@@ -60,7 +60,7 @@ const updateProjectInputSchema = projectSchema.pick({
 
 const inviteCollaboratorInputSchema = z.object({
   projectId: z.string().uuid(),
-  inviteeUserId: z.string().uuid(),
+  inviteeUsername: z.string().min(3).max(20), // Use username instead of UUID
   role: projectCollaboratorRoleSchema,
 });
 
@@ -517,34 +517,75 @@ export const projectRouter = router({
     .output(projectCollaboratorSchema) // Returns the newly created collaborator entry
     .mutation(async ({ ctx, input }) => {
       const inviterUserId = ctx.user.id;
-      const { projectId, inviteeUserId, role } = input;
+      const { projectId, inviteeUsername, role } = input;
 
       // 1. Verify the inviter has permission (owner or editor)
-      const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('role')
-        .eq('project_id', projectId)
-        .eq('user_id', inviterUserId)
-        .eq('status', 'active')
-        .maybeSingle();
+      // First check if user is project owner
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('leader_id')
+        .eq('id', projectId)
+        .single();
 
-      if (inviterCheckError) {
-        console.error("Error checking inviter permission:", inviterCheckError);
+      if (projectError) {
+        console.error("Error fetching project:", projectError);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to verify your project permissions.',
-          cause: inviterCheckError,
+          cause: projectError,
         });
       }
 
-      if (!inviterCollaborator || (inviterCollaborator.role !== 'owner' && inviterCollaborator.role !== 'editor')) {
+      const isOwner = project.leader_id === inviterUserId;
+      let hasPermission = isOwner;
+
+      // If not owner, check if user is active collaborator with editor role
+      if (!isOwner) {
+        const { data: inviterCollaborator, error: inviterCheckError } = await ctx.supabase
+          .from('project_collaborators')
+          .select('role')
+          .eq('project_id', projectId)
+          .eq('user_id', inviterUserId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (inviterCheckError) {
+          console.error("Error checking inviter permission:", inviterCheckError);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to verify your project permissions.',
+            cause: inviterCheckError,
+          });
+        }
+
+                 hasPermission = !!(inviterCollaborator && (inviterCollaborator.role === 'owner' || inviterCollaborator.role === 'editor'));
+      }
+
+      if (!hasPermission) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to invite collaborators to this project.',
         });
       }
       
-      // 2. Check if the user is already a collaborator or has a pending invitation
+      // 2. Find the invitee by username
+      const { data: inviteeProfile, error: inviteeError } = await ctx.supabase
+        .from('profiles')
+        .select('id, user_id')
+        .eq('username', inviteeUsername)
+        .single();
+
+      if (inviteeError) {
+        console.error("Error finding invitee by username:", inviteeError);
+        throw new TRPCError({ 
+          code: 'BAD_REQUEST', 
+          message: `User with username '${inviteeUsername}' not found.` 
+        });
+      }
+
+      const inviteeUserId = inviteeProfile.user_id;
+
+      // 3. Check if the user is already a collaborator or has a pending invitation
       const { data: existingCollaborator, error: existingCheckError } = await ctx.supabase
         .from('project_collaborators')
         .select('id, status')
@@ -566,7 +607,7 @@ export const projectRouter = router({
         // Potentially handle 'declined' or 'revoked' cases differently, e.g., re-invite by deleting old record
       }
 
-      // 3. Create the new collaborator entry with 'pending' status
+      // 4. Create the new collaborator entry with 'pending' status
       const { data: newCollaboratorEntry, error: insertError } = await ctx.supabase
         .from('project_collaborators')
         .insert({
@@ -1646,21 +1687,38 @@ export const projectRouter = router({
       const requesterUserId = ctx.user.id;
       const { projectId } = input;
 
-      // 1. Verify requester access (same as before)
-      const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
-        .from('project_collaborators')
-        .select('id', { head: true }) // Just check existence
-        .eq('project_id', projectId)
-        .eq('user_id', requesterUserId)
-        .eq('status', 'active')
-        .maybeSingle(); // Use maybeSingle to confirm it's one or none
+      // 1. Verify requester access - check if user is project owner or active collaborator
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('leader_id')
+        .eq('id', projectId)
+        .single();
 
-      if (requesterCheckError) {
-        console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
+      if (projectError) {
+        console.error("Error fetching project:", projectError);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
       }
-      if (!requesterMembership) { // maybeSingle returns null if not found, so !requesterMembership is correct
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
+
+      // Check if user is project owner
+      const isOwner = project.leader_id === requesterUserId;
+
+      // If not owner, check if user is active collaborator
+      if (!isOwner) {
+        const { data: requesterMembership, error: requesterCheckError } = await ctx.supabase
+          .from('project_collaborators')
+          .select('id', { head: true })
+          .eq('project_id', projectId)
+          .eq('user_id', requesterUserId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (requesterCheckError) {
+          console.error("Error verifying requester access for listing collaborators:", requesterCheckError);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to verify your project access.'});
+        }
+        if (!requesterMembership) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to view collaborators for this project.'});
+        }
       }
 
       // 2. Fetch collaborators and their profiles
