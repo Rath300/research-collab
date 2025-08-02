@@ -39,14 +39,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   if (isAuthLoading || !user) {
     // Optionally show a loading state for the whole layout
     return (
-      <div className="flex items-center justify-center min-h-screen bg-neutral-900 text-neutral-400">
+      <div className="flex items-center justify-center min-h-screen bg-bg-primary text-text-secondary">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-neutral-900 text-neutral-100">
+    <div className="flex min-h-screen bg-bg-primary text-text-primary">
       <DashboardSidebar 
         isCollapsed={isSidebarCollapsed} 
         profile={profile} 
@@ -58,7 +58,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           toggleSidebar={toggleSidebar} 
           isSidebarCollapsed={isSidebarCollapsed} 
         />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-neutral-900 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-bg-primary overflow-y-auto">
           {children}
         </main>
       </div>

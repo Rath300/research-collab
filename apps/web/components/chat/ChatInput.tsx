@@ -30,7 +30,7 @@ export function ChatInput({ onSendMessage, isLoading = false }: ChatInputProps) 
 
   return (
     <motion.div 
-      className="bg-neutral-900 border-t border-neutral-800 p-3 sm:p-4"
+      className="bg-surface-primary border-t border-border-light p-3 sm:p-4"
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}

@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Don't show loading during regular navigation or when already redirecting
   if (authIsLoading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-black">
+              <div className="flex h-screen w-screen items-center justify-center bg-bg-primary">
         <FiLoader className="animate-spin text-accent-purple text-4xl" />
       </div>
     );
@@ -53,7 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // If all checks pass, render the layout
   return (
     <TRPCProvider>
-      <div className="flex h-screen bg-black">
+      <div className="flex h-screen bg-bg-primary">
         <AppSidebar />
         <div 
           className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"

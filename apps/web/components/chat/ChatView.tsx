@@ -69,7 +69,7 @@ export function ChatView({
     >
       {/* Chat Header */} 
       {chatPartner && (
-        <header className="bg-neutral-900 border-b border-neutral-800 p-3 sm:p-4 flex items-center justify-between sticky top-0 z-10">
+        <header className="bg-surface-primary border-b border-border-light p-3 sm:p-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center">
             {onBack && (
                 <Button variant="ghost" size="sm" onClick={onBack} className="mr-2 sm:hidden text-neutral-300 hover:bg-neutral-700 !p-2 rounded-full">

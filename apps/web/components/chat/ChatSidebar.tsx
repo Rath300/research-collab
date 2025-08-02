@@ -48,7 +48,7 @@ export function ChatSidebar({
 
   return (
     <motion.div 
-      className="bg-neutral-900 border-r border-neutral-800 h-full flex flex-col w-full sm:w-80 md:w-96"
+      className="bg-surface-primary border-r border-border-light h-full flex flex-col w-full sm:w-80 md:w-96"
       initial={{ x: -300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}

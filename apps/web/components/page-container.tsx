@@ -16,7 +16,7 @@ export function PageContainer({ title, description, children }: PageContainerPro
         <title>{pageTitle}</title>
         {description && <meta name="description" content={description} />}
       </Head>
-      <main className="min-h-screen bg-researchbee-black text-white p-4 md:p-6">
+      <main className="min-h-screen bg-bg-primary text-text-primary p-4 md:p-6">
         {children}
       </main>
     </>

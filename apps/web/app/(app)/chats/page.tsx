@@ -384,7 +384,7 @@ export default function ChatsPage() {
 
   if (authLoading || (!user && !error)) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neutral-400 p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-bg-primary text-text-secondary p-4">
         <FiLoader className="animate-spin text-4xl text-accent-purple mb-4" />
         <p>Loading authentication...</p>
       </div>
@@ -393,7 +393,7 @@ export default function ChatsPage() {
   
   if (isInitializingSession) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neutral-400 p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-bg-primary text-text-secondary p-4">
         <FiLoader className="animate-spin text-4xl text-accent-purple mb-4" />
         <p>Initializing chat session...</p>
       </div>
@@ -402,7 +402,7 @@ export default function ChatsPage() {
 
   if (isLoadingConversations && conversations.length === 0 && !selectedConversationPartner) {
      return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-neutral-100 font-sans p-4">
+      <div className="h-screen flex flex-col items-center justify-center bg-bg-primary text-text-primary font-sans p-4">
         <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
         <p className="text-lg">Loading conversations...</p>
       </div>
@@ -411,10 +411,10 @@ export default function ChatsPage() {
 
   if (error && !isInitializingSession) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-neutral-100 font-sans p-6">
+      <div className="h-screen flex flex-col items-center justify-center bg-bg-primary text-text-primary font-sans p-6">
         <FiAlertCircle className="text-red-500 text-6xl mb-4" />
         <h2 className="text-2xl font-heading mb-2">Error Loading Chats</h2>
-        <p className="text-neutral-400 text-center mb-6">{error}</p>
+        <p className="text-text-secondary text-center mb-6">{error}</p>
         <button 
             onClick={fetchConversations} 
             className="px-4 py-2 bg-accent-purple hover:bg-accent-purple-hover text-white rounded-md font-sans transition-colors"
@@ -426,7 +426,7 @@ export default function ChatsPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col sm:flex-row bg-black text-neutral-100 overflow-hidden">
+    <div className="h-screen flex flex-col sm:flex-row bg-bg-primary text-text-primary overflow-hidden">
       {/* Error Banner */}
       {connectionError && (
         <div className="w-full bg-red-600 text-white text-center py-2 z-50">
