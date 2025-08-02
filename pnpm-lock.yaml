@@ -206,7 +206,7 @@ importers:
         specifier: 1.94.3
         version: 1.94.3
       '@tanstack/react-query':
-        specifier: ^4.36.1
+        specifier: ^4.39.1
         version: 4.39.1(react-dom@18.2.0(react@18.2.0))(react-native@0.73.2(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(react@18.2.0))(react@18.2.0)
       '@tiptap/pm':
         specifier: ^2.12.0
@@ -275,7 +275,7 @@ importers:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
       react-hook-form:
-        specifier: ^7.51.4
+        specifier: ^7.57.0
         version: 7.57.0(react@18.2.0)
       react-i18next:
         specifier: ^15.0.0
