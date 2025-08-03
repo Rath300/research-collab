@@ -188,23 +188,35 @@ export default function TrendingPage() {
     setLoading(true);
     setError(null);
     try {
+      // First fetch projects
       const { data: fetchedProjects, error: projectsError } = await supabase
         .from('projects')
-        .select(`
-          *,
-          profiles!leader_id (
-            id,
-            first_name,
-            last_name,
-            avatar_url,
-            institution
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(30);
 
       if (projectsError) throw projectsError;
-      const currentProjects = (fetchedProjects as TrendingProject[] | null) || [];
+      
+      // Then fetch profiles for the project leaders
+      const leaderIds = fetchedProjects?.map(project => project.leader_id).filter(Boolean) || [];
+      let profilesData: any[] = [];
+      
+      if (leaderIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, institution')
+          .in('id', leaderIds);
+        
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+      }
+
+      // Combine the data
+      const currentProjects = (fetchedProjects || []).map(project => ({
+        ...project,
+        profiles: profilesData.find(profile => profile.id === project.leader_id) || null
+      }));
+      
       setPosts(currentProjects.slice(0, 15));
 
       const tagCounts: Record<string, number> = {};

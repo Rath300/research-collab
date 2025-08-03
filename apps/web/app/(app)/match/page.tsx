@@ -32,6 +32,7 @@ export default function MatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastDirection, setLastDirection] = useState<string | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [swipedUsers, setSwipedUsers] = useState<Set<string>>(new Set());
 
   const fetchPotentialMatches = useCallback(async () => {
     if (!user) {
@@ -99,6 +100,13 @@ export default function MatchPage() {
   );
 
   const swiped = async (direction: 'left' | 'right', swipedUserId: string, index: number) => {
+    // Prevent duplicate swipes
+    if (swipedUsers.has(swipedUserId)) {
+      console.log(`Already swiped on user ${swipedUserId}, ignoring duplicate`);
+      return;
+    }
+
+    setSwipedUsers(prev => new Set(prev).add(swipedUserId));
     setLastDirection(direction);
     console.log(`Swiped ${direction} on user ${swipedUserId} at index ${index}`);
 

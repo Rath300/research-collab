@@ -30,14 +30,37 @@ export default function ResearchPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: projectsError } = await supabase
+      // First fetch projects
+      const { data: fetchedProjects, error: projectsError } = await supabase
         .from('projects')
         .select('*')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(20);
+      
       if (projectsError) throw projectsError;
-      setProjects((data as ProjectWithProfile[] | null) || []);
+      
+      // Then fetch profiles for the project leaders
+      const leaderIds = fetchedProjects?.map(project => project.leader_id).filter(Boolean) || [];
+      let profilesData: any[] = [];
+      
+      if (leaderIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, institution, full_name')
+          .in('id', leaderIds);
+        
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+      }
+
+      // Combine the data
+      const currentProjects = (fetchedProjects || []).map(project => ({
+        ...project,
+        profiles: profilesData.find(profile => profile.id === project.leader_id) || null
+      }));
+      
+      setProjects(currentProjects);
     } catch (err) {
       console.error('Error loading projects:', err);
       setError(err instanceof Error ? err.message : 'Failed to load projects');
