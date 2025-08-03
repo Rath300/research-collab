@@ -2478,6 +2478,201 @@ export const projectRouter = router({
 
       return { success: true, message: 'Request to join project sent successfully.' };
     }),
+
+  /**
+   * Allows a project owner to accept or decline a pending join request.
+   * Only the project owner can respond to join requests.
+   */
+  respondToJoinRequest: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      requesterId: z.string().uuid(),
+      action: z.enum(['accept', 'decline']),
+    }))
+    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const { projectId, requesterId, action } = input;
+
+      // 1. Verify the user is the project owner
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('id, title, leader_id')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) {
+        console.error("Error fetching project for join request response:", projectError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch project details.' });
+      }
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found.' });
+      }
+      if (project.leader_id !== userId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the project owner can respond to join requests.' });
+      }
+
+      // 2. Find the pending join request
+      const { data: joinRequest, error: requestError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('id, status, user_id')
+        .eq('project_id', projectId)
+        .eq('user_id', requesterId)
+        .eq('status', 'pending')
+        .is('invited_by', null) // Only join requests (not invitations)
+        .maybeSingle();
+
+      if (requestError) {
+        console.error("Error finding join request:", requestError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to find join request.' });
+      }
+      if (!joinRequest) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No pending join request found for this user.' });
+      }
+
+      // 3. Update the collaboration status
+      const newStatus = action === 'accept' ? 'active' : 'declined';
+      const { error: updateError } = await ctx.supabase
+        .from('project_collaborators')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', joinRequest.id);
+
+      if (updateError) {
+        console.error("Error updating join request status:", updateError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update join request status.' });
+      }
+
+      // 4. Get the requester's profile for the notification
+      const { data: requesterProfile, error: profileError } = await ctx.supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', requesterId)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching requester profile:", profileError);
+        // Don't fail the request if we can't get the profile
+      }
+
+      // 5. Create notification for the requester
+      const requesterName = requesterProfile 
+        ? `${requesterProfile.first_name || 'Someone'} ${requesterProfile.last_name || ''}`.trim()
+        : 'Someone';
+
+      const notificationContent = action === 'accept' 
+        ? `Your request to join "${project.title}" has been accepted!`
+        : `Your request to join "${project.title}" has been declined.`;
+
+      const { error: notificationError } = await ctx.supabase
+        .from('user_notifications')
+        .insert({
+          user_id: requesterId,
+          type: action === 'accept' ? 'collaboration_accepted' : 'collaboration_declined',
+          content: notificationContent,
+          sender_id: userId,
+          link_to: action === 'accept' ? `/projects/${projectId}` : null,
+          is_read: false,
+        });
+
+      if (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Don't fail the request if notification fails
+      }
+
+      return { 
+        success: true, 
+        message: action === 'accept' 
+          ? 'Join request accepted successfully.' 
+          : 'Join request declined successfully.' 
+      };
+    }),
+
+  /**
+   * Lists pending join requests for a project.
+   * Only the project owner can view join requests.
+   */
+  listPendingJoinRequests: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+    }))
+    .output(z.array(z.object({
+      id: z.string().uuid(),
+      user_id: z.string().uuid(),
+      role: z.string(),
+      created_at: z.string(),
+      requester_profile: z.object({
+        id: z.string().uuid(),
+        first_name: z.string().nullable(),
+        last_name: z.string().nullable(),
+        avatar_url: z.string().nullable(),
+      }).nullable(),
+    })))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const { projectId } = input;
+
+      // 1. Verify the user is the project owner
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('leader_id')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) {
+        console.error("Error fetching project for join requests list:", projectError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch project details.' });
+      }
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found.' });
+      }
+      if (project.leader_id !== userId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the project owner can view join requests.' });
+      }
+
+      // 2. Fetch pending join requests with requester profiles
+      const { data: joinRequests, error: requestsError } = await ctx.supabase
+        .from('project_collaborators')
+        .select(`
+          id,
+          user_id,
+          role,
+          created_at,
+          profiles!project_collaborators_user_id_fkey(
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('project_id', projectId)
+        .eq('status', 'pending')
+        .is('invited_by', null) // Only join requests (not invitations)
+        .order('created_at', { ascending: false });
+
+      if (requestsError) {
+        console.error("Error fetching join requests:", requestsError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch join requests.' });
+      }
+
+      // 3. Transform the data to match the expected output format
+      const transformedRequests = joinRequests?.map(request => ({
+        id: request.id,
+        user_id: request.user_id,
+        role: request.role,
+        created_at: request.created_at,
+        requester_profile: request.profiles && Array.isArray(request.profiles) && request.profiles.length > 0 ? {
+          id: request.profiles[0].id,
+          first_name: request.profiles[0].first_name,
+          last_name: request.profiles[0].last_name,
+          avatar_url: request.profiles[0].avatar_url,
+        } : null,
+      })) || [];
+
+      return transformedRequests;
+    }),
 });
 
 // Export type for router, can be used in frontend
