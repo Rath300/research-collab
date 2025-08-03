@@ -61,15 +61,15 @@ export default function ProfileSetupPage() {
 
   if (authLoading || (!user && !authLoading) || (profile && profile.first_name && profile.last_name && !isRedirecting) ) {
     return (
-      <PageContainer title="Profile Setup" className="bg-neutral-950 min-h-screen text-neutral-100 font-sans flex items-center justify-center">
+      <PageContainer title="Profile Setup" className="bg-bg-primary min-h-screen text-text-primary font-sans flex items-center justify-center">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="flex flex-col items-center"
         >
-          <FiLoader className="animate-spin text-accent-purple text-5xl mb-4" />
-          <p className="text-xl text-neutral-400">Loading your information...</p>
+          <FiLoader className="animate-spin text-accent-primary text-5xl mb-4" />
+          <p className="text-xl text-text-secondary">Loading your information...</p>
         </motion.div>
       </PageContainer>
     );
@@ -77,40 +77,40 @@ export default function ProfileSetupPage() {
   
   if (isRedirecting) {
     return (
-      <PageContainer title="Profile Setup Complete" className="bg-neutral-950 min-h-screen text-neutral-100 font-sans flex items-center justify-center">
+      <PageContainer title="Profile Setup Complete" className="bg-bg-primary min-h-screen text-text-primary font-sans flex items-center justify-center">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center p-8"
         >
           <FiUserCheck className="text-7xl text-green-500 mx-auto mb-5" />
-          <h2 className="text-3xl font-semibold text-neutral-100 font-heading">Profile setup complete!</h2>
-          <p className="text-xl text-neutral-400 mt-2">Redirecting you to the dashboard...</p>
+          <h2 className="text-3xl font-semibold text-text-primary font-heading">Profile setup complete!</h2>
+          <p className="text-xl text-text-secondary mt-2">Redirecting you to the dashboard...</p>
         </motion.div>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer title="Set Up Your Profile" className="bg-neutral-950 min-h-screen text-neutral-100 font-sans flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <PageContainer title="Set Up Your Profile" className="bg-bg-primary min-h-screen text-text-primary font-sans flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <motion.div 
         variants={cardVariants}
         initial="hidden"
         animate="visible"
         className="w-full max-w-2xl"
       >
-        <Card className="bg-surface-primary border border-neutral-800 rounded-lg shadow-xl overflow-hidden">
+        <Card className="bg-white border border-border-light rounded-lg shadow-xl overflow-hidden">
           <CardHeader className="pt-8 pb-6 text-center">
             <motion.div custom={0} variants={itemVariants}>
-              <FiUserCheck className="text-5xl text-accent-purple mx-auto mb-4" />
+              <FiUserCheck className="text-5xl text-accent-primary mx-auto mb-4" />
             </motion.div>
             <motion.div custom={1} variants={itemVariants}>
-              <CardTitle className="text-3xl sm:text-4xl font-heading font-semibold text-neutral-100">
+              <CardTitle className="text-3xl sm:text-4xl font-heading font-semibold text-text-primary">
                 Welcome! Let&apos;s Get You Set Up
               </CardTitle>
             </motion.div>
             <motion.div custom={2} variants={itemVariants}>
-              <CardDescription className="text-neutral-400 mt-3 text-lg px-4 font-sans">
+              <CardDescription className="text-text-secondary mt-3 text-lg px-4 font-sans">
                 Complete your profile to start connecting and collaborating.
               </CardDescription>
             </motion.div>

@@ -100,7 +100,6 @@ export default function MatchPage() {
 
   const swiped = async (direction: 'left' | 'right', swipedUserId: string, index: number) => {
     setLastDirection(direction);
-    setCurrentIndex(index - 1);
     console.log(`Swiped ${direction} on user ${swipedUserId} at index ${index}`);
 
     if (!user) {
@@ -131,6 +130,8 @@ export default function MatchPage() {
 
   const outOfFrame = (name: string | null, idx: number) => {
     console.log(`${name || 'User'} left the screen at index ${idx}!`);
+    // Update current index when card leaves the screen
+    setCurrentIndex(idx - 1);
   };
 
   const goBack = async () => {
