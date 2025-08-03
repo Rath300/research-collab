@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   FiGrid, FiUser, FiFolder, FiChevronRight, FiFilePlus, FiSearch,
-  FiMessageSquare, FiSettings, FiPlus, FiLogOut, FiChevronsLeft, FiChevronsRight
+  FiMessageSquare, FiSettings, FiPlus, FiLogOut, FiChevronsLeft, FiChevronsRight, FiBell
 } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore, useChatStore } from '@/lib/store';
 import React, { useState, Fragment } from 'react';
+import { api } from '@/lib/trpc';
 import { Disclosure, Transition } from '@headlessui/react';
 import { Button } from '@/components/ui/Button';
 import { titleCase } from '@/lib/utils';
@@ -31,15 +32,16 @@ interface NavLinkProps {
   isActive: boolean;
   isCollapsed: boolean;
   isSubItem?: boolean;
+  badge?: number;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, isCollapsed, isSubItem = false }) => {
+const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, isCollapsed, isSubItem = false, badge }) => {
   return (
     <Link
       href={href}
       title={isCollapsed ? label : undefined}
       className={cn(
-        'flex items-center h-10 rounded-lg text-sm transition-colors',
+        'flex items-center h-10 rounded-lg text-sm transition-colors relative',
         isSubItem ? 'pr-3' : 'px-3',
         isSubItem && !isCollapsed ? 'pl-10' : '',
         isActive
@@ -61,6 +63,11 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, is
       >
         <span className='flex-grow truncate'>{label}</span>
       </Transition>
+      {badge && badge > 0 && (
+        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-medium">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
     </Link>
   );
 };
@@ -88,6 +95,9 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
   const pathname = usePathname();
   const router = useRouter();
   const { unreadMessages } = useChatStore();
+  
+  // Get unread notification count
+  const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
   // supabase is already imported as a singleton
 
   const displayName = profile?.first_name 
@@ -124,6 +134,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
     { name: 'Dashboard', href: '/dashboard', icon: FiGrid }, 
     { name: 'Discover Projects', href: '/discover', icon: FiSearch },
     { name: 'Chats', href: '/chats', icon: FiMessageSquare },
+    { name: 'Notifications', href: '/notifications', icon: FiBell },
   ];
 
   const settingsNavItems = [
@@ -193,6 +204,7 @@ export function DashboardSidebar({ profile, isCollapsed, toggleSidebar }: Sideba
               label={item.name}
               isActive={isActive(item.href)}
               isCollapsed={isCollapsed}
+              badge={item.name === 'Notifications' ? unreadNotifications?.count : undefined}
             />
           ))}
           

@@ -14,6 +14,7 @@ import { FileManager } from '@/components/project/FileManager';
 import { ProjectChat } from '@/components/project/ProjectChat';
 import { TaskManager } from '@/components/project/TaskManager';
 import { ProjectNotes } from '@/components/project/ProjectNotes';
+import { JoinRequests } from '@/components/project/JoinRequests';
 
 type Collaborator = NonNullable<ReturnType<typeof api.project.listCollaborators.useQuery>['data']>[number];
 
@@ -279,6 +280,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               <InviteCollaboratorForm projectId={projectId} />
           </CardContent>
         </Card>
+      )}
+
+      {/* Join Requests - Only show for project owners */}
+      {project?.role === 'owner' && (
+        <div className="mb-8">
+          <JoinRequests projectId={projectId} />
+        </div>
       )}
       
       <Card className="bg-white border-border-light mb-8">
