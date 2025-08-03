@@ -162,14 +162,14 @@ export default function MatchPage() {
         setIsSwiping(true);
         console.log('Attempting to swipe', dir, 'on card at index', currentIndex);
         
-        // Call the swipe method on the TinderCard ref
-        const result = await childRefs[currentIndex].current.swipe(dir);
-        console.log('Swipe result:', result);
-        
-        // Manually trigger the swipe event if the library doesn't
-        if (result && (dir === 'left' || dir === 'right')) {
+        // Always trigger the swipe event manually since the library's swipe() method returns undefined
+        if (dir === 'left' || dir === 'right') {
           const currentUser = potentialMatches[currentIndex];
           if (currentUser) {
+            // Call the swipe method on the TinderCard ref for visual animation
+            await childRefs[currentIndex].current.swipe(dir);
+            
+            // Manually trigger our swipe logic
             swiped(dir, currentUser.id, currentIndex);
           }
         }

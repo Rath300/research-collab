@@ -15,6 +15,7 @@ import { ProjectChat } from '@/components/project/ProjectChat';
 import { TaskManager } from '@/components/project/TaskManager';
 import { ProjectNotes } from '@/components/project/ProjectNotes';
 import { JoinRequests } from '@/components/project/JoinRequests';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 type Collaborator = NonNullable<ReturnType<typeof api.project.listCollaborators.useQuery>['data']>[number];
 
@@ -285,7 +286,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       {/* Join Requests - Only show for project owners */}
       {project?.role === 'owner' && (
         <div className="mb-8">
-          <JoinRequests projectId={projectId} />
+          <ErrorBoundary>
+            <React.Suspense fallback={<div className="text-text-secondary">Loading join requests...</div>}>
+              <JoinRequests projectId={projectId} />
+            </React.Suspense>
+          </ErrorBoundary>
         </div>
       )}
       
