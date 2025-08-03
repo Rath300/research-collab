@@ -192,7 +192,7 @@ export default function TrendingPage() {
         .from('projects')
         .select(`
           *,
-          profiles!projects_leader_id_fkey (
+          profiles!leader_id (
             id,
             first_name,
             last_name,
