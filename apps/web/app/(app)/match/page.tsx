@@ -256,19 +256,21 @@ export default function MatchPage() {
       </div>
       
       <div className='relative w-[90vw] max-w-[380px] h-[70vh] max-h-[600px] flex items-center justify-center'>
-        <AnimatePresence mode="wait">
-          {potentialMatches.length > 0 && currentIndex >= 0 ? (
-            potentialMatches.map((character, index) => (
+        {potentialMatches.length > 0 && currentIndex >= 0 ? (
+          // Only render the current card and the next few cards for smooth transitions
+          potentialMatches.slice(currentIndex, Math.min(currentIndex + 3, potentialMatches.length)).map((character, index) => {
+            const actualIndex = currentIndex + index;
+            return (
               <TinderCard
-                ref={childRefs[index]}
+                ref={childRefs[actualIndex]}
                 className='absolute swipe-card'
                 key={character.id}
                 onSwipe={(dir) => {
                   if (dir === 'left' || dir === 'right') {
-                    swiped(dir, character.id, index);
+                    swiped(dir, character.id, actualIndex);
                   }
                 }}
-                onCardLeftScreen={() => outOfFrame(character.first_name, index)}
+                onCardLeftScreen={() => outOfFrame(character.first_name, actualIndex)}
                 preventSwipe={['up', 'down']} // Allow only left/right swipes
               >
                 <motion.div
@@ -316,7 +318,8 @@ export default function MatchPage() {
                   </div>
                 </motion.div>
               </TinderCard>
-            ))
+            );
+          })
           ) : (
             <motion.div 
               key="no-more-profiles"
@@ -357,8 +360,7 @@ export default function MatchPage() {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
-      </div>
+        </div>
 
       {potentialMatches.length > 0 && currentIndex >= 0 && (
         <motion.div 
