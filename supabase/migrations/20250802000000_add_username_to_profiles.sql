@@ -10,3 +10,5 @@ ALTER TABLE profiles ADD CONSTRAINT IF NOT EXISTS profiles_username_format
 
 -- Add comment
 COMMENT ON COLUMN profiles.username IS 'Unique alphanumeric username for user identification'; 
+ 
+ 

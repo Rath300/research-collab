@@ -2390,6 +2390,39 @@ export const projectRouter = router({
             throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update collaboration request.' });
           }
 
+          // Get the requesting user's profile for the notification
+          const { data: requesterProfile, error: profileError } = await ctx.supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', userId)
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching requester profile:", profileError);
+            // Don't fail the request if we can't get the profile
+          }
+
+          // Create notification for the project leader
+          const requesterName = requesterProfile 
+            ? `${requesterProfile.first_name || 'Someone'} ${requesterProfile.last_name || ''}`.trim()
+            : 'Someone';
+
+          const { error: notificationError } = await ctx.supabase
+            .from('user_notifications')
+            .insert({
+              user_id: project.leader_id,
+              type: 'collaboration_request',
+              content: `${requesterName} has requested to join your project "${project.title}"`,
+              sender_id: userId,
+              link_to: `/projects/${projectId}`,
+              is_read: false,
+            });
+
+          if (notificationError) {
+            console.error("Error creating notification:", notificationError);
+            // Don't fail the request if notification fails
+          }
+
           return { success: true, message: 'Request to join project sent successfully.' };
         }
       }
@@ -2408,6 +2441,39 @@ export const projectRouter = router({
       if (insertError) {
         console.error("Error creating collaboration request:", insertError);
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create collaboration request.' });
+      }
+
+      // 4. Get the requesting user's profile for the notification
+      const { data: requesterProfile, error: profileError } = await ctx.supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching requester profile:", profileError);
+        // Don't fail the request if we can't get the profile
+      }
+
+      // 5. Create notification for the project leader
+      const requesterName = requesterProfile 
+        ? `${requesterProfile.first_name || 'Someone'} ${requesterProfile.last_name || ''}`.trim()
+        : 'Someone';
+
+      const { error: notificationError } = await ctx.supabase
+        .from('user_notifications')
+        .insert({
+          user_id: project.leader_id,
+          type: 'collaboration_request',
+          content: `${requesterName} has requested to join your project "${project.title}"`,
+          sender_id: userId,
+          link_to: `/projects/${projectId}`,
+          is_read: false,
+        });
+
+      if (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Don't fail the request if notification fails
       }
 
       return { success: true, message: 'Request to join project sent successfully.' };

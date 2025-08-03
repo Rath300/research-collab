@@ -160,3 +160,5 @@ CREATE TRIGGER on_project_notes_updated
     BEFORE UPDATE ON public.project_notes
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_project_notes_updated_at(); 
+ 
+ 

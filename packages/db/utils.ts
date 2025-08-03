@@ -135,3 +135,5 @@ export function generateUniqueUsernames(count: number): string[] {
 export function isValidUsername(username: string): boolean {
   return /^[a-zA-Z0-9]{3,20}$/.test(username);
 } 
+ 
+ 
