@@ -3,9 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiBell, FiUser, FiSettings, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; 
+import { FiBell, FiUser, FiSettings, FiLogOut, FiMenu, FiX } from 'react-icons/fi'; 
 import { Avatar } from '@/components/ui/Avatar';
-import { Input } from '@/components/ui/Input'; // Assuming Input component exists
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Corrected path
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/store';
@@ -52,16 +51,7 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
     console.log('[DashboardHeader] Redirect attempt made. End of handleLogout.');
   };
 
-  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      const query = event.currentTarget.value;
-      if (query.trim()) {
-        // Redirect to discover page for now, which shows projects
-        // TODO: Create a unified search page that searches across projects, users, and research papers
-        router.push(`/discover?q=${encodeURIComponent(query.trim())}`);
-      }
-    }
-  };
+
 
   const displayName = profile?.first_name 
     ? titleCase(`${profile.first_name} ${profile.last_name ?? ''}`.trim()) 
@@ -76,21 +66,10 @@ export function DashboardHeader({ profile, toggleSidebar, isSidebarCollapsed }: 
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="mr-4 p-2 text-text-secondary hover:text-text-primary"
+          className="p-2 text-text-secondary hover:text-text-primary"
         >
           {isSidebarCollapsed ? <FiMenu className="h-5 w-5" /> : <FiX className="h-5 w-5" />}
         </Button>
-        
-        {/* Search Input - Adjusted width and placeholder */}
-        <div className="relative w-full max-w-xs">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
-          <Input
-            type="search"
-            placeholder="Search projects..."
-            className="pl-9 pr-4 py-2 text-sm w-full bg-white border-border-light focus:ring-accent-primary focus:border-accent-primary rounded-md text-text-primary placeholder-text-secondary"
-            onKeyDown={handleSearch}
-          />
-        </div>
       </div>
 
       <div className="flex items-center space-x-4">

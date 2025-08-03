@@ -7,8 +7,11 @@ import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
-import { FiLoader, FiAlertCircle, FiUser, FiTag, FiThumbsUp, FiMessageSquare, FiBookmark, FiBarChart2, FiZap, FiHome } from 'react-icons/fi';
+import { Button } from '@/components/ui/Button';
+import { FiLoader, FiAlertCircle, FiUser, FiTag, FiThumbsUp, FiMessageSquare, FiBookmark, FiBarChart2, FiZap, FiHome, FiUserPlus } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
+import { api } from '@/lib/trpc';
+import { useAuthStore } from '@/lib/store';
 
 type Project = Database['public']['Tables']['projects']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -28,6 +31,11 @@ const postCardItemVariants = {
 };
 
 const PostCard = ({ post }: { post: TrendingProject }) => {
+  const { user } = useAuthStore();
+  const requestToJoinMutation = api.project.requestToJoin.useMutation();
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
   const calculatedAuthorName = (post.profiles?.first_name && post.profiles?.last_name 
     ? `${post.profiles.first_name} ${post.profiles.last_name}` 
     : post.profiles?.first_name)
@@ -40,9 +48,34 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
     : post.description;
 
   // Use username if available, otherwise fall back to old format
-  const usernameTag = post.profiles?.username 
-    ? `@${post.profiles.username}` 
-    : `@${post.profiles?.first_name?.toLowerCase() || 'user'}${post.profiles?.id?.slice(-4) || ''}`;
+  const usernameTag = post.profiles?.first_name 
+    ? `@${post.profiles?.first_name?.toLowerCase() || 'user'}${post.profiles?.id?.slice(-4) || ''}` 
+    : `@user${post.profiles?.id?.slice(-4) || ''}`;
+
+  const handleRequestToJoin = async () => {
+    if (!user) {
+      setRequestStatus('error');
+      return;
+    }
+
+    setIsRequesting(true);
+    setRequestStatus('idle');
+
+    try {
+      await requestToJoinMutation.mutateAsync({
+        projectId: post.id,
+        message: `I'm interested in joining your project "${post.title}"`
+      });
+      setRequestStatus('success');
+    } catch (error) {
+      console.error('Error requesting to join project:', error);
+      setRequestStatus('error');
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  const isOwnProject = user && post.leader_id === user.id;
 
   return (
     <motion.div 
@@ -83,6 +116,42 @@ const PostCard = ({ post }: { post: TrendingProject }) => {
             </span>
           </div>
         )}
+
+        {/* Request to Join Button */}
+        {!isOwnProject && post.is_public && (
+          <div className="mb-4">
+            <Button
+              onClick={handleRequestToJoin}
+              disabled={isRequesting}
+              variant="outline"
+              size="sm"
+              className="w-full text-sm"
+            >
+              <FiUserPlus className="mr-2 h-4 w-4" />
+              {isRequesting ? 'Requesting...' : 'Request to Join'}
+            </Button>
+            
+            {requestStatus === 'success' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md text-green-700 text-xs"
+              >
+                Request sent successfully!
+              </motion.div>
+            )}
+            
+            {requestStatus === 'error' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-700 text-xs"
+              >
+                {requestToJoinMutation.error?.message || 'Failed to send request'}
+              </motion.div>
+            )}
+          </div>
+        )}
       </div>
       <div className="bg-gray-50 px-5 py-3 border-t border-border-light flex items-center justify-between text-text-secondary">
         <div className="flex items-center gap-3">
@@ -121,7 +190,16 @@ export default function TrendingPage() {
     try {
       const { data: fetchedProjects, error: projectsError } = await supabase
         .from('projects')
-        .select('*')
+        .select(`
+          *,
+          profiles!projects_leader_id_fkey (
+            id,
+            first_name,
+            last_name,
+            avatar_url,
+            institution
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(30);
 

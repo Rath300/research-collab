@@ -2318,6 +2318,100 @@ export const projectRouter = router({
 
       return { success: true, message: 'Research item deleted successfully.' };
     }),
+
+  /**
+   * Request to join a public project.
+   * Creates a pending collaboration request for the current user.
+   */
+  requestToJoin: protectedProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      message: z.string().optional(),
+    }))
+    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const { projectId, message } = input;
+
+      // 1. Verify the project exists and is public
+      const { data: project, error: projectError } = await ctx.supabase
+        .from('projects')
+        .select('id, title, is_public, leader_id')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) {
+        console.error("Error fetching project for join request:", projectError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch project details.' });
+      }
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found.' });
+      }
+      if (!project.is_public) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'This project is not open for public collaboration requests.' });
+      }
+      if (project.leader_id === userId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot request to join your own project.' });
+      }
+
+      // 2. Check if user already has a collaboration record for this project
+      const { data: existingCollaboration, error: existingError } = await ctx.supabase
+        .from('project_collaborators')
+        .select('id, status')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existingError) {
+        console.error("Error checking existing collaboration:", existingError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to check existing collaboration status.' });
+      }
+
+      if (existingCollaboration) {
+        if (existingCollaboration.status === 'pending') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'You already have a pending request to join this project.' });
+        }
+        if (existingCollaboration.status === 'active') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'You are already a collaborator on this project.' });
+        }
+        if (existingCollaboration.status === 'declined') {
+          // Allow re-requesting if previously declined
+          const { error: updateError } = await ctx.supabase
+            .from('project_collaborators')
+            .update({ 
+              status: 'pending',
+              invited_by: null, // Clear the previous inviter since this is a new request
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingCollaboration.id);
+
+          if (updateError) {
+            console.error("Error updating declined collaboration to pending:", updateError);
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update collaboration request.' });
+          }
+
+          return { success: true, message: 'Request to join project sent successfully.' };
+        }
+      }
+
+      // 3. Create new collaboration request
+      const { error: insertError } = await ctx.supabase
+        .from('project_collaborators')
+        .insert({
+          project_id: projectId,
+          user_id: userId,
+          role: 'viewer', // Default role for join requests
+          status: 'pending',
+          invited_by: null, // Self-request, not invited by someone else
+        });
+
+      if (insertError) {
+        console.error("Error creating collaboration request:", insertError);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create collaboration request.' });
+      }
+
+      return { success: true, message: 'Request to join project sent successfully.' };
+    }),
 });
 
 // Export type for router, can be used in frontend

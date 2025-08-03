@@ -4,14 +4,14 @@ import React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TinderCard from 'react-tinder-card';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 import { type Database } from '@/lib/database.types';
 import { useAuthStore } from '@/lib/store';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { FiUser, FiLoader, FiAlertCircle, FiHeart, FiX, FiRewind, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiLoader, FiAlertCircle, FiHeart, FiX, FiRewind, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 import Link from 'next/link';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -31,6 +31,7 @@ export default function MatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastDirection, setLastDirection] = useState<string | null>(null);
+  const [isSwiping, setIsSwiping] = useState(false);
 
   const fetchPotentialMatches = useCallback(async () => {
     if (!user) {
@@ -149,19 +150,65 @@ export default function MatchPage() {
   const swipe = async (dir: 'left' | 'right' | 'up' | 'down') => {
     if (currentIndex >= 0 && childRefs[currentIndex] && childRefs[currentIndex].current) {
       try {
+        setIsSwiping(true);
         await childRefs[currentIndex].current.swipe(dir);
+        // Add a small delay to allow the animation to complete
+        setTimeout(() => setIsSwiping(false), 300);
       } catch (error) {
         console.error('Error swiping card:', error);
+        setIsSwiping(false);
       }
     }
   };
 
+  const cardVariants = {
+    initial: { 
+      scale: 0.95, 
+      opacity: 0.8,
+      rotateY: 0,
+      y: 20
+    },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      rotateY: 0,
+      y: 0,
+      transition: { 
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    },
+    exit: {
+      scale: 0.8,
+      opacity: 0,
+      rotateY: 15,
+      y: -50,
+      transition: { 
+        duration: 0.3,
+        ease: "easeIn"
+      }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.1 },
+    tap: { scale: 0.95 },
+    disabled: { scale: 0.9, opacity: 0.5 }
+  };
 
   if (loading) {
     return (
       <PageContainer title="Find Matches" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans">
-        <FiLoader className="animate-spin text-accent-purple text-6xl" />
-        <p className="mt-4 text-neutral-400">Loading potential matches...</p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <FiLoader className="animate-spin text-accent-primary text-6xl mx-auto mb-4" />
+          <p className="mt-4 text-text-secondary">Loading potential matches...</p>
+        </motion.div>
       </PageContainer>
     );
   }
@@ -169,10 +216,17 @@ export default function MatchPage() {
   if (error) {
     return (
       <PageContainer title="Error" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans p-6">
-        <FiAlertCircle className="text-red-500 text-6xl mb-4" />
-        <h2 className="text-2xl font-heading mb-2">Oops! Something went wrong.</h2>
-        <p className="text-neutral-400 text-center mb-6">{error}</p>
-        <Button onClick={fetchPotentialMatches} variant="secondary">Try Again</Button>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <FiAlertCircle className="text-red-500 text-6xl mb-4 mx-auto" />
+          <h2 className="text-2xl font-heading mb-2">Oops! Something went wrong.</h2>
+          <p className="text-text-secondary text-center mb-6">{error}</p>
+          <Button onClick={fetchPotentialMatches} variant="secondary">Try Again</Button>
+        </motion.div>
       </PageContainer>
     );
   }
@@ -180,7 +234,7 @@ export default function MatchPage() {
   return (
     <PageContainer title="Discover Matches" className="bg-bg-primary min-h-screen flex flex-col items-center justify-center text-text-primary font-sans overflow-hidden">
       <div className="absolute top-4 left-4 z-20">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-neutral-300 hover:bg-neutral-700 p-2">
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-text-secondary hover:bg-surface-hover p-2">
               <FiArrowLeft size={24} />
           </Button>
       </div>
@@ -193,100 +247,147 @@ export default function MatchPage() {
       </div>
       
       <div className='relative w-[90vw] max-w-[380px] h-[70vh] max-h-[600px] flex items-center justify-center'>
-        {potentialMatches.length > 0 ? potentialMatches.map((character, index) => (
-          <TinderCard
-            ref={childRefs[index]}
-            className='absolute swipe-card'
-            key={character.id}
-            onSwipe={(dir) => {
-              if (dir === 'left' || dir === 'right') {
-                swiped(dir, character.id, index);
-              }
-            }}
-            onCardLeftScreen={() => outOfFrame(character.first_name, index)}
-            preventSwipe={['up', 'down']} // Allow only left/right swipes
-          >
-            <motion.div
-              className='relative w-full h-full rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-700 overflow-hidden p-6 flex flex-col justify-end'
-              initial={{ scale: 0.95, opacity: 0.8 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-center z-0" 
-                style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
+        <AnimatePresence mode="wait">
+          {potentialMatches.length > 0 && currentIndex >= 0 ? (
+            potentialMatches.map((character, index) => (
+              <TinderCard
+                ref={childRefs[index]}
+                className='absolute swipe-card'
+                key={character.id}
+                onSwipe={(dir) => {
+                  if (dir === 'left' || dir === 'right') {
+                    swiped(dir, character.id, index);
+                  }
+                }}
+                onCardLeftScreen={() => outOfFrame(character.first_name, index)}
+                preventSwipe={['up', 'down']} // Allow only left/right swipes
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
-              </div>
-              
-              <div className="relative z-20 text-white">
-                <h3 className='text-3xl font-heading mb-1'>
-                  {character.first_name || 'Anonymous'} {character.last_name || ''}
-                </h3>
-                <p className='text-sm text-neutral-300 line-clamp-2'>{character.bio || 'No bio yet.'}</p>
-                {character.interests && character.interests.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {character.interests.slice(0, 3).map(interest => (
-                      <span key={interest} className="px-2 py-0.5 bg-accent-purple/20 text-accent-purple text-xs rounded-full font-sans">
-                        {interest}
-                      </span>
-                    ))}
+                <motion.div
+                  className='relative w-full h-full rounded-2xl bg-white shadow-2xl border border-border-light overflow-hidden p-6 flex flex-col justify-end'
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center z-0" 
+                    style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
                   </div>
-                )}
+                  
+                  <div className="relative z-20 text-white">
+                    <h3 className='text-3xl font-heading mb-1'>
+                      {character.first_name || 'Anonymous'} {character.last_name || ''}
+                    </h3>
+                    <p className='text-sm text-neutral-300 line-clamp-2'>{character.bio || 'No bio yet.'}</p>
+                    {character.interests && character.interests.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {character.interests.slice(0, 3).map(interest => (
+                          <span key={interest} className="px-2 py-0.5 bg-text-secondary/20 text-text-secondary text-xs rounded-full font-sans">
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </TinderCard>
+            ))
+          ) : (
+            <motion.div 
+              key="no-more-profiles"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-center p-8 bg-white rounded-xl border border-border-light shadow-xl max-w-sm mx-auto"
+            >
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="mb-6"
+              >
+                <FiUser size={64} className="mx-auto text-text-secondary" />
+              </motion.div>
+              <h2 className="text-2xl font-heading text-text-primary mb-3">No More Profiles</h2>
+              <p className="text-text-secondary mb-6 text-sm leading-relaxed">
+                You've seen everyone for now! Check back later for new profiles, or try refreshing to see if there are any new matches.
+              </p>
+              <div className="space-y-3">
+                <Button 
+                  onClick={fetchPotentialMatches}
+                  variant="primary"
+                  className="w-full"
+                >
+                  <FiRefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+                <Button 
+                  onClick={() => router.push('/matches')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  View My Matches
+                </Button>
               </div>
             </motion.div>
-          </TinderCard>
-        )) : (
-          !loading && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center p-8 bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl"
-            >
-              <FiUser size={64} className="mx-auto text-neutral-600 mb-4" />
-              <h2 className="text-2xl font-heading text-neutral-200 mb-2">No More Profiles</h2>
-              <p className="text-neutral-400 mb-4 text-sm">You've seen everyone for now. Check back later!</p>
-            </motion.div>
-          )
-        )}
+          )}
+        </AnimatePresence>
       </div>
 
       {potentialMatches.length > 0 && currentIndex >= 0 && (
-        <div className='flex items-center justify-center gap-6 mt-8 z-20'>
-          <Button
-            onClick={() => {
-              console.log('Reject button clicked, currentIndex:', currentIndex);
-              swipe('left');
-            }}
-            variant="outline"
-            size="lg"
-            className="rounded-full !p-5 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-400"
-            aria-label="Reject"
+        <motion.div 
+          className='flex items-center justify-center gap-6 mt-8 z-20'
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <motion.div
+            variants={buttonVariants}
+            initial="initial"
+            whileHover={isSwiping ? "disabled" : "hover"}
+            whileTap={isSwiping ? "disabled" : "tap"}
           >
-            <FiX size={28} />
-          </Button>
-          {/* <Button
-            onClick={goBack}
-            variant="outline"
-            sizeLg
-            className="rounded-full !p-4 border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
-            aria-label="Undo"
+            <Button
+              onClick={() => {
+                console.log('Reject button clicked, currentIndex:', currentIndex);
+                swipe('left');
+              }}
+              variant="outline"
+              size="lg"
+              disabled={isSwiping}
+              className="rounded-full !p-5 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Reject"
+            >
+              <FiX size={28} />
+            </Button>
+          </motion.div>
+          
+          <motion.div
+            variants={buttonVariants}
+            initial="initial"
+            whileHover={isSwiping ? "disabled" : "hover"}
+            whileTap={isSwiping ? "disabled" : "tap"}
           >
-            <FiRewind size={20} />
-          </Button> */}
-          <Button
-            onClick={() => {
-              console.log('Like button clicked, currentIndex:', currentIndex);
-              swipe('right');
-            }}
-            variant="outline"
-            size="lg"
-            className="rounded-full !p-5 border-green-500/50 text-green-500 hover:bg-green-500/10 hover:text-green-400"
-            aria-label="Like"
-          >
-            <FiHeart size={28} />
-          </Button>
-        </div>
+            <Button
+              onClick={() => {
+                console.log('Like button clicked, currentIndex:', currentIndex);
+                swipe('right');
+              }}
+              variant="outline"
+              size="lg"
+              disabled={isSwiping}
+              className="rounded-full !p-5 border-green-500/50 text-green-500 hover:bg-green-500/10 hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Like"
+            >
+              <FiHeart size={28} />
+            </Button>
+          </motion.div>
+        </motion.div>
       )}
       <style jsx global>{`
         .swipe-card {

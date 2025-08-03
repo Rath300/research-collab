@@ -195,3 +195,5 @@ export function ProjectChat({ projectId }: ProjectChatProps) {
     </Card>
   );
 }
+
+
