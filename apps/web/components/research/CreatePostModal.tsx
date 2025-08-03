@@ -62,10 +62,6 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
     e.preventDefault();
     
     if (!title.trim() || !content.trim()) {
-      createPostMutation.reset(); // Clear any previous error states
-      createPostMutation.mutate(undefined, {
-          onError: () => {} // Prevent unhandled rejection
-      });
       return;
     }
     
@@ -75,17 +71,20 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
     
     createPostMutation.mutate({
       title,
-      content,
+      description: content,
       tags: tags.length > 0 ? tags : undefined,
-      visibility,
+      is_public: visibility === 'public',
     });
   };
   
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto bg-white border border-border-light">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Create Research Post</CardTitle>
+          <div>
+            <CardTitle className="text-text-primary">Create New Research Project</CardTitle>
+            <p className="text-text-secondary text-sm mt-1">Start by defining the core details of your project. You can add files and other resources after saving.</p>
+          </div>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -100,15 +99,15 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {createPostMutation.error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm dark:bg-red-900/20 dark:text-red-400">
+              <div className="bg-red-50 text-red-600 p-3 rounded-md flex items-center space-x-2 text-sm">
                 <FiAlertCircle className="h-5 w-5 flex-shrink-0" />
                 <span>{createPostMutation.error.message}</span>
               </div>
             )}
             
             <Input
-              label="Title"
-              placeholder="Enter your research title"
+              label="Project Title"
+              placeholder="The Art of Making Websites"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -116,12 +115,12 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
             />
             
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                Content
+              <label className="mb-2 block text-sm font-medium text-text-primary">
+                Project Abstract / Summary
               </label>
               <textarea
-                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[200px] disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900"
-                placeholder="Describe your research, findings, or questions..."
+                className="flex w-full rounded-md border border-border-light bg-white px-3 py-2 text-sm placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent min-h-[200px] disabled:cursor-not-allowed disabled:opacity-50 text-text-primary"
+                placeholder="Making cool Websites for everyone"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
@@ -129,12 +128,12 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
             </div>
             
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                Tags (up to 5)
+              <label className="mb-2 block text-sm font-medium text-text-primary">
+                Tags
               </label>
               <div className="flex items-center space-x-2">
                 <Input
-                  placeholder="Add a tag (e.g., Machine Learning)"
+                  placeholder="Add a tag and press Enter"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -154,7 +153,7 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
                   {tags.map((tag) => (
                     <div
                       key={tag}
-                      className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-sm flex items-center space-x-1 dark:bg-primary-900/20 dark:text-primary-300"
+                      className="bg-text-secondary/10 text-text-secondary px-2 py-1 rounded-full text-sm flex items-center space-x-1"
                     >
                       <FiHash size={12} />
                       <span>{tag}</span>
@@ -171,48 +170,7 @@ export default function CreatePostModal({ onClose }: CreatePostModalProps) {
               )}
             </div>
             
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                Visibility
-              </label>
-              <div className="flex space-x-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="public"
-                    checked={visibility === 'public'}
-                    onChange={() => setVisibility('public')}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm">Public</span>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="connections"
-                    checked={visibility === 'connections'}
-                    onChange={() => setVisibility('connections')}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm">Connections Only</span>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="private"
-                    checked={visibility === 'private'}
-                    onChange={() => setVisibility('private')}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm">Private</span>
-                </label>
-              </div>
-            </div>
+
           </CardContent>
           
           <CardFooter className="flex justify-end space-x-2">

@@ -280,10 +280,22 @@ export default function MatchPage() {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center z-0" 
-                    style={{ backgroundImage: `url(${character.avatar_url || '/images/default-avatar.png'})` }}
-                  >
+                  <div className="absolute inset-0 bg-gray-100 z-0">
+                    {character.avatar_url ? (
+                      <img
+                        src={character.avatar_url}
+                        alt={`${character.first_name || 'User'}'s avatar`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide the image if it fails to load
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <FiUser className="w-24 h-24 text-gray-400" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10"></div>
                   </div>
                   
