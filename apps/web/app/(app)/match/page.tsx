@@ -157,7 +157,7 @@ export default function MatchPage() {
   };
   
   const swipe = async (dir: 'left' | 'right' | 'up' | 'down') => {
-    if (currentIndex >= 0 && childRefs[currentIndex] && childRefs[currentIndex].current) {
+    if (currentIndex >= 0 && childRefs[currentIndex] && childRefs[currentIndex].current && !isSwiping) {
       try {
         setIsSwiping(true);
         console.log('Attempting to swipe', dir, 'on card at index', currentIndex);
@@ -167,21 +167,22 @@ export default function MatchPage() {
           const currentUser = potentialMatches[currentIndex];
           if (currentUser) {
             // Call the swipe method on the TinderCard ref for visual animation
-            await childRefs[currentIndex].current.swipe(dir);
+            const result = await childRefs[currentIndex].current.swipe(dir);
+            console.log('Swipe result:', result);
             
-            // Manually trigger our swipe logic
+            // Manually trigger our swipe logic regardless of the result
             swiped(dir, currentUser.id, currentIndex);
           }
         }
         
         // Add a small delay to allow the animation to complete
-        setTimeout(() => setIsSwiping(false), 500);
+        setTimeout(() => setIsSwiping(false), 300);
       } catch (error) {
         console.error('Error swiping card:', error);
         setIsSwiping(false);
       }
     } else {
-      console.log('Cannot swipe: currentIndex =', currentIndex, 'childRefs[currentIndex] =', childRefs[currentIndex]);
+      console.log('Cannot swipe: currentIndex =', currentIndex, 'isSwiping =', isSwiping, 'childRefs[currentIndex] =', childRefs[currentIndex]);
     }
   };
 
@@ -275,10 +276,12 @@ export default function MatchPage() {
           // Only render the current card and the next few cards for smooth transitions
           potentialMatches.slice(currentIndex, Math.min(currentIndex + 3, potentialMatches.length)).map((character, index) => {
             const actualIndex = currentIndex + index;
+            const isCurrentCard = index === 0;
+            
             return (
               <TinderCard
                 ref={childRefs[actualIndex]}
-                className='absolute swipe-card'
+                className={`absolute swipe-card ${isCurrentCard ? 'z-10' : 'z-0'}`}
                 key={character.id}
                 onSwipe={(dir) => {
                   if (dir === 'left' || dir === 'right') {
