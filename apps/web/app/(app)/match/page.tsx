@@ -13,6 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { FiUser, FiLoader, FiAlertCircle, FiHeart, FiX, FiRewind, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 import Link from 'next/link';
+import { trackMatch } from '@/lib/analytics';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileMatchStatus = Database['public']['Tables']['profile_matches']['Row']['status'];
@@ -129,6 +130,8 @@ export default function MatchPage() {
           console.error('Error inserting match:', insertError);
         } else {
           console.log(`Match (matched) between ${user.id} and ${swipedUserId} recorded.`);
+          // Track successful match
+          trackMatch('swipe');
         }
       } catch (e) {
         console.error("Supabase error:", e);

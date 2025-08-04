@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
+import { trackSignUp } from '@/lib/analytics';
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -50,6 +51,8 @@ export default function Signup() {
       }
 
       if (data?.user) {
+        // Track successful signup
+        trackSignUp('email');
         router.push("/auth/check-email");
       }
     } catch (err: any) {

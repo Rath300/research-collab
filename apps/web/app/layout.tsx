@@ -4,6 +4,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { TRPCProvider } from '@/components/providers/TRPCProvider';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
+import Script from 'next/script';
 
 // Primary font - Inter (clean, modern)
 const inter = Inter({
@@ -25,8 +26,8 @@ const calSans = {
 };
 
 export const metadata: Metadata = {
-  title: 'Research Collab',
-  description: 'Collaborate on research projects, find partners, and share your work.',
+  title: 'Research Collab - Connect with Researchers',
+  description: 'Find research collaborators, join projects, and build meaningful connections in the research community.',
 };
 
 export default function RootLayout({
@@ -39,6 +40,21 @@ export default function RootLayout({
       lang="en" 
       className={`${inter.variable} ${jetbrainsMono.variable} ${calSans.variable} font-sans antialiased`}
     >
+      <head>
+        {/* Google Analytics 4 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-DJ066QLDTL"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-DJ066QLDTL');
+          `}
+        </Script>
+      </head>
       <body className="bg-bg-primary text-text-primary min-h-screen flex flex-col font-body antialiased transition-colors">
         <AuthProvider>
           <TRPCProvider>
