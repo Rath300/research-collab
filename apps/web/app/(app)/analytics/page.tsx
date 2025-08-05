@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
 
   // Simple admin check - you can enhance this based on your needs
-  const isAdmin = user?.email?.includes('admin') || user?.email === 'shreyanshrathred@gmail.com';
+  const isAdmin = user?.email?.includes('admin') || user?.email === 'shreyanshrath4@gmail.com';
 
   useEffect(() => {
     if (!user) {

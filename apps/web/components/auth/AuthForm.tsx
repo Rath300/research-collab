@@ -29,13 +29,11 @@ export function AuthForm({ view }: AuthFormProps) {
       if (view === 'sign-up') {
         const { error: signUpError } = await supabase.auth.signUp({
           email,
-          password,
-          options: {
-            emailRedirectTo: `${location.origin}/auth/callback`
-          }
+          password
         })
         if (signUpError) throw signUpError
-        router.push('/auth/check-email')
+        // Redirect directly to dashboard instead of check-email
+        router.push('/dashboard')
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,

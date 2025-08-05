@@ -39,7 +39,6 @@ export default function Signup() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: fullName,
           },
@@ -53,7 +52,8 @@ export default function Signup() {
       if (data?.user) {
         // Track successful signup
         trackSignUp('email');
-        router.push("/auth/check-email");
+        // Redirect directly to dashboard instead of check-email
+        router.push("/dashboard");
       }
     } catch (err: any) {
       setError(err.message || "An error occurred during signup");
