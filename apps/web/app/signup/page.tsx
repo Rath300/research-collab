@@ -52,8 +52,8 @@ export default function Signup() {
       if (data?.user) {
         // Track successful signup
         trackSignUp('email');
-        // Redirect directly to dashboard instead of check-email
-        router.push("/dashboard");
+        // Redirect to profile setup instead of dashboard
+        router.push("/profile-setup");
       }
     } catch (err: any) {
       setError(err.message || "An error occurred during signup");

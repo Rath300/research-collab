@@ -32,8 +32,8 @@ export function AuthForm({ view }: AuthFormProps) {
           password
         })
         if (signUpError) throw signUpError
-        // Redirect directly to dashboard instead of check-email
-        router.push('/dashboard')
+        // Redirect to profile setup instead of dashboard
+        router.push('/profile-setup')
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
