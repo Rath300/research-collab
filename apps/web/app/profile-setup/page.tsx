@@ -42,10 +42,14 @@ export default function ProfileSetupPage() {
     if (!authLoading) {
       if (!user) {
         router.replace('/login');
-      } else if (profile && profile.first_name && profile.last_name) { 
-        // If profile seems substantially filled (e.g., has first/last name), 
+      } else if (profile && 
+                 profile.first_name && 
+                 profile.last_name && 
+                 profile.first_name !== 'Anonymous' && 
+                 profile.last_name !== 'User' &&
+                 profile.bio) { 
+        // If profile seems substantially filled (has real name and bio), 
         // user might have landed here by mistake after setup. Redirect to dashboard.
-        // This check can be adjusted based on what signifies a "complete enough" profile.
         router.replace('/dashboard');
       }
     }
@@ -59,7 +63,12 @@ export default function ProfileSetupPage() {
     }, 1500); // Delay for user to see success message
   };
 
-  if (authLoading || (!user && !authLoading) || (profile && profile.first_name && profile.last_name && !isRedirecting) ) {
+  if (authLoading || (!user && !authLoading) || (profile && 
+      profile.first_name && 
+      profile.last_name && 
+      profile.first_name !== 'Anonymous' && 
+      profile.last_name !== 'User' &&
+      profile.bio && !isRedirecting) ) {
     return (
       <PageContainer title="Profile Setup" className="bg-bg-primary min-h-screen text-text-primary font-sans flex items-center justify-center">
         <motion.div 

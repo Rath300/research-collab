@@ -34,12 +34,19 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
+      // Parse the full name into first and last name
+      const nameParts = fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       // supabase is already imported as a singleton
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
+            first_name: firstName,
+            last_name: lastName,
             full_name: fullName,
           },
         },

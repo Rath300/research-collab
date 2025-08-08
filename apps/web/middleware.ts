@@ -3,6 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 const PROTECTED_PATHS = ['/dashboard', '/settings', '/profile', '/projects', '/chats', '/research', '/onboarding'];
 const AUTH_PATHS = ['/login', '/signup', '/reset-password', '/update-password', '/auth/check-email'];
+const PROFILE_SETUP_PATH = '/profile-setup';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -67,7 +68,9 @@ export async function middleware(request: NextRequest) {
 
   const isProtectedRoute = PROTECTED_PATHS.some(path => pathname.startsWith(path));
   const isAuthRoute = AUTH_PATHS.includes(pathname);
+  const isProfileSetupRoute = pathname === PROFILE_SETUP_PATH;
 
+  // If user is not authenticated and trying to access protected routes
   if (isProtectedRoute && !isUserAuthenticated) {
     let redirectUrl = '/login';
     if (pathname !== '/') {
@@ -78,9 +81,46 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 
+  // If user is authenticated but trying to access auth routes
   if (isAuthRoute && isUserAuthenticated) {
     if (pathname !== '/auth/check-email' && pathname !== '/update-password') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+  }
+
+  // If user is authenticated, check if they have a profile
+  if (isUserAuthenticated && session?.user?.id) {
+    try {
+      // Check if user has a profile
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, bio')
+        .eq('id', session.user.id)
+        .single();
+
+      const hasCompleteProfile = profile && 
+        profile.first_name && 
+        profile.last_name && 
+        profile.first_name !== 'Anonymous' && 
+        profile.last_name !== 'User' &&
+        profile.bio; // Also check if they have a bio (indicating they've completed profile setup)
+
+      // If user doesn't have a complete profile and is not on profile-setup page
+      if (!hasCompleteProfile && !isProfileSetupRoute && !isAuthRoute) {
+        // Redirect to profile setup
+        return NextResponse.redirect(new URL(PROFILE_SETUP_PATH, request.url));
+      }
+
+      // If user has a complete profile and is on profile-setup page, redirect to dashboard
+      if (hasCompleteProfile && isProfileSetupRoute) {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    } catch (error) {
+      console.error('Error checking user profile in middleware:', error);
+      // If there's an error checking profile, redirect to profile setup to be safe
+      if (!isProfileSetupRoute && !isAuthRoute) {
+        return NextResponse.redirect(new URL(PROFILE_SETUP_PATH, request.url));
+      }
     }
   }
   
